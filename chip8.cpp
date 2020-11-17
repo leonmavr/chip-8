@@ -101,8 +101,8 @@ void Chip8::decode() {
 	 */
 	m_bitfields.type = (m_opcode >> 12) & 0xf;
 	m_bitfields.n    = m_opcode         & 0xf;
-	m_bitfields.y    = (m_opcode >> 8)  & 0xf;
-	m_bitfields.x    = (m_opcode >> 4)  & 0xf;
+	m_bitfields.x    = (m_opcode >> 8)  & 0xf;
+	m_bitfields.y    = (m_opcode >> 4)  & 0xf;
 	m_bitfields.kk   = m_opcode         & 0xff;
 	m_bitfields.nnn  = m_opcode         & 0xfff;
 	//std::cout << "decode " << std::hex << m_opcode << std::endl;
@@ -116,7 +116,12 @@ void Chip8::exec() {
 	//std::cout << "exec: " << std::hex  << m_bitfields.type << std::endl;
 	switch(m_bitfields.type) {
 		case 0x0:
-			;
+			// 1. 00E0
+			if (m_bitfields.nnn == 0xe0)
+
+			// 2. 00EE
+
+			break;
 		case 0x1:
 			;
 		case 0x2:
