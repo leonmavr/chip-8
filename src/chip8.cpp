@@ -22,18 +22,16 @@ class Chip8 {
 public:
 	Chip8 () {
 		m_mem.assign(0x1000, 0xff);		// 0xff indicates free space
+		m_stack.assign(12, 0x0);		// initialise stack
 		initFont();
 	};
 	virtual ~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset);
-	void fetch();
-	void decode();
-	void exec();
 	void run(unsigned startingOffset);
 
 private:
 	/* define the architecture */
-	std::vector<int> m_mem;					// Whole memory
+	std::vector<word> m_mem;				// Whole memory
 	byte m_V[16];							// V (general) registers
 	byte m_display[64*32];
 	byte m_delayTimer, m_soundTimer;
@@ -43,11 +41,10 @@ private:
 	byte m_kbd[16];							// keyboard
 	word m_opcode;							// current opcode
 	bitfields m_bitfields;					// opcode bitfields
-	word m_stack[12];						// stack
-		typedef struct opcodeEntry_t {
-		char opcode[5];
-		void (*func) (void);
-	} opcodeEntry;
+	std::vector<word> m_stack;				// stack
+	void fetch();
+	void decode();
+	void exec();
 	void initFont(unsigned offset = 0x50);
 };
 
@@ -87,9 +84,9 @@ void Chip8::initFont(unsigned int offset) {
 
 
 void Chip8::fetch() {
-	// copy the current byte of the program to the current instruction
-	// TODO: if host little endian else m_mem[m_PC] << 8 | m_mem[m_PC+1]
-	m_opcode = m_mem[m_PC+1] << 8 | m_mem[m_PC];	
+	// copy the current byte of the program to the current instruction,
+	// assuming little endian host
+	m_opcode = m_mem[m_PC] << 8 | m_mem[m_PC+1];
 }
 
 
@@ -99,45 +96,73 @@ void Chip8::decode() {
 	 * see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
 	 * for bitfield explanation
 	 */
-	m_bitfields.type = (m_opcode >> 12) & 0xf;
-	m_bitfields.n    = m_opcode         & 0xf;
-	m_bitfields.x    = (m_opcode >> 8)  & 0xf;
-	m_bitfields.y    = (m_opcode >> 4)  & 0xf;
-	m_bitfields.kk   = m_opcode         & 0xff;
-	m_bitfields.nnn  = m_opcode         & 0xfff;
-	//std::cout << "decode " << std::hex << m_opcode << std::endl;
-	std::cout << "n = " << m_bitfields.n << ", x = " << m_bitfields.x << ", y = " << m_bitfields.y << ", kk = " << m_bitfields.kk << ", nnn = " << m_bitfields.nnn << ", type = " << m_bitfields.type << std::endl;
+	m_bitfields.type = (m_opcode >> 12) & 0x000f;
+	m_bitfields.n    = m_opcode         & 0x000f;
+	m_bitfields.x    = (m_opcode >> 4)  & 0x000f;
+	m_bitfields.y    = (m_opcode >> 8)  & 0x000f;
+	m_bitfields.kk   = m_opcode         & 0x00ff;
+	m_bitfields.nnn  = m_opcode         & 0x0fff;
+	std::cout << std::hex << m_opcode << std::endl;
 }
 
 
 void Chip8::exec() {
-	// TODO: switch statement for bitfields to find right instruction
-	//
-	//std::cout << "exec: " << std::hex  << m_bitfields.type << std::endl;
+	word progOffset = 0x200;
+	auto x = m_bitfields.x;
+	auto y = m_bitfields.y;
+	auto kk = m_bitfields.kk;
+	auto nnn = m_bitfields.nnn;
+	auto n = m_bitfields.n;
 	switch(m_bitfields.type) {
 		case 0x0:
-			// 1. 00E0
-			if (m_bitfields.nnn == 0xe0)
-
-			// 2. 00EE
-
+			if (nnn == 0x0e0)		// 00E0 (clear screen)
+				; // TODO - requires a library that handles windows 
+			else if (nnn == 0x0ee)	// 00EE (return from call)
+				m_PC = m_stack.at(--m_SP);
 			break;
 		case 0x1:
-			;
+			// if 0x1NNN, jump to NNN
+			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			break;
 		case 0x2:
-			;
+			// Call subroutine at NNN
+			m_stack.at(m_SP++) = m_PC;
+			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			break;
 		case 0x3:
-			;
+			// If Vx == NN, skip next instruction
+			if(kk == m_V[x])
+				m_PC += 2;
+			break;
 		case 0x4:
-			;
+			// 4xkk - If Vx != NN, skip next instruction
+			if(kk != m_V[x])
+				m_PC += 2;
+			break;
 		case 0x5:
-			;
+			// 5xy0 - If Vx != Vy, skip next instruction
+			if(m_V[x] != m_V[y])
+				m_PC += 2;
+			break;
 		case 0x6:
-			;
+			// 6xkk - Set Vx = kk
+			m_V[x] = kk;
+			break;
 		case 0x7:
-			;
+			// 7xkk - Set Vx = Vx + kk
+			m_V[x] += kk;
 		case 0x8:
-			;
+			if (n == 0x0 ) // 8xy0 - Set Vx = Vy.
+				m_V[x] = m_V[y];
+			else if (n == 0x1) // 8xy1 - Set Vx = Vx OR Vy.
+				m_V[x] |= m_V[y];
+			else if (n == 0x2) // 8xy2 - Set Vx = Vx AND Vy.
+				m_V[x] &= m_V[y];
+			else if (n == 0x3) // 8xy3 - Set Vx = Vx XOR Vy. 
+				m_V[x] ^= m_V[y];
+			else if (n == 0x4) // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
+				; // CONTINUE HERE
+			break;
 		case 0x9:
 			;
 		case 0xa:
@@ -153,23 +178,20 @@ void Chip8::exec() {
 		case 0xf:
 			;
 	}
-	// move to the next instruction
+	// move to next instruction
 	m_PC += 2;
 }
 
 
 void Chip8::run(unsigned startingOffset = 0x200) {
 	m_PC = startingOffset;
-	std::cout << "----------------------------" << std::endl;
 
 	while ((m_mem.at(m_PC) != 0xff) || (m_mem.at(m_PC+1) != 0xff)) {
-		std::cout << std::hex <<m_mem.at(m_PC) << std::endl;;
-		std::cout << std::hex << m_mem.at(m_PC+1) << std::endl;;
 		Chip8::fetch();
 		Chip8::decode();
 		Chip8::exec();
 	}
-	
+
 }
 
 
@@ -185,10 +207,6 @@ int main(int argc, char *argv[])
 	auto ch8 = std::make_unique<Chip8>();
 	ch8->loadRom("tetris.c8");
 	ch8->run();
-	//ch8->initFont();
-	//ch8->fetch();
-	//ch8->decode();
-	//ch8->exec();
 
 	return 0;
 }
