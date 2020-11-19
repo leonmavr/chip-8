@@ -108,11 +108,11 @@ void Chip8::decode() {
 
 void Chip8::exec() {
 	word progOffset = 0x200;
-	auto x = m_bitfields.x;
-	auto y = m_bitfields.y;
-	auto kk = m_bitfields.kk;
-	auto nnn = m_bitfields.nnn;
-	auto n = m_bitfields.n;
+	const auto x = m_bitfields.x;
+	const auto y = m_bitfields.y;
+	const auto kk = m_bitfields.kk;
+	const auto nnn = m_bitfields.nnn;
+	const auto n = m_bitfields.n;
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0)		// 00E0 (clear screen)
@@ -161,22 +161,49 @@ void Chip8::exec() {
 			else if (n == 0x3) // 8xy3 - Set Vx = Vx XOR Vy. 
 				m_V[x] ^= m_V[y];
 			else if (n == 0x4) // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
-				; // CONTINUE HERE
+				; // TODO
+			else if (n == 0x5) // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
+				; // TODO
+			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
+				m_V[0xf] = m_V[x] & 1;
+				m_V[x] = m_V[y] >> 2;
+			}
+			else if (n == 0x7) //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
+				; // TODO.
+			else if (n == 0xe) // 8xyE - Set Vx = Vx SHL 1.
+				m_V[0xf] = m_V[y] >> 7;  m_V[x] = m_V[y] << 1;
 			break;
 		case 0x9:
-			;
-		case 0xa:
-			;
-		case 0xb:
-			;
-		case 0xc:
-			;
+			if (m_V[x] != m_V[y]) //9xy0 - Skip next instruction if Vx != Vy.
+				m_PC += 2;
+			break;
+		case 0xa: // Set I = nnn.
+			m_I = nnn;
+			break;
+		case 0xb: // Bnnn - Jump to location nnn + V0.
+			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
+			break;
+		case 0xc: // Cxkk - Set Vx = random byte AND kk
+			// TODO
+			break;
 		case 0xd:
-			;
+			// TODO
+			break;
 		case 0xe:
-			;
-		case 0xf:
-			;
+			// TODO
+			break;
+		case 0xf: 
+			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
+				m_V[x] = m_delayTimer;
+			else if (kk == 0xa) // Fx0A - Wait for a key press, store the value of the key in Vx.
+				;// TODO
+			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
+				m_delayTimer = m_V[x];
+			else if (kk == 0x18) // Fx18 - Set sound timer = Vx.
+				m_soundTimer = m_V[x];
+			else if (kk == 0x15) // Fx1E - Set I = I + Vx.
+				m_I += m_V[x];
+			break;
 	}
 	// move to next instruction
 	m_PC += 2;
