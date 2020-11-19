@@ -203,6 +203,20 @@ void Chip8::exec() {
 				m_soundTimer = m_V[x];
 			else if (kk == 0x15) // Fx1E - Set I = I + Vx.
 				m_I += m_V[x];
+			else if (kk == 0x29) // Fx29 - Set I = location of sprite for digit Vx
+				; // TODO
+			else if (kk == 0x33) {//BCD representation of Vx in memory locations I, I+1, and I+2
+				m_mem.at((m_I+0)&0xFFF) = (m_V[x]/100) % 10;
+				m_mem.at((m_I+1)&0xFFF) = (m_V[x]/10) % 10;
+				m_mem.at((m_I+2)&0xFFF) = m_V[x] % 10;
+			}
+			else if (kk == 0x55) { // Fx55 - Store registers V0 through Vx in memory starting at location I.
+				for(int xx = 0;xx <= x; xx++)
+					m_mem[m_I++ & 0xFFF] = m_V[xx];
+			} else if (kk == 0x65) { // Fx65 - Read registers V0 through Vx from memory starting at location I 
+				for(int xx = 0;xx <= x; xx++)
+					m_V[xx]= m_mem[m_I++ & 0xFFF];
+			}
 			break;
 	}
 	// move to next instruction
