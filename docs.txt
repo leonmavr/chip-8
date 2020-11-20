@@ -61,3 +61,9 @@ Display
 |                   |
 +-------------------+
 (0,31)              (63,31)
+
+
+CPU
+------------------------------
+Can be modelled simply as an 1-core CPU which runs at 60 Hz.
+Therefore after executing each instruction, wait for 10 ms.
