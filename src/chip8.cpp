@@ -3,9 +3,10 @@
 #include <memory>
 #include <vector>
 #include <bits/stdc++.h>
+#include <random>
 
-typedef unsigned char byte;
-typedef unsigned short word;
+typedef unsigned char u8;
+typedef unsigned short u16;
 
 typedef struct bitfields_t {
 	/* see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0 */
@@ -31,17 +32,17 @@ public:
 
 private:
 	/* define the architecture */
-	std::vector<word> m_mem;				// Whole memory
-	byte m_V[16];							// V (general) registers
-	byte m_display[64*32];
-	byte m_delayTimer, m_soundTimer;
-	word m_SP = 0;							// Stack pointer
-	word m_PC = 0x200;						// Program counter
-	word m_I = 0;							// Index register
-	byte m_kbd[16];							// keyboard
-	word m_opcode;							// current opcode
+	std::vector<u16> m_mem;				// Whole memory
+	u8 m_V[16];							// V (general) registers
+	u8 m_display[64*32];
+	u8 m_delayTimer, m_soundTimer;
+	u16 m_SP = 0;							// Stack pointer
+	u16 m_PC = 0x200;						// Program counter
+	u16 m_I = 0;							// Index register
+	u8 m_kbd[16];							// keyboard
+	u16 m_opcode;							// current opcode
 	bitfields m_bitfields;					// opcode bitfields
-	std::vector<word> m_stack;				// stack
+	std::vector<u16> m_stack;				// stack
 	void fetch();
 	void decode();
 	void exec();
@@ -58,7 +59,7 @@ void Chip8::loadRom(const char* filename, unsigned offset = 0x200) {
 
 void Chip8::initFont(unsigned int offset) {
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
-	std::vector<byte> fontset = 
+	std::vector<u8> fontset = 
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -78,7 +79,7 @@ void Chip8::initFont(unsigned int offset) {
 		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
 	// write to m_mem
-	for (byte element: fontset)
+	for (u8 element: fontset)
 		m_mem.at(offset++ & 0xFF) = element;
 }
 
@@ -107,12 +108,14 @@ void Chip8::decode() {
 
 
 void Chip8::exec() {
-	word progOffset = 0x200;
 	const auto x = m_bitfields.x;
 	const auto y = m_bitfields.y;
 	const auto kk = m_bitfields.kk;
 	const auto nnn = m_bitfields.nnn;
 	const auto n = m_bitfields.n;
+	std::default_random_engine generator;
+	std::uniform_int_distribution<u8> distribution(0,0xff);
+
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0)		// 00E0 (clear screen)
@@ -160,16 +163,22 @@ void Chip8::exec() {
 				m_V[x] &= m_V[y];
 			else if (n == 0x3) // 8xy3 - Set Vx = Vx XOR Vy. 
 				m_V[x] ^= m_V[y];
-			else if (n == 0x4) // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
-				; // TODO
-			else if (n == 0x5) // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
-				; // TODO
+			else if (n == 0x4) { // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
+				(m_V[x] + m_V[y] > 0xff)? m_V[0xf] = 1: m_V[0xf] = 0;
+				m_V[x] += m_V[y];
+			}
+			else if (n == 0x5) { // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
+				(m_V[x] - m_V[y] < 0)? m_V[0xf] = 1: m_V[0xf] = 0;
+				m_V[x] -= m_V[y];
+			}
 			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
+				m_V[0xf] = m_V[y]  & 1;
+				m_V[x] = m_V[y] >> 1;
+			}	
+			else if (n == 0x7) { //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
 				m_V[0xf] = m_V[x] & 1;
 				m_V[x] = m_V[y] >> 2;
 			}
-			else if (n == 0x7) //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
-				; // TODO.
 			else if (n == 0xe) // 8xyE - Set Vx = Vx SHL 1.
 				m_V[0xf] = m_V[y] >> 7;  m_V[x] = m_V[y] << 1;
 			break;
@@ -184,13 +193,7 @@ void Chip8::exec() {
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
 		case 0xc: // Cxkk - Set Vx = random byte AND kk
-			// TODO
-			break;
-		case 0xd:
-			// TODO
-			break;
-		case 0xe:
-			// TODO
+			m_V[x] = distribution(generator) & kk;
 			break;
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
@@ -221,6 +224,7 @@ void Chip8::exec() {
 	}
 	// move to next instruction
 	m_PC += 2;
+	// TODO: delay of 10 ms here
 }
 
 
