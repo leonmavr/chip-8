@@ -11,7 +11,7 @@ public:
 	};
 	~Display () { };
 	void drawBlock(unsigned x, unsigned y);
-	void reset();
+	//void reset();
 	void close();
 
 protected:
