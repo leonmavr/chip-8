@@ -1,27 +1,7 @@
 #include <SDL2/SDL.h>
 #include <memory>
-
-
-class Display {
-public:
-	Display (unsigned w = 320, unsigned h = 640) {
-		m_w = w;
-		m_h = h;
-		init();	
-	};
-	~Display () { };
-	void drawBlock(unsigned x, unsigned y);
-	void reset();
-	void close();
-
-protected:
-	unsigned m_w;
-	unsigned m_h;
-	SDL_Window* m_window;
-	SDL_Renderer* m_renderer;
-
-	void init();
-};
+#include "display.hpp" 
+#include <assert.h>
 
 
 void Display::init() {
@@ -49,6 +29,9 @@ void Display::close() {
 
 
 void Display::drawBlock(unsigned x, unsigned y) {
+	// Ensure it's in Chip-8's display
+	assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
+
 	// define the block to draw ("pixel")
 	SDL_Rect block;
 	unsigned scaleX = static_cast<int>(m_w / 32);
@@ -63,7 +46,7 @@ void Display::drawBlock(unsigned x, unsigned y) {
 	SDL_RenderFillRect(m_renderer, &block);
 	SDL_RenderPresent(m_renderer); // copy to screen
 
-    SDL_Delay(500);
+    SDL_Delay(5);
 }
 
 
