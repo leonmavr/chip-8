@@ -11,7 +11,7 @@ public:
 	};
 	~Display () { };
 	void drawBlock(unsigned x, unsigned y);
-	//void reset();
+	void reset();
 	void close();
 
 protected:
@@ -31,12 +31,7 @@ void Display::init() {
         SDL_WINDOWPOS_UNDEFINED, m_w, m_h, SDL_WINDOW_SHOWN);
 	m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
-	// r, g, b, a
-	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
-    //Clear the renderer with the draw color
-    SDL_RenderClear(m_renderer);
-    //Update the renderer which will show the renderer cleared by the draw color
-    SDL_RenderPresent(m_renderer);
+	Display::reset();
     //Pause for 100 ms
     SDL_Delay(100);
 }
@@ -69,4 +64,13 @@ void Display::drawBlock(unsigned x, unsigned y) {
 	SDL_RenderPresent(m_renderer); // copy to screen
 
     SDL_Delay(500);
+}
+
+
+void Display::reset() {
+	// r, g, b, a
+	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
+    //Clear the renderer with the draw color
+    SDL_RenderClear(m_renderer);
+    SDL_Delay(5);
 }
