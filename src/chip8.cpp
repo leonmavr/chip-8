@@ -167,7 +167,7 @@ void Chip8::exec() {
 				m_mem.at((m_I+2)&0xFFF) = m_V[x] % 10;
 			}
 			else if (kk == 0x55) { // Fx55 - Store registers V0 through Vx in memory starting at location I.
-				for(int xx = 0;xx <= x; xx++)
+				for(unsigned xx = 0;xx <= x; xx++)
 					m_mem[m_I++ & 0xFFF] = m_V[xx];
 			} else if (kk == 0x65) { // Fx65 - Read registers V0 through Vx from memory starting at location I 
 				for(int xx = 0;xx <= x; xx++)

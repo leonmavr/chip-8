@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
 	disp->drawPixel(28,31);
 	disp->close();
 	// test the machine
-	Chip8 ch8 = Chip8() ;
-	ch8.loadRom("../roms/tetris.c8", 0x200);
-	ch8.run(0x200);
+	auto ch8 = std::make_unique<Chip8>();
+	ch8->loadRom("../roms/tetris.c8");
+	ch8->run();
 	return 0;
 }
