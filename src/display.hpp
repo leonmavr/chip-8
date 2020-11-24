@@ -14,7 +14,7 @@ public:
 	void reset();
 	void close();
 
-protected:
+private:
 	unsigned m_w;
 	unsigned m_h;
 	SDL_Window* m_window;

@@ -28,22 +28,23 @@ void Display::close() {
 }
 
 
-void Display::drawBlock(unsigned x, unsigned y) {
+void Display::drawpixel(unsigned x, unsigned y) {
 	// Ensure it's in Chip-8's display
 	assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
 
-	// define the block to draw ("pixel")
-	SDL_Rect block;
+	// define the pixel to draw
+	SDL_Rect pixel;
 	unsigned scaleX = static_cast<int>(m_w / 32);
 	unsigned scaleY = static_cast<int>(m_h / 64);
-	block.x = x * scaleX;
-	block.y = y * scaleY;
+	pixel.x = x * scaleX;
+	pixel.y = y * scaleY;
 	// The original Chip-8 display was 32x64
-	block.w = scaleX;
-	block.h = scaleY;
+	pixel.w = scaleX;
+	pixel.h = scaleY;
 
-	SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255); // the rect color (solid red)
-	SDL_RenderFillRect(m_renderer, &block);
+	// pixel colour (foreground colour))
+	SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+	SDL_RenderFillRect(m_renderer, &pixel);
 	SDL_RenderPresent(m_renderer); // copy to screen
 
     SDL_Delay(5);
