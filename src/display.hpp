@@ -10,7 +10,7 @@ public:
 		init();	
 	};
 	~Display () { };
-	void drawBlock(unsigned x, unsigned y);
+	void drawPixel(unsigned x, unsigned y);
 	void reset();
 	void close();
 

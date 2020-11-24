@@ -28,7 +28,7 @@ void Display::close() {
 }
 
 
-void Display::drawpixel(unsigned x, unsigned y) {
+void Display::drawPixel(unsigned x, unsigned y) {
 	// Ensure it's in Chip-8's display
 	assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
 

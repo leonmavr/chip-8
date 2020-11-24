@@ -1,56 +1,7 @@
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <vector>
-#include <bits/stdc++.h>
-#include <random>
-
-typedef unsigned char u8;
-typedef unsigned short u16;
-
-typedef struct bitfields_t {
-	/* see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0 */
-	unsigned type;
-	unsigned n;
-	unsigned y;
-	unsigned x;
-	unsigned kk;
-	unsigned nnn;
-} bitfields;
+#include "chip8.hpp" 
 
 
-class Chip8 {
-public:
-	Chip8 () {
-		m_mem.assign(0x1000, 0xff);		// 0xff indicates free space
-		m_stack.assign(12, 0x0);		// initialise stack
-		initFont();
-	};
-	virtual ~Chip8 () {};
-	void loadRom(const char* filename, unsigned offset);
-	void run(unsigned startingOffset);
-
-private:
-	/* define the architecture */
-	std::vector<u16> m_mem;				// Whole memory
-	u8 m_V[16];							// V (general) registers
-	u8 m_display[64*32];
-	u8 m_delayTimer, m_soundTimer;
-	u16 m_SP = 0;							// Stack pointer
-	u16 m_PC = 0x200;						// Program counter
-	u16 m_I = 0;							// Index register
-	u8 m_kbd[16];							// keyboard
-	u16 m_opcode;							// current opcode
-	bitfields m_bitfields;					// opcode bitfields
-	std::vector<u16> m_stack;				// stack
-	void fetch();
-	void decode();
-	void exec();
-	void initFont(unsigned offset = 0x50);
-};
-
-
-void Chip8::loadRom(const char* filename, unsigned offset = 0x200) {
+void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
 	for(std::ifstream f(filename, std::ios::binary); f.good(); )
 		m_mem.at(offset++ & 0xFFF) = f.get();
@@ -179,8 +130,10 @@ void Chip8::exec() {
 				m_V[0xf] = m_V[x] & 1;
 				m_V[x] = m_V[y] >> 2;
 			}
-			else if (n == 0xe) // 8xyE - Set Vx = Vx SHL 1.
-				m_V[0xf] = m_V[y] >> 7;  m_V[x] = m_V[y] << 1;
+			else if (n == 0xe) { // 8xyE - Set Vx = Vx SHL 1.
+				m_V[0xf] = m_V[y] >> 7; 
+				m_V[x] = m_V[y] << 1;
+			}
 			break;
 		case 0x9:
 			if (m_V[x] != m_V[y]) //9xy0 - Skip next instruction if Vx != Vy.
@@ -224,11 +177,12 @@ void Chip8::exec() {
 	}
 	// move to next instruction
 	m_PC += 2;
-	// TODO: delay of 10 ms here
+	// Chip-8 runs at 60 Hz
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 
-void Chip8::run(unsigned startingOffset = 0x200) {
+void Chip8::run(unsigned startingOffset) {
 	m_PC = startingOffset;
 
 	while ((m_mem.at(m_PC) != 0xff) || (m_mem.at(m_PC+1) != 0xff)) {
@@ -236,22 +190,4 @@ void Chip8::run(unsigned startingOffset = 0x200) {
 		Chip8::decode();
 		Chip8::exec();
 	}
-
-}
-
-
-
-int main(int argc, char *argv[])
-{
-	if (argc != 2) {
-		//std::cout << "Usage: ./<this_program> <rom_file>";
-
-		//return 1;
-	}
-
-	auto ch8 = std::make_unique<Chip8>();
-	ch8->loadRom("tetris.c8");
-	ch8->run();
-
-	return 0;
 }
