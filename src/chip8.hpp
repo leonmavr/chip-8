@@ -9,6 +9,7 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include "display.hpp"
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -24,7 +25,7 @@ typedef struct bitfields_t {
 } bitfields;
 
 
-class Chip8 {
+class Chip8: public Display {
 public:
 	Chip8 () {
 		m_mem.assign(0x1000, 0xff);		// 0xff indicates free space

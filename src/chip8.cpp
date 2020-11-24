@@ -3,7 +3,7 @@
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
-	for(std::ifstream f(filename, std::ios::binary); f.good(); )
+	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
 		m_mem.at(offset++ & 0xFFF) = f.get();
 }
 
@@ -54,7 +54,6 @@ void Chip8::decode() {
 	m_bitfields.y    = (m_opcode >> 8)  & 0x000f;
 	m_bitfields.kk   = m_opcode         & 0x00ff;
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
-	std::cout << std::hex << m_opcode << std::endl;
 }
 
 
@@ -66,11 +65,10 @@ void Chip8::exec() {
 	const auto n = m_bitfields.n;
 	std::default_random_engine generator;
 	std::uniform_int_distribution<u8> distribution(0,0xff);
-
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0)		// 00E0 (clear screen)
-				; // TODO - requires a library that handles windows 
+				reset();
 			else if (nnn == 0x0ee)	// 00EE (return from call)
 				m_PC = m_stack.at(--m_SP);
 			break;
@@ -167,10 +165,10 @@ void Chip8::exec() {
 				m_mem.at((m_I+2)&0xFFF) = m_V[x] % 10;
 			}
 			else if (kk == 0x55) { // Fx55 - Store registers V0 through Vx in memory starting at location I.
-				for(unsigned xx = 0;xx <= x; xx++)
+				for(unsigned xx = 0; xx <= x; xx++)
 					m_mem[m_I++ & 0xFFF] = m_V[xx];
 			} else if (kk == 0x65) { // Fx65 - Read registers V0 through Vx from memory starting at location I 
-				for(int xx = 0;xx <= x; xx++)
+				for(unsigned xx = 0; xx <= x; xx++)
 					m_V[xx]= m_mem[m_I++ & 0xFFF];
 			}
 			break;
