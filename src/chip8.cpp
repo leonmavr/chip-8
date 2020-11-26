@@ -10,7 +10,7 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 
 void Chip8::initFont(unsigned int offset) {
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
-	std::vector<u8> fontset = 
+	std::vector<u8> m_fontset = 
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -30,7 +30,7 @@ void Chip8::initFont(unsigned int offset) {
 		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
 	// write to m_mem
-	for (u8 element: fontset)
+	for (u8 element: m_fontset)
 		m_mem.at(offset++ & 0xFF) = element;
 }
 
@@ -146,6 +146,11 @@ void Chip8::exec() {
 		case 0xc: // Cxkk - Set Vx = random byte AND kk
 			m_V[x] = distribution(generator) & kk;
 			break;
+		case 0xd:
+			// Dxyn - DRW Vx, Vy, nibble Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+			// https://chip8.fandom.com/wiki/Instruction_Draw
+			// https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
+			break;
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
@@ -158,7 +163,7 @@ void Chip8::exec() {
 			else if (kk == 0x15) // Fx1E - Set I = I + Vx.
 				m_I += m_V[x];
 			else if (kk == 0x29) // Fx29 - Set I = location of sprite for digit Vx
-				; // TODO
+				m_I = m_V[x] * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
 			else if (kk == 0x33) {//BCD representation of Vx in memory locations I, I+1, and I+2
 				m_mem.at((m_I+0)&0xFFF) = (m_V[x]/100) % 10;
 				m_mem.at((m_I+1)&0xFFF) = (m_V[x]/10) % 10;
@@ -176,7 +181,7 @@ void Chip8::exec() {
 	// move to next instruction
 	m_PC += 2;
 	// Chip-8 runs at 60 Hz
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 }
 
 
