@@ -1,5 +1,5 @@
 #include "chip8.hpp" 
-
+#include <iostream>
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
@@ -36,6 +36,7 @@ void Chip8::initFont(unsigned int offset) {
 
 
 void Chip8::fetch() {
+	assert(m_PC < 4096);
 	// copy the current byte of the program to the current instruction,
 	// assuming little endian host
 	m_opcode = m_mem[m_PC] << 8 | m_mem[m_PC+1];
@@ -50,8 +51,8 @@ void Chip8::decode() {
 	 */
 	m_bitfields.type = (m_opcode >> 12) & 0x000f;
 	m_bitfields.n    = m_opcode         & 0x000f;
-	m_bitfields.x    = (m_opcode >> 4)  & 0x000f;
-	m_bitfields.y    = (m_opcode >> 8)  & 0x000f;
+	m_bitfields.x    = (m_opcode >> 8)  & 0x000f;
+	m_bitfields.y    = (m_opcode >> 4)  & 0x000f;
 	m_bitfields.kk   = m_opcode         & 0x00ff;
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
 }
@@ -69,8 +70,9 @@ void Chip8::exec() {
 		case 0x0:
 			if (nnn == 0x0e0)		// 00E0 (clear screen)
 				reset();
-			else if (nnn == 0x0ee)	// 00EE (return from call)
+			else if (nnn == 0x0ee){	// 00EE (return from call)
 				m_PC = m_stack.at(--m_SP);
+			}
 			break;
 		case 0x1:
 			// if 0x1NNN, jump to NNN
@@ -126,7 +128,7 @@ void Chip8::exec() {
 			}	
 			else if (n == 0x7) { //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
 				m_V[0xf] = m_V[x] & 1;
-				m_V[x] = m_V[y] >> 2;
+				m_V[x] = m_V[y] - m_V[x];
 			}
 			else if (n == 0xe) { // 8xyE - Set Vx = Vx SHL 1.
 				m_V[0xf] = m_V[y] >> 7; 
@@ -147,10 +149,26 @@ void Chip8::exec() {
 			m_V[x] = distribution(generator) & kk;
 			break;
 		case 0xd:
-			// Dxyn - DRW Vx, Vy, nibble Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-			// https://chip8.fandom.com/wiki/Instruction_Draw
-			// https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
+			{
+			// adapted from https://aimechanics.tech/2020/08/23/chip8-emulation-c-implementation/
+			// see https://chip8.fandom.com/wiki/Instruction_Draw,  https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
+			u8 height = n;
+			m_V[0xf] = 0;
+			for (int row = 0; row < height; row++) {
+				u8 sprite = m_mem[m_I + row];
+				for(int col = 0; col < 8; col++) {
+					// check the upper bit only
+					if( (sprite & 0x80) > 0 ) {
+						// if this is true then a collision occurred
+						if( putPixel(m_V[x] + col, m_V[y] + row) )
+							m_V[0xf] = 1;
+					}
+					// next bit
+					sprite <<= 1;
+				}
+			}
 			break;
+			}
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
@@ -178,6 +196,7 @@ void Chip8::exec() {
 			}
 			break;
 	}
+	debug();
 	// move to next instruction
 	m_PC += 2;
 	// Chip-8 runs at 60 Hz
@@ -193,4 +212,11 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::decode();
 		Chip8::exec();
 	}
+}
+
+void Chip8::debug() {
+	  std::ofstream outfile;
+
+	  outfile.open("debug.txt", std::ios_base::app); // append instead of overwrite
+	  outfile << std::hex << m_opcode << ", V[" << m_bitfields.x << "] = " << std::hex << (int)m_V[m_bitfields.x] << std::endl;; 
 }

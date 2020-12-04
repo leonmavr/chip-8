@@ -35,12 +35,12 @@ public:
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
 	void run(unsigned startingOffset = 0x200);
+	void debug();
 
 private:
 	/* define the architecture */
 	std::vector<u16> m_mem;				// Whole memory
-	u8 m_V[16];							// V (general) registers
-	u8 m_display[64*32];
+	u8 m_V[16] = {};							// V (general) registers
 	u8 m_delayTimer, m_soundTimer;
 	u16 m_SP = 0;							// Stack pointer
 	u16 m_PC = 0x200;						// Program counter
@@ -49,6 +49,7 @@ private:
 	u16 m_opcode;							// current opcode
 	bitfields m_bitfields;					// opcode bitfields
 	std::vector<u16> m_stack;				// stack
+	std::vector<u8> m_fontset;				// font sprites
 	void fetch();
 	void decode();
 	void exec();

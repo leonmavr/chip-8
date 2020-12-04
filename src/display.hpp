@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 
 
+
 class Display {
 public:
 	Display (unsigned w = 320, unsigned h = 640) {
@@ -10,9 +11,13 @@ public:
 		init();	
 	};
 	~Display () { };
-	void drawPixel(unsigned x, unsigned y);
+	void drawPixel(unsigned xy);
+	void drawPixelXY(unsigned x, unsigned y);
+	bool putPixel(unsigned x, unsigned y);
 	void reset();
+	void render();
 	void close();
+	unsigned char m_display[64*32];
 
 private:
 	unsigned m_w;
