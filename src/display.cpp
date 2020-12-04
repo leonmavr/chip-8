@@ -29,40 +29,11 @@ void Display::close() {
     SDL_Quit();
 }
 
-static inline std::tuple<int, int> ind2coord(unsigned xy) {
-	return std::make_tuple(xy/32 - 1, xy % 64);
-}
-
-void Display::drawPixel(unsigned xy) {
-	unsigned x = std::get<0>(ind2coord(xy));
-	unsigned y = std::get<1>(ind2coord(xy));
-	// Ensure it's in Chip-8's display
-	//assert((0 <= x) && (x < 64) && (0 <= y) && (y < 32));
-	if (!(0 <= x) || !(x < 64) || !(0 <= y) || !(y < 32)) 
-		return;
-
-	// define the pixel to draw
-	SDL_Rect pixel;
-	unsigned scaleX = static_cast<int>(m_w / 32);
-	unsigned scaleY = static_cast<int>(m_h / 64);
-	pixel.x = x * scaleX;
-	pixel.y = y * scaleY;
-	// The original Chip-8 display was 32x64
-	pixel.w = scaleX;
-	pixel.h = scaleY;
-
-	// draw only if display[x,y]!= 0
-	if (m_display[xy] != 9999)  {
-		SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
-		SDL_RenderFillRect(m_renderer, &pixel);
-		SDL_RenderPresent(m_renderer); // copy to screen
-	}
-    SDL_Delay(5);
-}
 
 void Display::drawPixelXY(unsigned x, unsigned y) {
 	// Ensure it's in Chip-8's display
 	//assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
+	std::cout << "putPixel: " << x << ", " << y << std::endl;
 	if (!(0 <= x) || !(x < 32) || !(0 <= y) || !(y < 64)) 
 		return;
 
@@ -76,10 +47,9 @@ void Display::drawPixelXY(unsigned x, unsigned y) {
 	pixel.w = scaleX;
 	pixel.h = scaleY;
 
-	// draw only if display[x,y]!= 0
-		SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
-		SDL_RenderFillRect(m_renderer, &pixel);
-		SDL_RenderPresent(m_renderer); // copy to screen
+	SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+	SDL_RenderFillRect(m_renderer, &pixel);
+	SDL_RenderPresent(m_renderer); // copy to screen
     SDL_Delay(5);
 }
 
@@ -92,7 +62,7 @@ bool Display::putPixel(unsigned x, unsigned y) {
         isCollision = true;
     m_display[offset] ^= 1;
 	// TODO: draw pixel if display == 1 at offset `offset`
-	drawPixelXY(y,x);
+	drawPixelXY(x, y);
     return isCollision;	
 }
 

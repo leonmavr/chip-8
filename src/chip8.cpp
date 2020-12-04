@@ -149,7 +149,7 @@ void Chip8::exec() {
 			m_V[x] = distribution(generator) & kk;
 			break;
 		case 0xd:
-			{
+		{
 			// adapted from https://aimechanics.tech/2020/08/23/chip8-emulation-c-implementation/
 			// see https://chip8.fandom.com/wiki/Instruction_Draw,  https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
 			u8 height = n;
@@ -168,7 +168,7 @@ void Chip8::exec() {
 				}
 			}
 			break;
-			}
+		}
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
