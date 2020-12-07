@@ -104,7 +104,8 @@ void Chip8::exec() {
 			break;
 		case 0x7:
 			// 7xkk - Set Vx = Vx + kk
-			m_V[x] += kk;
+			m_V[x] += (u8)kk;
+			break;
 		case 0x8:
 			if (n == 0x0 ) // 8xy0 - Set Vx = Vy.
 				m_V[x] = m_V[y];
@@ -122,7 +123,7 @@ void Chip8::exec() {
 				(m_V[x] - m_V[y] < 0)? m_V[0xf] = 1: m_V[0xf] = 0;
 				m_V[x] -= m_V[y];
 			}
-			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
+			else if (n == 0x6) { // 8xy6 - Set Vx = Vy SHR 1. 
 				m_V[0xf] = m_V[y]  & 1;
 				m_V[x] = m_V[y] >> 1;
 			}	
@@ -154,13 +155,13 @@ void Chip8::exec() {
 			// see https://chip8.fandom.com/wiki/Instruction_Draw,  https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
 			u8 height = n;
 			m_V[0xf] = 0;
-			for (int row = 0; row < height; row++) {
-				u8 sprite = m_mem[m_I + row];
-				for(int col = 0; col < 8; col++) {
+			for (unsigned row = 0; row < height; row++) {
+				u8 sprite = m_mem[m_I + row] ;
+				for(u8 col = 0; col < 8; col++) {
 					// check the upper bit only
-					if( (sprite & 0x80) > 0 ) {
+					if((sprite & 0x80) > 0) {
 						// if this is true then a collision occurred
-						if( putPixel(m_V[x] + col, m_V[y] + row) )
+						if(putPixel((m_V[x] + col) % 64 , (m_V[y] + row) ))
 							m_V[0xf] = 1;
 					}
 					// next bit
@@ -196,7 +197,6 @@ void Chip8::exec() {
 			}
 			break;
 	}
-	debug();
 	// move to next instruction
 	m_PC += 2;
 	// Chip-8 runs at 60 Hz
@@ -212,11 +212,4 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::decode();
 		Chip8::exec();
 	}
-}
-
-void Chip8::debug() {
-	  std::ofstream outfile;
-
-	  outfile.open("debug.txt", std::ios_base::app); // append instead of overwrite
-	  outfile << std::hex << m_opcode << ", V[" << m_bitfields.x << "] = " << std::hex << (int)m_V[m_bitfields.x] << std::endl;; 
 }

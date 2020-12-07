@@ -35,7 +35,6 @@ public:
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
 	void run(unsigned startingOffset = 0x200);
-	void debug();
 
 private:
 	/* define the architecture */

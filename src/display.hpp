@@ -4,7 +4,7 @@
 
 class Display {
 public:
-	Display (unsigned w = 320, unsigned h = 640) {
+	Display (unsigned w = 640, unsigned h = 320) {
 		m_w = w;
 		m_h = h;
 		init();	

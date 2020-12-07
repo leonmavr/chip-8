@@ -33,14 +33,13 @@ void Display::close() {
 void Display::drawPixelXY(unsigned x, unsigned y) {
 	// Ensure it's in Chip-8's display
 	//assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
-	std::cout << "putPixel: " << x << ", " << y << std::endl;
-	if (!(0 <= x) || !(x < 32) || !(0 <= y) || !(y < 64)) 
-		return;
+	//if (!(0 <= x) || !(x < 32) || !(0 <= y) || !(y < 64)) 
+	//	return;
 
 	// define the pixel to draw
 	SDL_Rect pixel;
-	unsigned scaleX = static_cast<int>(m_w / 32);
-	unsigned scaleY = static_cast<int>(m_h / 64);
+	unsigned scaleX = static_cast<int>(m_w / 64);
+	unsigned scaleY = static_cast<int>(m_h / 32);
 	pixel.x = x * scaleX;
 	pixel.y = y * scaleY;
 	// The original Chip-8 display was 32x64
@@ -61,7 +60,6 @@ bool Display::putPixel(unsigned x, unsigned y) {
     if( m_display[offset] == 1 )
         isCollision = true;
     m_display[offset] ^= 1;
-	// TODO: draw pixel if display == 1 at offset `offset`
 	drawPixelXY(x, y);
     return isCollision;	
 }
