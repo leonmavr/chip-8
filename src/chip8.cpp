@@ -147,7 +147,9 @@ void Chip8::exec() {
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
 		case 0xc: // Cxkk - Set Vx = random byte AND kk
-			m_V[x] = distribution(generator) & kk;
+			// TODO: always outputs 0 - find out why
+			m_V[x] = distribution(generator) ;
+			std::cout << "random = " <<(int) m_V[x] << std::endl;
 			break;
 		case 0xd:
 		{
@@ -159,7 +161,7 @@ void Chip8::exec() {
 				u8 sprite = m_mem[m_I + row] ;
 				for(u8 col = 0; col < 8; col++) {
 					// check the upper bit only
-					if((sprite & 0x80) > 0) {
+					if((sprite & 0x80 ) > 0) {
 						// if this is true then a collision occurred
 						if(putPixel((m_V[x] + col) % 64 , (m_V[y] + row) ))
 							m_V[0xf] = 1;
@@ -168,6 +170,7 @@ void Chip8::exec() {
 					sprite <<= 1;
 				}
 			}
+			// TODO: it's better to redraw the whole screen here
 			break;
 		}
 		case 0xf: 
@@ -200,13 +203,20 @@ void Chip8::exec() {
 	// move to next instruction
 	m_PC += 2;
 	// Chip-8 runs at 60 Hz
-	std::this_thread::sleep_for(std::chrono::milliseconds(16));
+	//std::this_thread::sleep_for(std::chrono::milliseconds(3));
+	// update sound and delay timers at 60 Hz
+	if (m_delayTimer > 0) 
+		m_delayTimer--;
+	if (m_soundTimer > 0) {
+		m_soundTimer--;
+		// TODO: beeping sound	(single frequency)
+	}
 }
 
 
 void Chip8::run(unsigned startingOffset) {
 	m_PC = startingOffset;
-
+	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
 	while ((m_mem.at(m_PC) != 0xff) || (m_mem.at(m_PC+1) != 0xff)) {
 		Chip8::fetch();
 		Chip8::decode();

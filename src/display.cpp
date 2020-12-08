@@ -30,7 +30,7 @@ void Display::close() {
 }
 
 
-void Display::drawPixelXY(unsigned x, unsigned y) {
+void Display::drawPixelXY(unsigned x, unsigned y, unsigned val) {
 	// Ensure it's in Chip-8's display
 	//assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
 	//if (!(0 <= x) || !(x < 32) || !(0 <= y) || !(y < 64)) 
@@ -46,7 +46,10 @@ void Display::drawPixelXY(unsigned x, unsigned y) {
 	pixel.w = scaleX;
 	pixel.h = scaleY;
 
-	SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+	if (val == 1)
+		SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+	else
+		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
 	SDL_RenderFillRect(m_renderer, &pixel);
 	SDL_RenderPresent(m_renderer); // copy to screen
     SDL_Delay(5);
@@ -60,7 +63,7 @@ bool Display::putPixel(unsigned x, unsigned y) {
     if( m_display[offset] == 1 )
         isCollision = true;
     m_display[offset] ^= 1;
-	drawPixelXY(x, y);
+	drawPixelXY(x, y, m_display[offset]);
     return isCollision;	
 }
 
