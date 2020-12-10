@@ -1,10 +1,12 @@
 #include "chip8.hpp" 
 #include <iostream>
+#include <random>
+#include <cstdlib>
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
 	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
-		m_mem.at(offset++ & 0xFFF) = f.get();
+		m_mem[offset++ & 0xFFF] = f.get();
 }
 
 
@@ -31,7 +33,7 @@ void Chip8::initFont(unsigned int offset) {
 	};
 	// write to m_mem
 	for (u8 element: m_fontset)
-		m_mem.at(offset++ & 0xFF) = element;
+		m_mem[offset++ & 0xFF] = element;
 }
 
 
@@ -57,6 +59,16 @@ void Chip8::decode() {
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
 }
 
+static void drawSprite(u8 sprite, u8 height) {
+	for (int xx = 0; xx < 8; xx++) {
+		if ((sprite && 0x80) > 0)
+			std::cout << "o";
+		else
+			std::cout << ".";
+		sprite <<= 1;
+		}
+	std::cout << std::endl;
+}
 
 void Chip8::exec() {
 	const auto x = m_bitfields.x;
@@ -64,14 +76,14 @@ void Chip8::exec() {
 	const auto kk = m_bitfields.kk;
 	const auto nnn = m_bitfields.nnn;
 	const auto n = m_bitfields.n;
-	std::default_random_engine generator;
-	std::uniform_int_distribution<u8> distribution(0,0xff);
 	switch(m_bitfields.type) {
 		case 0x0:
-			if (nnn == 0x0e0)		// 00E0 (clear screen)
+			if (nnn == 0x0e0){		// 00E0 (clear screen)
+				m_display[32][64] = {0};
 				reset();
+			}
 			else if (nnn == 0x0ee){	// 00EE (return from call)
-				m_PC = m_stack.at(--m_SP);
+				m_PC = m_stack[--m_SP % 12];
 			}
 			break;
 		case 0x1:
@@ -80,7 +92,7 @@ void Chip8::exec() {
 			break;
 		case 0x2:
 			// Call subroutine at NNN
-			m_stack.at(m_SP++) = m_PC;
+			m_stack[m_SP++ % 12] = (u16)m_PC;
 			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
 			break;
 		case 0x3:
@@ -94,8 +106,8 @@ void Chip8::exec() {
 				m_PC += 2;
 			break;
 		case 0x5:
-			// 5xy0 - If Vx != Vy, skip next instruction
-			if(m_V[x] != m_V[y])
+			// 5xy0 - If Vx == Vy, skip next instruction
+			if(m_V[x] == m_V[y])
 				m_PC += 2;
 			break;
 		case 0x6:
@@ -104,7 +116,7 @@ void Chip8::exec() {
 			break;
 		case 0x7:
 			// 7xkk - Set Vx = Vx + kk
-			m_V[x] += (u8)kk;
+			m_V[x] += kk;
 			break;
 		case 0x8:
 			if (n == 0x0 ) // 8xy0 - Set Vx = Vy.
@@ -116,23 +128,23 @@ void Chip8::exec() {
 			else if (n == 0x3) // 8xy3 - Set Vx = Vx XOR Vy. 
 				m_V[x] ^= m_V[y];
 			else if (n == 0x4) { // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
-				(m_V[x] + m_V[y] > 0xff)? m_V[0xf] = 1: m_V[0xf] = 0;
+				m_V[0xf] = ((unsigned)m_V[x] + (unsigned)m_V[y] > 0xff)? 1: 0;
 				m_V[x] += m_V[y];
 			}
 			else if (n == 0x5) { // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
-				(m_V[x] - m_V[y] < 0)? m_V[0xf] = 1: m_V[0xf] = 0;
+				m_V[0xf] = (m_V[x] > m_V[y]) ? 1 : 0;
 				m_V[x] -= m_V[y];
 			}
-			else if (n == 0x6) { // 8xy6 - Set Vx = Vy SHR 1. 
-				m_V[0xf] = m_V[y]  & 1;
-				m_V[x] = m_V[y] >> 1;
+			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
+				m_V[0xf] = m_V[x]  & 1;
+				m_V[x] >>= 1;
 			}	
 			else if (n == 0x7) { //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
-				m_V[0xf] = m_V[x] & 1;
+				m_V[0xf] = (m_V[y] > m_V[x]) ? 1 : 0;
 				m_V[x] = m_V[y] - m_V[x];
 			}
 			else if (n == 0xe) { // 8xyE - Set Vx = Vx SHL 1.
-				m_V[0xf] = m_V[y] >> 7; 
+				m_V[0xf] = (m_V[y] >> 7) & 0x1; 
 				m_V[x] = m_V[y] << 1;
 			}
 			break;
@@ -142,35 +154,37 @@ void Chip8::exec() {
 			break;
 		case 0xa: // Set I = nnn.
 			m_I = nnn;
+			//std::cout << "I = " << (int) m_I << std::endl;
 			break;
 		case 0xb: // Bnnn - Jump to location nnn + V0.
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
-		case 0xc: // Cxkk - Set Vx = random byte AND kk
-			// TODO: always outputs 0 - find out why
-			m_V[x] = distribution(generator) ;
-			std::cout << "random = " <<(int) m_V[x] << std::endl;
-			break;
+		case 0xc: { // Cxkk - Set Vx = random byte AND kk
+				m_V[x] = (rand() % 256) & kk ;
+				break;
+			}
 		case 0xd:
 		{
-			// adapted from https://aimechanics.tech/2020/08/23/chip8-emulation-c-implementation/
-			// see https://chip8.fandom.com/wiki/Instruction_Draw,  https://www.reddit.com/r/EmuDev/comments/9sjhyu/help_with_understanding_a_line_of_code_in/
+			// see also https://github.com/craigthomas/Chip8Python/blob/master/chip8/cpu.py#L670
 			u8 height = n;
 			m_V[0xf] = 0;
-			for (unsigned row = 0; row < height; row++) {
-				u8 sprite = m_mem[m_I + row] ;
+			for (u8 row = 0; row < height; row++) {
+				u8 sprite = m_mem[m_I + row] ; // one row of the sprite
+				//std::cout << "drawing " << std::hex << (int) sprite << std::endl;
 				for(u8 col = 0; col < 8; col++) {
-					// check the upper bit only
-					if((sprite & 0x80 ) > 0) {
-						// if this is true then a collision occurred
-						if(putPixel((m_V[x] + col) % 64 , (m_V[y] + row) ))
+					// if this condition is true, we want to turn on a pixel
+					if((sprite & 0x80) != 0) {
+						// toggle current pixel and if it was previously on, set Vf to 1
+						if (m_display[m_V[y] + row][m_V[x] + col] == 1)
 							m_V[0xf] = 1;
+						m_display[m_V[y] + row][m_V[x] + col] ^= 1;
 					}
 					// next bit
 					sprite <<= 1;
 				}
 			}
-			// TODO: it's better to redraw the whole screen here
+			// redraw whole display
+			renderAll(m_display);
 			break;
 		}
 		case 0xf: 
@@ -182,28 +196,32 @@ void Chip8::exec() {
 				m_delayTimer = m_V[x];
 			else if (kk == 0x18) // Fx18 - Set sound timer = Vx.
 				m_soundTimer = m_V[x];
-			else if (kk == 0x15) // Fx1E - Set I = I + Vx.
+			else if (kk == 0x1e)  {// Fx1E - Set I = I + Vx.
+				m_V[0xf] = (m_I + m_V[x] > 0xfff) ? 1 : 0;
 				m_I += m_V[x];
+			}
 			else if (kk == 0x29) // Fx29 - Set I = location of sprite for digit Vx
 				m_I = m_V[x] * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
 			else if (kk == 0x33) {//BCD representation of Vx in memory locations I, I+1, and I+2
-				m_mem.at((m_I+0)&0xFFF) = (m_V[x]/100) % 10;
-				m_mem.at((m_I+1)&0xFFF) = (m_V[x]/10) % 10;
-				m_mem.at((m_I+2)&0xFFF) = m_V[x] % 10;
+				m_mem[(m_I+0)&0xFFF] = (m_V[x] % 1000) / 100;
+				m_mem[(m_I+1)&0xFFF] = (m_V[x] % 100) / 10;
+				m_mem[(m_I+2)&0xFFF] = m_V[x] % 10;
 			}
 			else if (kk == 0x55) { // Fx55 - Store registers V0 through Vx in memory starting at location I.
-				for(unsigned xx = 0; xx <= x; xx++)
+				for(unsigned xx = 0; xx <= x; xx++) {
 					m_mem[m_I++ & 0xFFF] = m_V[xx];
+				}
 			} else if (kk == 0x65) { // Fx65 - Read registers V0 through Vx from memory starting at location I 
-				for(unsigned xx = 0; xx <= x; xx++)
+				for(unsigned xx = 0; xx <= x; xx++) {
 					m_V[xx]= m_mem[m_I++ & 0xFFF];
+				}
 			}
 			break;
 	}
 	// move to next instruction
 	m_PC += 2;
 	// Chip-8 runs at 60 Hz
-	//std::this_thread::sleep_for(std::chrono::milliseconds(3));
+	//std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	// update sound and delay timers at 60 Hz
 	if (m_delayTimer > 0) 
 		m_delayTimer--;
@@ -211,13 +229,14 @@ void Chip8::exec() {
 		m_soundTimer--;
 		// TODO: beeping sound	(single frequency)
 	}
+	//std::cout << std::hex << (int)m_opcode << std::endl;
 }
 
 
 void Chip8::run(unsigned startingOffset) {
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
-	while ((m_mem.at(m_PC) != 0xff) || (m_mem.at(m_PC+1) != 0xff)) {
+	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
 		Chip8::fetch();
 		Chip8::decode();
 		Chip8::exec();

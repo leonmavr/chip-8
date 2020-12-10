@@ -14,7 +14,10 @@ public:
 	void reset();
 	void render();
 	void close();
-	unsigned char m_display[32*64];
+	//unsigned char m_display[32*64];
+	void renderAll(unsigned char (&array2D)[32][64]);
+	void renderAll2(unsigned char (&array1D)[32*64]);
+	unsigned char m_display[32][64] = {0};
 
 private:
 	unsigned m_w;

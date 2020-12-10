@@ -51,24 +51,32 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned val) {
 	else
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
 	SDL_RenderFillRect(m_renderer, &pixel);
+}
+
+
+void Display::renderAll(unsigned char(&array2D)[32][64]) {
+	for (unsigned row = 0; row < 32; row++) {
+		for (unsigned col = 0; col < 64; col++) {
+			if (array2D[row][col] != 0 )
+				drawPixelXY(col, row, 1);
+			else
+				drawPixelXY(col, row, 0);
+		}
+	}
 	SDL_RenderPresent(m_renderer); // copy to screen
+	// delay is REQUIRED or the screen will glitch out
     SDL_Delay(5);
 }
 
 
-bool Display::putPixel(unsigned x, unsigned y) {
-	// adapted from https://aimechanics.tech/2020/08/23/chip8-emulation-c-implementation/
-	int offset = y * 32 + x;
-	bool isCollision {false};
-    if( m_display[offset] == 1 )
-        isCollision = true;
-    m_display[offset] ^= 1;
-	drawPixelXY(x, y, m_display[offset]);
-    return isCollision;	
-}
-
-
 void Display::reset() {
+	// clear the display array first
+	for (int row = 0; row < 32; row++) {
+		for (int col= 0; col < 64; col++){
+			m_display[row][col] = 0;
+			drawPixelXY(col, row, 0);
+		}
+	}
 	// r, g, b, a
 	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
     //Clear the renderer with the draw color
