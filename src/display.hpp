@@ -9,19 +9,23 @@ public:
 		m_h = h;
 		init();	
 	};
-	~Display () { };
+	~Display () { 
+		free(m_window);
+		free(m_renderer);
+	};
 	bool putPixel(unsigned x, unsigned y);
 	void reset();
-	void render();
+	void render(); // probably not needed
 	void close();
 	//unsigned char m_display[32*64];
 	void renderAll(unsigned char (&array2D)[32][64]);
-	void renderAll2(unsigned char (&array1D)[32*64]);
+	unsigned char getKey();
 	unsigned char m_display[32][64] = {0};
 
 private:
 	unsigned m_w;
 	unsigned m_h;
+	unsigned m_kbd[16] = {0};
 	SDL_Window* m_window;
 	SDL_Renderer* m_renderer;
 

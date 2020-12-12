@@ -3,6 +3,8 @@
 #include <random>
 #include <cstdlib>
 
+
+
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
 	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
@@ -187,11 +189,22 @@ void Chip8::exec() {
 			renderAll(m_display);
 			break;
 		}
+		case 0xe:
+			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
+				std::cout << "0xeX9e" << std::endl;
+				if (m_kbd[m_V[x] & 15]) 
+					m_PC += 2;
+			}
+			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
+				if (m_kbd[m_V[x] & 15] == 0) 
+					m_PC += 2;
+			}
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
 			else if (kk == 0xa) // Fx0A - Wait for a key press, store the value of the key in Vx.
-				;// TODO
+				// TODO: implement getKey()
+				m_V[x] = getKey();
 			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
 				m_delayTimer = m_V[x];
 			else if (kk == 0x18) // Fx18 - Set sound timer = Vx.
@@ -227,9 +240,9 @@ void Chip8::exec() {
 		m_delayTimer--;
 	if (m_soundTimer > 0) {
 		m_soundTimer--;
+		std::cout << "beep!" << std::endl;
 		// TODO: beeping sound	(single frequency)
 	}
-	//std::cout << std::hex << (int)m_opcode << std::endl;
 }
 
 

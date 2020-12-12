@@ -83,3 +83,21 @@ void Display::reset() {
     SDL_RenderClear(m_renderer);
     SDL_Delay(5);
 }
+
+
+unsigned char Display::getKey() {
+	//SDL_Init(SDL_INIT_EVERYTHING);
+
+	const unsigned char* keys = SDL_GetKeyboardState(NULL);
+	SDL_Event event;
+	std::cout << "geyKey()" << std::endl;
+
+	// This one needs the rendered to be initialised
+	while (SDL_PollEvent(&event)) {
+		std::cout << "event: " << event.type << std::endl;
+		if (event.type == SDL_KEYUP) 
+			std::cout << "key pressed!\n";
+		if (event.type == SDL_KEYDOWN) 
+			std::cout << "key released!\n";
+	}
+}
