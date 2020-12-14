@@ -84,20 +84,51 @@ void Display::reset() {
     SDL_Delay(5);
 }
 
+static void printKbd(unsigned char * arr) {
+	std::cout << "kbd disp: ";
+	for (int i = 0; i < 16; i++)
+		std::cout <<(int) arr[i] << ", ";
+	std::cout << std::endl;
+}
 
 unsigned char Display::getKey() {
-	//SDL_Init(SDL_INIT_EVERYTHING);
-
+	// zero out the kbd?
+	for (int i = 0; i < 16; i++)
+		;//this->m_kbd[i] = 0;
 	const unsigned char* keys = SDL_GetKeyboardState(NULL);
 	SDL_Event event;
-	std::cout << "geyKey()" << std::endl;
-
+	
 	// This one needs the rendered to be initialised
 	while (SDL_PollEvent(&event)) {
-		std::cout << "event: " << event.type << std::endl;
-		if (event.type == SDL_KEYUP) 
-			std::cout << "key pressed!\n";
-		if (event.type == SDL_KEYDOWN) 
-			std::cout << "key released!\n";
+		if (event.type == SDL_KEYUP )  {
+			if (m_keys.size() > 0)
+				m_keys.pop_front();
+			auto chip8Key = m_keymap.find(event.key.keysym.sym);
+			unsigned keyPressed = (unsigned)chip8Key->second;
+			// TODO: find most recent key
+			while (m_keys.size() > 0)
+				m_keys.pop_front();
+			for (int i = 0; i  <4; i++)
+				m_keys.push_back(keyPressed);
+			// TODO: fill a queue of 4 with most recent key
+			/*
+			if (m_keys.size() < 2) 
+				m_keys.push_back(keyPressed);
+			else {
+				// pop should happen outside of the while loop
+				m_keys.push_back(keyPressed);
+				m_keys.pop_front();
+			}
+			*/
+			for (int i = 0; i < 16; i++)
+				this->m_kbd[i] = 0;
+			for (auto key = m_keys.begin(); key != m_keys.end(); key++) {
+				this->m_kbd[(int)*key] = 1;
+				std::cout << "* " << (int)*key << std::endl;
+			}
+			//printKbd(this->m_kbd);
+			return keyPressed;
+		}
 	}
+	return 0x0;
 }

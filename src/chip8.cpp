@@ -61,14 +61,11 @@ void Chip8::decode() {
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
 }
 
-static void drawSprite(u8 sprite, u8 height) {
-	for (int xx = 0; xx < 8; xx++) {
-		if ((sprite && 0x80) > 0)
-			std::cout << "o";
-		else
-			std::cout << ".";
-		sprite <<= 1;
-		}
+
+static void printKbd(unsigned char * arr) {
+	std::cout << "kbd: ";
+	for (int i = 0; i < 16; i++)
+		std::cout <<(int) arr[i] << ", ";
 	std::cout << std::endl;
 }
 
@@ -156,7 +153,6 @@ void Chip8::exec() {
 			break;
 		case 0xa: // Set I = nnn.
 			m_I = nnn;
-			//std::cout << "I = " << (int) m_I << std::endl;
 			break;
 		case 0xb: // Bnnn - Jump to location nnn + V0.
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
@@ -172,7 +168,6 @@ void Chip8::exec() {
 			m_V[0xf] = 0;
 			for (u8 row = 0; row < height; row++) {
 				u8 sprite = m_mem[m_I + row] ; // one row of the sprite
-				//std::cout << "drawing " << std::hex << (int) sprite << std::endl;
 				for(u8 col = 0; col < 8; col++) {
 					// if this condition is true, we want to turn on a pixel
 					if((sprite & 0x80) != 0) {
@@ -191,20 +186,21 @@ void Chip8::exec() {
 		}
 		case 0xe:
 			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-				std::cout << "0xeX9e" << std::endl;
-				if (m_kbd[m_V[x] & 15]) 
+				if ((unsigned)m_kbd[m_V[x] & 15]) 
 					m_PC += 2;
+				printKbd(m_kbd);
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
-				if (m_kbd[m_V[x] & 15] == 0) 
+				if ((unsigned)m_kbd[m_V[x] & 15] == 0) 
 					m_PC += 2;
+				printKbd(m_kbd);
 			}
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
-			else if (kk == 0xa) // Fx0A - Wait for a key press, store the value of the key in Vx.
-				// TODO: implement getKey()
+			else if ((unsigned)kk == (unsigned)0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
 				m_V[x] = getKey();
+			}
 			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
 				m_delayTimer = m_V[x];
 			else if (kk == 0x18) // Fx18 - Set sound timer = Vx.
@@ -240,7 +236,6 @@ void Chip8::exec() {
 		m_delayTimer--;
 	if (m_soundTimer > 0) {
 		m_soundTimer--;
-		std::cout << "beep!" << std::endl;
 		// TODO: beeping sound	(single frequency)
 	}
 }
@@ -252,6 +247,7 @@ void Chip8::run(unsigned startingOffset) {
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
 		Chip8::fetch();
 		Chip8::decode();
+		Chip8::getKey();
 		Chip8::exec();
 	}
 }

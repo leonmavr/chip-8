@@ -48,7 +48,7 @@ private:
 	u16 m_SP = 0;							// Stack pointer
 	u16 m_PC = 0x200;						// Program counter
 	u16 m_I = 0;							// Index register
-	u8 m_kbd[16] = {0};						// keyboard
+	//u8 m_kbd[16] = {0};						// keyboard
 	u16 m_opcode;							// current opcode
 	bitfields m_bitfields;					// opcode bitfields
 	u16 m_stack[12];						// stack
