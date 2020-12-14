@@ -1,7 +1,7 @@
 OBJS = src/demo.cpp src/display.cpp src/chip8.cpp
 CC = g++
 
-COMPILER_FLAGS = -Wall -Isrc
+COMPILER_FLAGS = -Wall -Isrc -g
 
 LINKER_FLAGS = -lSDL2
 
