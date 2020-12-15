@@ -110,7 +110,21 @@ unsigned char Display::getKey() {
 
 			for (int i = 0; i < 16; i++)
 				this->m_kbd[i] = 0;
-			this->m_kbd[keyPressed] = 1;
+			//this->m_kbd[keyPressed] = 1;
+			//printKbd(this->m_kbd);
+			kp = keyPressed;
+			return keyPressed;
+		}
+		if (event.type == SDL_KEYDOWN )  {
+			for (auto& pair: m_keymap) {
+				if (pair.first == event.key.keysym.sym)
+					keyPressed = pair.second;
+			}
+			//unsigned keyPressed = (unsigned)chip8Key->second;
+
+			for (int i = 0; i < 16; i++)
+				this->m_kbd[i] = 1;
+			this->m_kbd[keyPressed] = 0;
 			//printKbd(this->m_kbd);
 			kp = keyPressed;
 			return keyPressed;
