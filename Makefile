@@ -1,4 +1,4 @@
-OBJS = src/demo.cpp src/display.cpp src/chip8.cpp
+OBJS = src/demo.cpp src/display.cpp src/chip8.cpp src/keyboard.cpp
 CC = g++
 
 COMPILER_FLAGS = -Wall -Isrc -g

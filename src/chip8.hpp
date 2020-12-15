@@ -11,6 +11,7 @@
 #include <thread>
 #include <random>
 #include "display.hpp"
+#include "keyboard.hpp"
 
 typedef unsigned char u8;
 typedef unsigned short u16;

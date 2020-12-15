@@ -1,4 +1,5 @@
 #include "chip8.hpp" 
+#include "keyboard.hpp" 
 #include <iostream>
 #include <random>
 #include <cstdlib>
@@ -189,19 +190,17 @@ void Chip8::exec() {
 				if ((unsigned)m_kbd[m_V[x] & 15])  {
 					m_PC += 2;
 				}
-				printKbd(m_kbd);
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
 				if ((unsigned)m_kbd[m_V[x] & 15] == 0)  {
 					m_PC += 2;
 				}
-				printKbd(m_kbd);
 			}
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
 			else if ((unsigned)kk == (unsigned)0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
-				m_V[x] = getKey();
+				m_V[x] = Keyboard::getKey();
 			}
 			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
 				m_delayTimer = m_V[x];
