@@ -186,13 +186,15 @@ void Chip8::exec() {
 		}
 		case 0xe:
 			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-				if ((unsigned)m_kbd[m_V[x] & 15]) 
+				if ((unsigned)m_kbd[m_V[x] & 15])  {
 					m_PC += 2;
+				}
 				printKbd(m_kbd);
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
-				if ((unsigned)m_kbd[m_V[x] & 15] == 0) 
+				if ((unsigned)m_kbd[m_V[x] & 15] == 0)  {
 					m_PC += 2;
+				}
 				printKbd(m_kbd);
 			}
 		case 0xf: 
