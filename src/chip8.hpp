@@ -57,7 +57,7 @@ private:
 	void fetch();
 	void decode();
 	void exec();
-	void initFont(unsigned offset = 0x0);
+	void initFont(unsigned offset = 0x50);
 };
 
 #endif /* CHIP8_HPP */
