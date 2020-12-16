@@ -3,6 +3,9 @@
 #include <iostream>
 #include <random>
 #include <cstdlib>
+#include <cassert>
+#include <string>
+#include <unordered_map>
 
 
 
@@ -15,7 +18,7 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 
 
 void Chip8::fetch() {
-	assert(m_PC < 4096);
+	assert(m_PC < 0x1000);
 	// copy the current byte of the program to the current instruction,
 	// assuming little endian host
 	m_opcode = m_mem[m_PC] << 8 | m_mem[m_PC+1];
@@ -37,12 +40,7 @@ void Chip8::decode() {
 }
 
 
-static void printKbd(unsigned char * arr) {
-	std::cout << "kbd: ";
-	for (int i = 0; i < 16; i++)
-		std::cout <<(int) arr[i] << ", ";
-	std::cout << std::endl;
-}
+
 
 void Chip8::exec() {
 	const auto x = m_bitfields.x;
@@ -173,7 +171,7 @@ void Chip8::exec() {
 		case 0xf: 
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
-			else if ((unsigned)kk == (unsigned)0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
+			else if (kk == 0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
 				m_V[x] = Keyboard::getKeyPress();
 			}
 			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
@@ -235,6 +233,8 @@ void Chip8::init() {
 	m_I = 0x0;
 	for (auto& m: m_mem)
 		m = 0xff; // 0xff indicates free space
+	m_delayTimer = 0x0;
+	m_soundTimer = 0x0;
 
 	// 2. Write font sprites to memory (locations 0x0 to 0x50)
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
@@ -259,6 +259,6 @@ void Chip8::init() {
 	};
 	// copy to m_mem
 	unsigned fontOffset = 0x0;
-	for (uint8_t element: m_fontset)
+	for (const uint8_t& element: m_fontset)
 		m_mem[fontOffset++ & 0xFF] = element;
 }
