@@ -31,9 +31,7 @@ typedef struct bitfields_t {
 class Chip8: public Display, public Keyboard {
 public:
 	Chip8 () {
-		for (auto& m: m_mem)
-			m = 0xff; // 0xff indicates free space
-		initFont();
+		init();
 	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
@@ -54,7 +52,6 @@ private:
 	void fetch();
 	void decode();
 	void exec();
-	void initFont(unsigned offset = 0x50);
 	void init();
 };
 
