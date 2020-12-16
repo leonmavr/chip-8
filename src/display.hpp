@@ -1,8 +1,7 @@
 #ifndef DISPLAY_HPP
 #include <SDL2/SDL.h>
-#include <iostream>
 #include <unordered_map>
-#include <vector>
+#include <cinttypes>
 #include "keyboard.hpp" 
 
 
@@ -22,8 +21,8 @@ public:
 protected:
 	void reset();
 	void close();
-	void renderAll(unsigned char (&array2D)[32][64]);
-	unsigned char m_display[32][64] = {0};
+	void renderAll(uint8_t (&array2D)[32][64]);
+	uint8_t m_display[32][64] = {0};
 
 private:
 	unsigned m_w;
@@ -32,7 +31,6 @@ private:
 	SDL_Renderer* m_renderer;
 	void init();
 	void drawPixelXY(unsigned x, unsigned y, unsigned val);
-	bool putPixel(unsigned x, unsigned y);
 };
 
 #define DISPLAY_HPP 
