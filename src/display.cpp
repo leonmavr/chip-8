@@ -1,9 +1,6 @@
 #include <SDL2/SDL.h>
 #include <memory>
-#include <tuple>
-#include <iostream>
 #include "display.hpp" 
-#include <assert.h>
 
 
 void Display::init() {
@@ -31,11 +28,6 @@ void Display::close() {
 
 
 void Display::drawPixelXY(unsigned x, unsigned y, unsigned val) {
-	// Ensure it's in Chip-8's display
-	//assert((0 <= x) && (x < 32) && (0 <= y) && (y < 64));
-	//if (!(0 <= x) || !(x < 32) || !(0 <= y) || !(y < 64)) 
-	//	return;
-
 	// define the pixel to draw
 	SDL_Rect pixel;
 	unsigned scaleX = static_cast<int>(m_w / 64);
@@ -83,11 +75,3 @@ void Display::reset() {
     SDL_RenderClear(m_renderer);
     SDL_Delay(5);
 }
-
-static void printKbd(unsigned char * arr) {
-	std::cout << "kbd disp: ";
-	for (int i = 0; i < 16; i++)
-		std::cout <<(int) arr[i] << ", ";
-	std::cout << std::endl;
-}
-

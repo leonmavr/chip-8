@@ -27,7 +27,7 @@ typedef struct bitfields_t {
 } bitfields;
 
 
-class Chip8: public Display {
+class Chip8: public Display, public Keyboard {
 public:
 	Chip8 () {
 		//m_mem.assign(0x1000, 0xff);		// 0xff indicates free space
