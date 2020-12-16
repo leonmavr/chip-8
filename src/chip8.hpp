@@ -4,15 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <vector>
 #include <array>
 #include <algorithm> // fill()
 #include <cinttypes>
 #include <bits/stdc++.h>
-#include <random>
-#include <chrono>
-#include <thread>
-#include <random>
 #include "display.hpp"
 #include "keyboard.hpp"
 

@@ -13,9 +13,6 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 }
 
 
-void Chip8::initFont(unsigned int offset) {
-}
-
 
 void Chip8::fetch() {
 	assert(m_PC < 4096);
