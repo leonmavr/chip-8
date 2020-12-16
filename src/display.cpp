@@ -27,7 +27,7 @@ void Display::close() {
 }
 
 
-void Display::drawPixelXY(unsigned x, unsigned y, unsigned val) {
+void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 	// define the pixel to draw
 	SDL_Rect pixel;
 	unsigned scaleX = static_cast<int>(m_w / 64);
@@ -38,7 +38,7 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned val) {
 	pixel.w = scaleX;
 	pixel.h = scaleY;
 
-	if (val == 1)
+	if (colour == 1)
 		SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 	else
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);

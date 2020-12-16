@@ -30,7 +30,7 @@ private:
 	SDL_Window* m_window;
 	SDL_Renderer* m_renderer;
 	void init();
-	void drawPixelXY(unsigned x, unsigned y, unsigned val);
+	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
 };
 
 #define DISPLAY_HPP 
