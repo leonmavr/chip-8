@@ -187,12 +187,12 @@ void Chip8::exec() {
 		}
 		case 0xe:
 			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-				if ((unsigned)m_kbd[m_V[x] & 15])  {
+				if ((unsigned)m_keypresses[m_V[x] & 15])  {
 					m_PC += 2;
 				}
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
-				if ((unsigned)m_kbd[m_V[x] & 15] == 0)  {
+				if ((unsigned)m_keypresses[m_V[x] & 15] == 0)  {
 					m_PC += 2;
 				}
 			}
@@ -200,7 +200,7 @@ void Chip8::exec() {
 			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
 				m_V[x] = m_delayTimer;
 			else if ((unsigned)kk == (unsigned)0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
-				m_V[x] = Keyboard::getKey();
+				m_V[x] = Keyboard::getKeyPress();
 			}
 			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
 				m_delayTimer = m_V[x];
@@ -248,7 +248,7 @@ void Chip8::run(unsigned startingOffset) {
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
 		Chip8::fetch();
 		Chip8::decode();
-		Chip8::getKey();
+		Chip8::getKeyPress();
 		Chip8::exec();
 	}
 }

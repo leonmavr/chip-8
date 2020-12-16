@@ -1,42 +1,30 @@
 #include "keyboard.hpp"
-#include <iostream>
+#include <cinttypes>
 #include <SDL2/SDL.h>
 
 
-unsigned char Keyboard::getKey() {
+uint8_t Keyboard::getKeyPress() {
 	// zero out the kbd?
-	for (int i = 0; i < 16; i++)
-		;//this->m_kbd[i] = 0;
-	const unsigned char* keys = SDL_GetKeyboardState(NULL);
+	const uint8_t* keys = SDL_GetKeyboardState(NULL);
+	uint8_t keyPressed = 0x0; // 4-bit Chip8 key
 	SDL_Event event;
 	
-	unsigned keyPressed = 16;
-	// This one needs the rendered to be initialised
 	while (SDL_PollEvent(&event)) {
+		// key release
 		if (event.type == SDL_KEYUP )  {
-			for (auto& pair: m_keymap) {
-				if (pair.first == event.key.keysym.sym)
-					keyPressed = pair.second;
-			}
-			//unsigned keyPressed = (unsigned)chip8Key->second;
-
-			for (int i = 0; i < 16; i++)
-				this->m_kbd[i] = 0;
-			//this->m_kbd[keyPressed] = 1;
-			//printKbd(this->m_kbd);
+			keyPressed = m_keyQwerty2Chip8.find(event.key.keysym.sym)->second;
+			for (auto& keypress: m_keypresses)
+				keypress = 0x0;
 			return keyPressed;
 		}
+
+		// keypress
 		if (event.type == SDL_KEYDOWN )  {
-			for (auto& pair: m_keymap) {
-				if (pair.first == event.key.keysym.sym)
-					keyPressed = pair.second;
-			}
-
-			for (int i = 0; i < 16; i++)
-				this->m_kbd[i] = 1;
-			this->m_kbd[keyPressed] = 0;
+			keyPressed = m_keyQwerty2Chip8.find(event.key.keysym.sym)->second;
+			m_keypresses[keyPressed] = 0x1;
 			return keyPressed;
 		}
+		// TODO: SDLK_QUIT
 	}
 	return 0x0;
 }
