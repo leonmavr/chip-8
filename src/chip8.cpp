@@ -15,7 +15,7 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 
 void Chip8::initFont(unsigned int offset) {
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
-	std::vector<u8> m_fontset = 
+	std::vector<uint8_t> m_fontset = 
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -35,7 +35,7 @@ void Chip8::initFont(unsigned int offset) {
 		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
 	// write to m_mem
-	for (u8 element: m_fontset)
+	for (uint8_t element: m_fontset)
 		m_mem[offset++ & 0xFF] = element;
 }
 
@@ -92,7 +92,7 @@ void Chip8::exec() {
 			break;
 		case 0x2:
 			// Call subroutine at NNN
-			m_stack[m_SP++ % 12] = (u16)m_PC;
+			m_stack[m_SP++ % 12] = (uint16_t)m_PC;
 			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
 			break;
 		case 0x3:
@@ -165,11 +165,11 @@ void Chip8::exec() {
 		case 0xd:
 		{
 			// see also https://github.com/craigthomas/Chip8Python/blob/master/chip8/cpu.py#L670
-			u8 height = n;
+			uint8_t height = n;
 			m_V[0xf] = 0;
-			for (u8 row = 0; row < height; row++) {
-				u8 sprite = m_mem[m_I + row] ; // one row of the sprite
-				for(u8 col = 0; col < 8; col++) {
+			for (uint8_t row = 0; row < height; row++) {
+				uint8_t sprite = m_mem[m_I + row] ; // one row of the sprite
+				for(uint8_t col = 0; col < 8; col++) {
 					// if this condition is true, we want to turn on a pixel
 					if((sprite & 0x80) != 0) {
 						// toggle current pixel and if it was previously on, set Vf to 1
@@ -252,3 +252,4 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::exec();
 	}
 }
+
