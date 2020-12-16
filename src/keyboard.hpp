@@ -20,9 +20,9 @@ public:
 		};
 	};
 	~Keyboard () {};
-	uint8_t getKeyPress();
 
 protected:
+	uint8_t getKeyPress();
 	std::unordered_map<unsigned, unsigned> m_keyQwerty2Chip8;
 	std::array<uint8_t, 16> m_keypresses {};
 };
