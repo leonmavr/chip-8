@@ -4,7 +4,8 @@
 
 
 uint8_t Keyboard::getKeyPress() {
-	// zero out the kbd?
+	// this method assumes that SDL has been initialised externally
+	
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 	uint8_t keyPressed = 0x0; // 4-bit Chip8 key
 	SDL_Event event;
@@ -24,7 +25,7 @@ uint8_t Keyboard::getKeyPress() {
 			m_keypresses[keyPressed] = 0x1;
 			return keyPressed;
 		}
-		// TODO: SDLK_QUIT
+		// TODO: SDLK_QUIT or find not successful
 	}
 	return 0x0;
 }
