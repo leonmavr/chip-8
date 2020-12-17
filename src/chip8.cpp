@@ -55,7 +55,7 @@ void Chip8::exec() {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
 				m_display[32][64] = {0};
-				reset();
+				cls();
 			}
 			else if (nnn == 0x0ee){	// 00EE (return from call)
 				m_PC = m_stack[--m_SP % 12];
@@ -235,11 +235,11 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::exec();
 
 		if (!m_overclock) {
-			// if necessary, wait until at least 1/60 sec per cycle elapsed
+			// if necessary, wait until 2 ms per cycle have elapsed
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
-						static_cast<bool>(t_minUsPerCycle > t_deltaUs) * (t_minUsPerCycle > t_deltaUs)
+						static_cast<bool>(t_minUsPerCycle > t_deltaUs) * (t_minUsPerCycle - t_deltaUs)
 					));
 		}
 	}

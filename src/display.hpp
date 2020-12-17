@@ -19,7 +19,7 @@ public:
 	};
 
 protected:
-	void reset();
+	void cls();
 	void close();
 	void renderAll(uint8_t (&array2D)[32][64]);
 	uint8_t m_display[32][64] = {0};
