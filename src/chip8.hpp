@@ -10,17 +10,8 @@
 #include <bits/stdc++.h>
 #include "display.hpp"
 #include "keyboard.hpp"
+#include "bitfields.hpp"
 
-
-typedef struct bitfields_t {
-	/* see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0 */
-	unsigned type;
-	unsigned n;
-	unsigned y;
-	unsigned x;
-	unsigned kk;
-	unsigned nnn;
-} bitfields;
 
 
 class Chip8: public Display, public Keyboard {
