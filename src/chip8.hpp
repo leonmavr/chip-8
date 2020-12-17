@@ -28,6 +28,9 @@ public:
 	Chip8 () {
 		init();
 	};
+	Chip8 (bool overclock) {
+		init(overclock);
+	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
 	void run(unsigned startingOffset = 0x200);
@@ -43,7 +46,7 @@ private:
 	uint16_t m_opcode;							// current opcode
 	bitfields m_bitfields;						// opcode bitfields
 	unsigned m_clockFreq = 500;					// clock frequency in Hz
-	bool m_overclock;							// if true, runs at max speed, else 500Hz
+	bool m_overclock;							// if true, runs at max speed, else 500 Hz
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
 	void fetch();
