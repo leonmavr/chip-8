@@ -42,12 +42,14 @@ private:
 	uint16_t m_I;								// Index register
 	uint16_t m_opcode;							// current opcode
 	bitfields m_bitfields;						// opcode bitfields
+	unsigned m_clockFreq = 500;					// clock frequency in Hz
+	bool m_overclock;							// if true, runs at max speed, else 500Hz
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
 	void fetch();
 	void decode();
 	void exec();
-	void init();
+	void init(bool overclock = false);
 };
 
 #endif /* CHIP8_HPP */

@@ -5,7 +5,11 @@
 #include <cstdlib>
 #include <cassert>
 #include <string>
+#include <sstream>
 #include <unordered_map>
+#include <chrono>
+#include <chrono>
+#include <thread>
 
 
 
@@ -38,7 +42,6 @@ void Chip8::decode() {
 	m_bitfields.kk   = m_opcode         & 0x00ff;
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
 }
-
 
 
 
@@ -215,18 +218,35 @@ void Chip8::exec() {
 
 
 void Chip8::run(unsigned startingOffset) {
+	int t_minUsPerCycle = 1000000/m_clockFreq;
+	std::chrono::high_resolution_clock::time_point t_start, t_end;
+	int t_deltaUs;
+
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
+		if (!m_overclock)
+			t_start = std::chrono::high_resolution_clock::now();
+
+		// fetch-decode-exec defines the operation of Chip8
 		Chip8::fetch();
 		Chip8::decode();
 		Chip8::getKeyPress();
 		Chip8::exec();
+
+		if (!m_overclock) {
+			// if necessary, wait until at least 1/60 sec per cycle elapsed
+			t_end = std::chrono::high_resolution_clock::now();
+			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
+			std::this_thread::sleep_for(std::chrono::microseconds(
+						static_cast<bool>(t_minUsPerCycle > t_deltaUs) * (t_minUsPerCycle > t_deltaUs)
+					));
+		}
 	}
 }
 
 
-void Chip8::init() {
+void Chip8::init(bool overclock) {
 	// 1. Initialise special registers and memory
 	m_SP = 0x0;
 	m_PC = 0x200;
@@ -261,4 +281,7 @@ void Chip8::init() {
 	unsigned fontOffset = 0x0;
 	for (const uint8_t& element: m_fontset)
 		m_mem[fontOffset++ & 0xFF] = element;
+
+	// 3. misc options
+	m_overclock = overclock;
 }
