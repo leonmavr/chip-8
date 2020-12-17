@@ -21,11 +21,17 @@ uint8_t Keyboard::getKeyPress() {
 
 		// keypress
 		if (event.type == SDL_KEYDOWN )  {
-			keyPressed = m_keyQwerty2Chip8.find(event.key.keysym.sym)->second;
-			m_keypresses[keyPressed] = 0x1;
-			return keyPressed;
+			if (!(event.key.keysym.sym == SDLK_ESCAPE)) {
+				keyPressed = m_keyQwerty2Chip8.find(event.key.keysym.sym)->second;
+				m_keypresses[keyPressed] = 0x1;
+				return keyPressed;
+			} else
+				std::exit(0);
 		}
-		// TODO: SDLK_QUIT or find not successful
+		// exit on window close or esc key press
+		if (event.type == SDL_QUIT)
+				std::exit(0);
+
 	}
 	return 0x0;
 }
