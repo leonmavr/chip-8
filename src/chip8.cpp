@@ -12,6 +12,9 @@
 #include <thread>
 
 
+static unsigned every60Hz = 0;
+
+
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
@@ -21,7 +24,7 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 
 
 
-void Chip8::fetch() {
+inline void Chip8::fetch() {
 	assert(m_PC < 0x1000);
 	// copy the current byte of the program to the current instruction,
 	// assuming little endian host
@@ -29,7 +32,7 @@ void Chip8::fetch() {
 }
 
 
-void Chip8::decode() {
+inline void Chip8::decode() {
 	/*
 	 * Extract bit-fields from the opcode
 	 * see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
@@ -46,11 +49,11 @@ void Chip8::decode() {
 
 
 void Chip8::exec() {
-	const auto x = m_bitfields.x;
-	const auto y = m_bitfields.y;
-	const auto kk = m_bitfields.kk;
-	const auto nnn = m_bitfields.nnn;
-	const auto n = m_bitfields.n;
+	const auto& x = m_bitfields.x;
+	const auto& y = m_bitfields.y;
+	const auto& kk = m_bitfields.kk;
+	const auto& nnn = m_bitfields.nnn;
+	const auto& n = m_bitfields.n;
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
@@ -134,8 +137,8 @@ void Chip8::exec() {
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
 		case 0xc: { // Cxkk - Set Vx = random byte AND kk
-				m_V[x] = (rand() % 256) & kk ;
-				break;
+			m_V[x] = (rand() % 256) & kk ;
+			break;
 			}
 		case 0xd:
 		{
@@ -203,17 +206,23 @@ void Chip8::exec() {
 			}
 			break;
 	}
+
+	// update sound and delay timers at 60 Hz - overclock flag must be off to achieve that
+	// 501/60 = 8.35 hence
+	if (!m_overclock && (every60Hz*100 % 835)) {
+		if (m_delayTimer > 0) 
+			m_delayTimer--;
+		if (m_soundTimer > 0) {
+			m_soundTimer--;
+			std::cout << "beep!\n";
+			// TODO: beeping sound	(single frequency)
+		}
+	}
+	every60Hz++;
+
+
 	// move to next instruction
 	m_PC += 2;
-	// Chip-8 runs at 60 Hz
-	//std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	// update sound and delay timers at 60 Hz
-	if (m_delayTimer > 0) 
-		m_delayTimer--;
-	if (m_soundTimer > 0) {
-		m_soundTimer--;
-		// TODO: beeping sound	(single frequency)
-	}
 }
 
 
