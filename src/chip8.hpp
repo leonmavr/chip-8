@@ -40,8 +40,8 @@ private:
 	bool m_overclock;							// if true, runs at max speed, else 500 Hz
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
-	void fetch();
-	void decode();
+	inline void fetch();
+	inline void decode();
 	void exec();
 	void init(bool overclock = false);
 };
