@@ -207,19 +207,17 @@ void Chip8::exec() {
 			break;
 	}
 
-	// update sound and delay timers at 60 Hz - overclock flag must be off to achieve that
+	if (m_delayTimer > 0) 
+		m_delayTimer--;
+	if (m_soundTimer > 0)
+		m_soundTimer--;
+	// sound is played only if Chip-8 operates at 500 Hz - otherwise there's no point 
 	// 501/60 = 8.35 hence
 	if (!m_overclock && (every60Hz*100 % 835)) {
-		if (m_delayTimer > 0) 
-			m_delayTimer--;
-		if (m_soundTimer > 0) {
-			m_soundTimer--;
 			std::cout << "beep!\n";
 			// TODO: beeping sound	(single frequency)
-		}
+			every60Hz++;
 	}
-	every60Hz++;
-
 
 	// move to next instruction
 	m_PC += 2;
