@@ -15,13 +15,11 @@
 static unsigned every60Hz = 0;
 
 
-
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
 	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
 		m_mem[offset++ & 0xFFF] = f.get();
 }
-
 
 
 inline void Chip8::fetch() {
@@ -114,7 +112,7 @@ void Chip8::exec() {
 				m_V[x] -= m_V[y];
 			}
 			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
-				m_V[0xf] = m_V[x]  & 1;
+				m_V[0xf] = m_V[x] & 1;
 				m_V[x] >>= 1;
 			}	
 			else if (n == 0x7) { //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
@@ -190,7 +188,7 @@ void Chip8::exec() {
 			}
 			else if (kk == 0x29) // Fx29 - Set I = location of sprite for digit Vx
 				m_I = m_V[x] * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
-			else if (kk == 0x33) {//BCD representation of Vx in memory locations I, I+1, and I+2
+			else if (kk == 0x33) { //BCD representation of Vx in memory locations I, I+1, and I+2
 				m_mem[(m_I+0)&0xFFF] = (m_V[x] % 1000) / 100;
 				m_mem[(m_I+1)&0xFFF] = (m_V[x] % 100) / 10;
 				m_mem[(m_I+2)&0xFFF] = m_V[x] % 10;
@@ -207,32 +205,41 @@ void Chip8::exec() {
 			break;
 	}
 
-	if (m_delayTimer > 0) 
-		m_delayTimer--;
-	if (m_soundTimer > 0)
-		m_soundTimer--;
-	// sound is played only if Chip-8 operates at 500 Hz - otherwise there's no point 
-	// 501/60 = 8.35 hence
-	if (!m_overclock && (every60Hz*100 % 835)) {
-			std::cout << "beep!\n";
-			// TODO: beeping sound	(single frequency)
-			every60Hz++;
+	if (m_clockSpeed == SPEED_500HZ) {
+		// decrement every 60 hz and play sound if necessary
+		// Sound is played only if operation mode is at 500 Hz - otherwise there's no point. 60 Hz is about 11x slower than 500 so
+		if (every60Hz % 11 == 0)   {
+			if (m_delayTimer > 0) 
+				m_delayTimer--;
+			if (m_soundTimer > 0) {
+				m_soundTimer--;
+				std::cout << "beep!" << std::endl;
+			}
+		}
+	} else { // fast mode or overclocked mode
+		if (m_delayTimer > 0) 
+			m_delayTimer--;
+		if (m_soundTimer > 0)
+			m_soundTimer--;
 	}
 
+	// this is an auxiliary ounter that synchronises the delay and sound timers
+	every60Hz++;
 	// move to next instruction
 	m_PC += 2;
 }
 
 
 void Chip8::run(unsigned startingOffset) {
-	int t_minUsPerCycle = 1000000/m_clockFreq;
+	constexpr unsigned clockFreq = 500; // Hz
+	int t_minUsPerCycle = 1000000/clockFreq;
 	std::chrono::high_resolution_clock::time_point t_start, t_end;
 	int t_deltaUs;
 
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
-		if (!m_overclock)
+		if (m_clockSpeed == SPEED_500HZ)
 			t_start = std::chrono::high_resolution_clock::now();
 
 		// fetch-decode-exec defines the operation of Chip8
@@ -241,19 +248,20 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::getKeyPress();
 		Chip8::exec();
 
-		if (!m_overclock) {
+		if (m_clockSpeed == SPEED_500HZ) {
 			// if necessary, wait until 2 ms per cycle have elapsed
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
 						static_cast<bool>(t_minUsPerCycle > t_deltaUs) * (t_minUsPerCycle - t_deltaUs)
 					));
-		}
+		} else if (m_clockSpeed == SPEED_FAST)
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}
 }
 
 
-void Chip8::init(bool overclock) {
+void Chip8::init(unsigned clockSpeed) {
 	// 1. Initialise special registers and memory
 	m_SP = 0x0;
 	m_PC = 0x200;
@@ -263,7 +271,7 @@ void Chip8::init(bool overclock) {
 	m_delayTimer = 0x0;
 	m_soundTimer = 0x0;
 
-	// 2. Write font sprites to memory (locations 0x0 to 0x50)
+	// 2. Write font sprites to memory (locations 0x0 to 0x4f inclusive)
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
 	std::vector<uint8_t> m_fontset = 
 	{
@@ -290,5 +298,5 @@ void Chip8::init(bool overclock) {
 		m_mem[fontOffset++ & 0xFF] = element;
 
 	// 3. misc options
-	m_overclock = overclock;
+	m_clockSpeed = clockSpeed;
 }

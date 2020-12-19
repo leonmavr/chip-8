@@ -6,12 +6,18 @@
 #include <memory>
 #include <array>
 #include <algorithm> // fill()
-#include <cinttypes>
+#include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
 #include "display.hpp"
 #include "keyboard.hpp"
 #include "bitfields.hpp"
 
+
+enum {
+	SPEED_500HZ,								// The original CPU speed of Chip-8
+	SPEED_FAST,									// Approaching overclock
+	SPEED_OVERCLOCK								// As fast as host computer allows
+};
 
 
 class Chip8: public Display, public Keyboard {
@@ -19,8 +25,8 @@ public:
 	Chip8 () {
 		init();
 	};
-	Chip8 (bool overclock) {
-		init(overclock);
+	Chip8 (unsigned cpuSpeed) {
+		init(cpuSpeed);
 	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
@@ -35,15 +41,14 @@ private:
 	uint16_t m_PC;								// Program counter
 	uint16_t m_I;								// Index register
 	uint16_t m_opcode;							// current opcode
+	unsigned m_clockSpeed;						// CPU speed
 	bitfields m_bitfields;						// opcode bitfields
-	unsigned m_clockFreq = 500;					// clock frequency in Hz
-	bool m_overclock;							// if true, runs at max speed, else 500 Hz
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
 	inline void fetch();
 	inline void decode();
 	void exec();
-	void init(bool overclock = false);
+	void init(unsigned clockSpeed = SPEED_500HZ);
 };
 
 #endif /* CHIP8_HPP */
