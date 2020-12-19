@@ -246,6 +246,7 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::getKeyPress();
 		Chip8::exec();
 
+		// compensate the fps every 10th of a second to make emulation smoother
 		if ((m_clockSpeed == SPEED_NORMAL) && (execInsrPerSec/10 >= m_instrPerSec/10)) {
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
