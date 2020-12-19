@@ -25,8 +25,8 @@ public:
 	Chip8 () {
 		init();
 	};
-	Chip8 (unsigned cpuSpeed) {
-		init(cpuSpeed);
+	Chip8 (unsigned cpuSpeed, unsigned instrPerSec) {
+		init(cpuSpeed, instrPerSec);
 	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
@@ -45,10 +45,11 @@ private:
 	bitfields m_bitfields;						// opcode bitfields
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
+	unsigned m_instrPerSec;						// instr. per sec; helps with timing
 	inline void fetch();
 	inline void decode();
 	void exec();
-	void init(unsigned clockSpeed = SPEED_NORMAL);
+	void init(unsigned clockSpeed = SPEED_NORMAL, unsigned instrPerSec = 400);
 };
 
 #endif /* CHIP8_HPP */

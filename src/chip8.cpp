@@ -12,7 +12,7 @@
 #include <thread>
 
 
-static unsigned fps = 0;
+static unsigned execInsrPerSec = 0;
 
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
@@ -159,7 +159,6 @@ void Chip8::exec() {
 			}
 			// redraw whole display
 			renderAll(m_display);
-			fps++;
 			break;
 		}
 		case 0xe:
@@ -209,13 +208,13 @@ void Chip8::exec() {
 
 	if (m_clockSpeed == SPEED_NORMAL) {
 		// decrement every 60 hz and play sound if necessary
-		// Sound is played only if operation mode is at 500 Hz - otherwise there's no point. 60 Hz is about 11x slower than 500 so
-		if (fps % 10 == 0)   {
+		if (m_instrPerSec % 10 == 0)   {
 			if (m_delayTimer > 0) 
 				m_delayTimer--;
 			if (m_soundTimer > 0) {
 				m_soundTimer--;
-				std::cout << "beep!" << std::endl;
+				//std::cout << "beep!" << std::endl;
+				// TODO: play a beep (single frequency)
 			}
 		}
 	} else { // fast mode or overclocked mode
@@ -225,15 +224,13 @@ void Chip8::exec() {
 			m_soundTimer--;
 	}
 
-		fps++;
+	execInsrPerSec++;
 	// move to next instruction
 	m_PC += 2;
 }
 
 
 void Chip8::run(unsigned startingOffset) {
-	constexpr unsigned clockFreq = 500; // Hz
-	int t_minUsPerCycle = 1000000/clockFreq;
 	std::chrono::high_resolution_clock::time_point t_start, t_end;
 	int t_deltaUs;
 
@@ -249,21 +246,20 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::getKeyPress();
 		Chip8::exec();
 
-		if ((m_clockSpeed == SPEED_NORMAL) && (fps >= 60)) {
-			// if necessary, wait until 2 ms per cycle have elapsed
+		if ((m_clockSpeed == SPEED_NORMAL) && (execInsrPerSec/10 >= m_instrPerSec/10)) {
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
 						static_cast<bool>(100000 > t_deltaUs) * (100000 - t_deltaUs)
 					));
-			fps = 0;
+			execInsrPerSec = 0;
 		} else if (m_clockSpeed == SPEED_FAST)
-			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 }
 
 
-void Chip8::init(unsigned clockSpeed) {
+void Chip8::init(unsigned clockSpeed, unsigned instrPerSec) {
 	// 1. Initialise special registers and memory
 	m_SP = 0x0;
 	m_PC = 0x200;
@@ -272,6 +268,7 @@ void Chip8::init(unsigned clockSpeed) {
 		m = 0xff; // 0xff indicates free space
 	m_delayTimer = 0x0;
 	m_soundTimer = 0x0;
+	m_instrPerSec = instrPerSec;
 
 	// 2. Write font sprites to memory (locations 0x0 to 0x4f inclusive)
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
