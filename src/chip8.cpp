@@ -12,7 +12,7 @@
 #include <thread>
 
 
-static unsigned every60Hz = 0;
+static unsigned fps = 0;
 
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
@@ -159,6 +159,7 @@ void Chip8::exec() {
 			}
 			// redraw whole display
 			renderAll(m_display);
+			fps++;
 			break;
 		}
 		case 0xe:
@@ -205,10 +206,11 @@ void Chip8::exec() {
 			break;
 	}
 
-	if (m_clockSpeed == SPEED_500HZ) {
+
+	if (m_clockSpeed == SPEED_NORMAL) {
 		// decrement every 60 hz and play sound if necessary
 		// Sound is played only if operation mode is at 500 Hz - otherwise there's no point. 60 Hz is about 11x slower than 500 so
-		if (every60Hz % 11 == 0)   {
+		if (fps % 10 == 0)   {
 			if (m_delayTimer > 0) 
 				m_delayTimer--;
 			if (m_soundTimer > 0) {
@@ -223,8 +225,7 @@ void Chip8::exec() {
 			m_soundTimer--;
 	}
 
-	// this is an auxiliary ounter that synchronises the delay and sound timers
-	every60Hz++;
+		fps++;
 	// move to next instruction
 	m_PC += 2;
 }
@@ -239,7 +240,7 @@ void Chip8::run(unsigned startingOffset) {
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
-		if (m_clockSpeed == SPEED_500HZ)
+		if (m_clockSpeed == SPEED_NORMAL)
 			t_start = std::chrono::high_resolution_clock::now();
 
 		// fetch-decode-exec defines the operation of Chip8
@@ -248,13 +249,14 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::getKeyPress();
 		Chip8::exec();
 
-		if (m_clockSpeed == SPEED_500HZ) {
+		if ((m_clockSpeed == SPEED_NORMAL) && (fps >= 60)) {
 			// if necessary, wait until 2 ms per cycle have elapsed
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
-						static_cast<bool>(t_minUsPerCycle > t_deltaUs) * (t_minUsPerCycle - t_deltaUs)
+						static_cast<bool>(100000 > t_deltaUs) * (100000 - t_deltaUs)
 					));
+			fps = 0;
 		} else if (m_clockSpeed == SPEED_FAST)
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	}

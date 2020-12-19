@@ -14,7 +14,7 @@
 
 
 enum {
-	SPEED_500HZ,								// The original CPU speed of Chip-8
+	SPEED_NORMAL,								// The original CPU speed of Chip-8
 	SPEED_FAST,									// Approaching overclock
 	SPEED_OVERCLOCK								// As fast as host computer allows
 };
@@ -48,7 +48,7 @@ private:
 	inline void fetch();
 	inline void decode();
 	void exec();
-	void init(unsigned clockSpeed = SPEED_500HZ);
+	void init(unsigned clockSpeed = SPEED_NORMAL);
 };
 
 #endif /* CHIP8_HPP */
