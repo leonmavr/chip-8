@@ -4,10 +4,8 @@
 #include <random>
 #include <cstdlib>
 #include <cassert>
-#include <string>
 #include <sstream>
 #include <unordered_map>
-#include <chrono>
 #include <chrono>
 #include <thread>
 
@@ -19,6 +17,14 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
 	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
 		m_mem[offset++ & 0xFFF] = f.get();
+}
+
+
+uint8_t Chip8::rand() {
+	std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_int_distribution<uint8_t> dist(0, 255);
+    return dist(rng);
 }
 
 
@@ -43,7 +49,6 @@ inline void Chip8::decode() {
 	m_bitfields.kk   = m_opcode         & 0x00ff;
 	m_bitfields.nnn  = m_opcode         & 0x0fff;
 }
-
 
 
 void Chip8::exec() {
@@ -135,9 +140,9 @@ void Chip8::exec() {
 			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
 		case 0xc: { // Cxkk - Set Vx = random byte AND kk
-			m_V[x] = (rand() % 256) & kk ;
+			m_V[x] = rand()& kk ;
 			break;
-			}
+		}
 		case 0xd:
 		{
 			// see also https://github.com/craigthomas/Chip8Python/blob/master/chip8/cpu.py#L670
@@ -217,7 +222,7 @@ void Chip8::exec() {
 				// TODO: play a beep (single frequency)
 			}
 		}
-	} else { // fast mode or overclocked mode
+	} else { // overclocked mode
 		if (m_delayTimer > 0) 
 			m_delayTimer--;
 		if (m_soundTimer > 0)
@@ -254,8 +259,7 @@ void Chip8::run(unsigned startingOffset) {
 						static_cast<bool>(100000 > t_deltaUs) * (100000 - t_deltaUs)
 					));
 			execInsrPerSec = 0;
-		} else if (m_clockSpeed == SPEED_FAST)
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 	}
 }
 

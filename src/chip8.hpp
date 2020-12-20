@@ -14,7 +14,7 @@
 
 
 enum {
-	SPEED_NORMAL,								// The original CPU speed of Chip-8
+	SPEED_NORMAL,								// Opcodes per sec configured by user 
 	SPEED_FAST,									// Approaching overclock
 	SPEED_OVERCLOCK								// As fast as host computer allows
 };
@@ -45,10 +45,12 @@ private:
 	bitfields m_bitfields;						// opcode bitfields
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
+	uint8_t rand();								// Chip8 has a random number generator 
 	unsigned m_instrPerSec;						// instr. per sec; helps with timing
-	inline void fetch();
-	inline void decode();
-	void exec();
+
+	inline void fetch();						// handles current instruction
+	inline void decode();						// handles current instrution
+	void exec();								// handles current instrution
 	void init(unsigned clockSpeed = SPEED_NORMAL, unsigned instrPerSec = 400);
 };
 
