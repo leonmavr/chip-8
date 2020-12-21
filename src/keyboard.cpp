@@ -30,7 +30,8 @@ uint8_t Keyboard::getKeyPress() {
 			if (event.key.keysym.sym == SDLK_F1) {
 				while (paused <= 2) {
 					SDL_PollEvent(&event);
-					paused += (((event.type == SDL_KEYUP) && (paused % 2 == 0)) || ((event.type == SDL_KEYDOWN) && (paused % 2 == 1))) ;
+					paused = ((event.type == SDL_KEYUP) && (paused % 2 == 0))? paused + 1: paused ;
+					paused = ((event.type == SDL_KEYDOWN) && (paused % 2 == 1))? paused + 1: paused ;
 				}
 			}
 			// handle gameplay keys - turn on Chip-8's pressed key
