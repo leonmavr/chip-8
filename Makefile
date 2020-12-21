@@ -1,11 +1,24 @@
-OBJS = src/demo.cpp src/display.cpp src/chip8.cpp src/keyboard.cpp
 CC = g++
 
-COMPILER_FLAGS = -Wall -Isrc -g
+EXEC = chip8
+SRC_DIR = src
+INCL_DIR = include
+CFLAGS = -std=c++14 -g -I$(INCL_DIR)
+LDFLAGS = -lSDL2
+SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp 
+OBJECTS = $(SOURCES:%.cpp=%.o)
+RM = rm -rf
 
-LINKER_FLAGS = -lSDL2
 
-OBJ_NAME = demo
+all: $(EXEC)
 
-all : $(OBJS)
-	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME)
+$(EXEC): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(EXEC) $(LDFLAGS) 
+
+$(BLD_DIR)%.o: %.cpp
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+.PHONY: clean
+clean:
+	$(RM) $(OBJECTS)
+	$(RM) $(EXEC)
