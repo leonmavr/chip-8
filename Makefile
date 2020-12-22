@@ -5,7 +5,7 @@ SRC_DIR = src
 INCL_DIR = include
 CFLAGS = -std=c++14 -g -I$(INCL_DIR)
 LDFLAGS = -lSDL2
-SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp 
+SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)
 RM = rm -rf
 
