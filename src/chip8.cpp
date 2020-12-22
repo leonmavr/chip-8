@@ -58,106 +58,118 @@ void Chip8::exec() {
 	const auto& kk = m_bitfields.kk;
 	const auto& nnn = m_bitfields.nnn;
 	const auto& n = m_bitfields.n;
+
+	auto& Vx = m_V[x];
+	auto& Vy = m_V[y];
+	auto& Vf = m_V[0xf];
+	auto& I = m_I;
+	auto& PC = m_PC;
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
-				m_display[32][64] = {0};
+				//m_display[32][64] = {0};
 				cls();
 			}
 			else if (nnn == 0x0ee){	// 00EE (return from call)
-				m_PC = m_stack[--m_SP % 12];
+				PC = m_stack[--m_SP % 12];
 			}
 			break;
 		case 0x1:
 			// if 0x1NNN, jump to NNN
-			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
 			break;
 		case 0x2:
 			// Call subroutine at NNN
-			m_stack[m_SP++ % 12] = (uint16_t)m_PC;
-			m_PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			m_stack[m_SP++ % 12] = (uint16_t)PC;
+			PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
 			break;
 		case 0x3:
 			// If Vx == NN, skip next instruction
-			if(kk == m_V[x])
-				m_PC += 2;
+			if(kk == Vx)
+				PC += 2;
 			break;
 		case 0x4:
 			// 4xkk - If Vx != NN, skip next instruction
-			if(kk != m_V[x])
-				m_PC += 2;
+			if(kk != Vx)
+				PC += 2;
 			break;
 		case 0x5:
 			// 5xy0 - If Vx == Vy, skip next instruction
-			if(m_V[x] == m_V[y])
-				m_PC += 2;
+			if(Vx == Vy)
+				PC += 2;
 			break;
 		case 0x6:
 			// 6xkk - Set Vx = kk
-			m_V[x] = kk;
+			Vx = kk;
 			break;
 		case 0x7:
 			// 7xkk - Set Vx = Vx + kk
-			m_V[x] += kk;
+			Vx += kk;
 			break;
 		case 0x8:
-			if (n == 0x0 ) // 8xy0 - Set Vx = Vy.
-				m_V[x] = m_V[y];
-			else if (n == 0x1) // 8xy1 - Set Vx = Vx OR Vy.
-				m_V[x] |= m_V[y];
-			else if (n == 0x2) // 8xy2 - Set Vx = Vx AND Vy.
-				m_V[x] &= m_V[y];
-			else if (n == 0x3) // 8xy3 - Set Vx = Vx XOR Vy. 
-				m_V[x] ^= m_V[y];
-			else if (n == 0x4) { // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
-				m_V[0xf] = ((unsigned)m_V[x] + (unsigned)m_V[y] > 0xff)? 1: 0;
-				m_V[x] += m_V[y];
-			}
-			else if (n == 0x5) { // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
-				m_V[0xf] = (m_V[x] > m_V[y]) ? 1 : 0;
-				m_V[x] -= m_V[y];
-			}
-			else if (n == 0x6) { // 8xy6 - Set Vx = Vx SHR 1. 
-				m_V[0xf] = m_V[x] & 1;
-				m_V[x] >>= 1;
-			}	
-			else if (n == 0x7) { //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
-				m_V[0xf] = (m_V[y] > m_V[x]) ? 1 : 0;
-				m_V[x] = m_V[y] - m_V[x];
-			}
-			else if (n == 0xe) { // 8xyE - Set Vx = Vx SHL 1.
-				m_V[0xf] = (m_V[y] >> 7) & 0x1; 
-				m_V[x] = m_V[y] << 1;
+			switch(n) {
+				case 0x0: // 8xy0 - Set Vx = Vy.
+					Vx = Vy;
+					break;
+				case 0x1: // 8xy1 - Set Vx = Vx OR Vy.
+					Vx |= Vy;
+					break;
+				case 0x2: // 8xy2 - Set Vx = Vx AND Vy.
+					Vx &= Vy;
+					break;
+				case 0x3: // 8xy3 - Set Vx = Vx XOR Vy. 
+					Vx ^= Vy;
+					break;
+				case 0x4: // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
+					Vf = ((unsigned)Vx + (unsigned)Vy > 0xff)? 1: 0;
+					Vx += Vy;
+					break;
+				case 0x5: // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
+					Vf = (Vx > Vy) ? 1 : 0;
+					Vx -= Vy;
+					break;
+				case 0x6: // 8xy6 - Set Vx = Vx SHR 1. 
+					Vf = Vx & 1;
+					Vx >>= 1;
+					break;
+				case 0x7: //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
+					Vf = (Vy > Vx) ? 1 : 0;
+					Vx = Vy - Vx;
+					break;
+				case 0xe: // 8xyE - Set Vx = Vx SHL 1.
+					Vf = (Vy >> 7) & 0x1; 
+					Vx = Vy << 1;
+					break;
 			}
 			break;
 		case 0x9:
-			if (m_V[x] != m_V[y]) //9xy0 - Skip next instruction if Vx != Vy.
-				m_PC += 2;
+			if (Vx != Vy) //9xy0 - Skip next instruction if Vx != Vy.
+				PC += 2;
 			break;
 		case 0xa: // Set I = nnn.
-			m_I = nnn;
+			I = nnn;
 			break;
 		case 0xb: // Bnnn - Jump to location nnn + V0.
-			m_PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
+			PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
 			break;
 		case 0xc: { // Cxkk - Set Vx = random byte AND kk
-			m_V[x] = rand()& kk ;
+			Vx = rand() & kk ;
 			break;
 		}
 		case 0xd:
 		{
 			// see also https://github.com/craigthomas/Chip8Python/blob/master/chip8/cpu.py#L670
 			uint8_t height = n;
-			m_V[0xf] = 0;
+			Vf = 0;
 			for (uint8_t row = 0; row < height; row++) {
-				uint8_t sprite = m_mem[m_I + row] ; // one row of the sprite
+				uint8_t sprite = m_mem[I + row] ; // one row of the sprite
 				for(uint8_t col = 0; col < 8; col++) {
 					// if this condition is true, we want to turn on a pixel
 					if((sprite & 0x80) != 0) {
 						// toggle current pixel and if it was previously on, set Vf to 1
-						if (m_display[m_V[y] + row][m_V[x] + col] == 1)
-							m_V[0xf] = 1;
-						m_display[m_V[y] + row][m_V[x] + col] ^= 1;
+						if (m_display[Vy + row][Vx + col] == 1)
+							Vf = 1;
+						m_display[Vy + row][Vx + col] ^= 1;
 					}
 					// next bit
 					sprite <<= 1;
@@ -169,48 +181,52 @@ void Chip8::exec() {
 		}
 		case 0xe:
 			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-				if ((unsigned)m_keypresses[m_V[x] & 15])  {
-					m_PC += 2;
+				if (m_keypresses[Vx & 15])  {
+					PC += 2;
 				}
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
-				if ((unsigned)m_keypresses[m_V[x] & 15] == 0)  {
-					m_PC += 2;
+				if (m_keypresses[Vx & 15] == 0)  {
+					PC += 2;
 				}
 			}
 		case 0xf: 
-			if (kk == 0x07) // Fx07 - Set Vx = delay timer value.
-				m_V[x] = m_delayTimer;
-			else if (kk == 0x0a) {// Fx0A - Wait for a key press, store the value of the key in Vx.
-				m_V[x] = Keyboard::getKeyPress();
+			switch(kk) {
+				case 0x07: // Fx07 - Set Vx = delay timer value.
+					Vx = m_delayTimer;
+					break;
+				case 0x0a: // Fx0A - Wait for a key press, store the value of the key in Vx.
+					Vx = Keyboard::getKeyPress();
+					break;
+				case 0x15: // Fx15 - Set delay timer = Vx.
+					m_delayTimer = Vx;
+					break;
+				case 0x18: // Fx18 - Set sound timer = Vx.
+					m_soundTimer = Vx;
+					break;
+				case 0x1e: // Fx1E - Set I = I + Vx.
+					Vf = (I + Vx > 0xfff) ? 1 : 0;
+					I += Vx;
+					break;
+				case 0x29: // Fx29 - Set I = location of sprite for digit Vx
+					I = Vx * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
+					break;
+				case 0x33: //BCD representation of Vx in memory locations I, I+1, and I+2
+					m_mem[(I+0)&0xFFF] = (Vx % 1000) / 100;
+					m_mem[(I+1)&0xFFF] = (Vx % 100) / 10;
+					m_mem[(I+2)&0xFFF] = Vx % 10;
+					break;
+				case 0x55: // Fx55 - Store registers V0 through Vx in memory starting at location I.
+					for(unsigned xx = 0; xx <= x; xx++)
+						m_mem[I++ & 0xFFF] = m_V[xx];
+					break;
+				case 0x65: // Fx65 - Read registers V0 through Vx from memory starting at location I 
+					for(unsigned xx = 0; xx <= x; xx++)
+						m_V[xx] = m_mem[I++ & 0xFFF];
+					break;
 			}
-			else if (kk == 0x15) // Fx15 - Set delay timer = Vx.
-				m_delayTimer = m_V[x];
-			else if (kk == 0x18) // Fx18 - Set sound timer = Vx.
-				m_soundTimer = m_V[x];
-			else if (kk == 0x1e)  {// Fx1E - Set I = I + Vx.
-				m_V[0xf] = (m_I + m_V[x] > 0xfff) ? 1 : 0;
-				m_I += m_V[x];
-			}
-			else if (kk == 0x29) // Fx29 - Set I = location of sprite for digit Vx
-				m_I = m_V[x] * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
-			else if (kk == 0x33) { //BCD representation of Vx in memory locations I, I+1, and I+2
-				m_mem[(m_I+0)&0xFFF] = (m_V[x] % 1000) / 100;
-				m_mem[(m_I+1)&0xFFF] = (m_V[x] % 100) / 10;
-				m_mem[(m_I+2)&0xFFF] = m_V[x] % 10;
-			}
-			else if (kk == 0x55) { // Fx55 - Store registers V0 through Vx in memory starting at location I.
-				for(unsigned xx = 0; xx <= x; xx++) {
-					m_mem[m_I++ & 0xFFF] = m_V[xx];
-				}
-			} else if (kk == 0x65) { // Fx65 - Read registers V0 through Vx from memory starting at location I 
-				for(unsigned xx = 0; xx <= x; xx++) {
-					m_V[xx]= m_mem[m_I++ & 0xFFF];
-				}
-			}
-			break;
-	}
-
+		break;
+		}
 
 	if (m_clockSpeed == SPEED_NORMAL) {
 		// decrement every 60 hz and play sound if necessary
@@ -219,8 +235,6 @@ void Chip8::exec() {
 				m_delayTimer--;
 			if (m_soundTimer > 0) {
 				m_soundTimer--;
-				//std::cout << "beep!" << std::endl;
-				// TODO: play a beep (single frequency)
 				toot(700.0, 5);
 			}
 		}

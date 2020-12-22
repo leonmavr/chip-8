@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
 		// test the machine
-	auto ch8 = std::make_unique<Chip8>(SPEED_OVERCLOCK, 400);
+	auto ch8 = std::make_unique<Chip8>(SPEED_NORMAL, 400);
 	ch8->loadRom(argv[1]);
 	ch8->run();
 	return 0;
