@@ -1,5 +1,6 @@
 #include "chip8.hpp" 
 #include "keyboard.hpp" 
+#include "toot.h" 
 #include <iostream>
 #include <random>
 #include <cstdlib>
@@ -220,6 +221,7 @@ void Chip8::exec() {
 				m_soundTimer--;
 				//std::cout << "beep!" << std::endl;
 				// TODO: play a beep (single frequency)
+				toot(700.0, 5);
 			}
 		}
 	} else { // overclocked mode
