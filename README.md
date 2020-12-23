@@ -14,7 +14,7 @@ Chip-8 is not an actual hardware. It's a a virtual machine (like Java) that was 
 ### Its architecture
 Chip-8 operates on 4 kB of RAM memory and certain partitions of it are reserved for the interpreter, the loaded program (rom), and some hardcoded font sprites. It has 16 general-purpose 8-bit registers prfixed by `V`, one special 16-bit register called `I` which points to memory locations, and two special 8-bit sound and timer registers which tick at 60 Hz.  
 
-It also possesses a 16-bit stack pointer (`SP`) which points to the stack and a 16-bit program counter, which points to the current instruction.  
+It also possesses a 16-bit stack pointer (`SP`) which points to the stack and a 16-bit program counter (`PC`), which points to the current instruction.  
 
 It's able to play  a beeping sound (1 frequency) as long as the sound timer is non zero, however I couldn't find anything about its specific frequency or duration.  
 
@@ -28,8 +28,8 @@ The keypad consists of 16 keys, numbered in hex from `0` to `9` to `a` to `f`. W
 
 # This project
 
-### Pre-requisites
-The only needed library is SDL2 for the display. On Ubuntu, you can install it with:
+### Prerequisites
+The only needed library is SDL2 for the display. On Debian-based systems, you can install it with:
 ```
 sudo apt-get install libsdl2-dev
 ```
@@ -50,17 +50,23 @@ make clean
 ```
 
 ### Features implemented 
-- [x] CPU, display, and keypad.
+- [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
 - [x] Sound - credits to [vareille's toot library](https://github.com/vareille/toot).
 - [x] Pause rom - `F1` key
-- [] Reload rom - TODO
-- [] Select backgrond and foregound colours on the display - TODO
+- [x] Exit - `Esc` key or close window
+- [ ] Reload rom - TODO
+- [ ] Select backgrond and foregound colours on the display - TODO
 
 ### The keypad
 
+Apart from the keypad, the following keys are implemented to facilitate the UI:
+* `F1` - pause execution
+* `Esc` or close window - exit
+
+
 ### Available roms
-Some classical game roms, such as Pong, Tetris and Brix, are found in the `roms` folder. These are public domain and original found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
+Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
 
 
 ### Demos
