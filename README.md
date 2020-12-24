@@ -60,10 +60,20 @@ make clean
 
 ### 2.4 The keypad
 
-The Chip-8 to modern keyboard mappings was defined like this:
+The Chip-8 to modern keyboard mapping was defined like this:
 ```
-
++---+---+---+---+       +---+---+---+---+
+| 0 | 1 | 2 | 3 |       | 1 | 2 | 3 | 4 |
++---+---+---+---+       +---+---+---+---+
+| 4 | 5 | 6 | 7 |       | q | w | e | r |
++---+---+---+---+  -->  +---+---+---+---+
+| 8 | 9 | a | b |       | a | s | d | f |
++---+---+---+---+       +---+---+---+---+
+| c | d | e | f |       | z | x | c | v |
++---+---+---+---+       +---+---+---+---+
 ```
+If you wish to change the mapping, you have to edit the following line and recompile:
+https://github.com/0xLeo/chip-8/blob/master/include/keyboard.hpp#L15
 
 Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `F1` - pause execution
