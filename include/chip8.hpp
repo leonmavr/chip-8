@@ -15,7 +15,6 @@
 
 enum {
 	SPEED_NORMAL,								// Opcodes per sec configured by user 
-	SPEED_FAST,									// Approaching overclock
 	SPEED_OVERCLOCK								// As fast as host computer allows
 };
 
@@ -41,7 +40,7 @@ private:
 	uint16_t m_PC;								// Program counter
 	uint16_t m_I;								// Index register
 	uint16_t m_opcode;							// current opcode
-	unsigned m_clockSpeed;						// CPU speed
+	unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
 	bitfields m_bitfields;						// opcode bitfields
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
@@ -49,8 +48,8 @@ private:
 	unsigned m_instrPerSec;						// instr. per sec; helps with timing
 
 	inline void fetch();						// handles current instruction
-	inline void decode();						// handles current instrution
-	void exec();								// handles current instrution
+	inline void decode();						// handles current instruction
+	void exec();								// handles current instruction
 	void init(unsigned clockSpeed = SPEED_NORMAL, unsigned instrPerSec = 400);
 };
 
