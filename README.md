@@ -20,7 +20,7 @@ It's able to play  a beeping sound (1 frequency) as long as the sound timer is n
 
 It can render graphics on a 64x32 monochrome display.  
 
-The neat thing about this machine is that each instruction always consists of 2 consecutive bytes, which makes it easy to process them. In total, Chip-8 language consists of 36 instructions, however extensions such as Super Chip-8 possess more. The instructions (opcodes) also interact with the keyboard and display. [Cowgod](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0) has documented in detail the architecture.
+The neat thing about this machine is that each instruction always consists of 2 consecutive bytes, which makes it easy to process them. In total, Chip-8 language consists of 36 instructions, however extensions such as Super Chip-8 possess more. The instructions (opcodes) also interact with the keyboard and display. [Cowgod](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0) has written the holy grail of Chip-8 documentation.
 
 
 ### 1.3 The keypad
@@ -60,6 +60,11 @@ make clean
 
 ### 2.4 The keypad
 
+The Chip-8 to modern keyboard mappings was defined like this:
+```
+
+```
+
 Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `F1` - pause execution
 * `Esc` or close window - exit
@@ -71,9 +76,14 @@ Some classical game roms, such as Pong, Tetris and Brix, are included in the `ro
 
 ### 2.6 Demos
 
-### 2.7 Credits
+![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/coin.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/tetris.gif)
 
-### 2.8 References
-http://www.emulator101.com/introduction-to-chip-8.html
-http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0
-https://github.com/dmatlack/chip8
+### 2.7 Credits
+* [bisqwit](https://www.youtube.com/watch?v=rpLoS7B6T94) on youtube for the inspiration
+* [cowgod](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0) for the comprehensive documentation
+* Tobias V. Langhoff for his [guidelines and tips](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
+* [dmatlack](https://github.com/dmatlack/chip8) for his publicly available roms
+* [vareille](https://github.com/vareille/) for his [C/C++ sound library](https://github.com/vareille/toot).
+* the [emudev subreddit](https://www.reddit.com/r/EmuDev/) for having so many answered questions regarding Chip-8
