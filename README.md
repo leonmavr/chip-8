@@ -90,8 +90,8 @@ Some classical game roms, such as Pong, Tetris and Brix, are included in the `ro
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/coin.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/tetris.gif)
 
-### 2.7 Credits
-* [bisqwit](https://www.youtube.com/watch?v=rpLoS7B6T94) on youtube for the inspiration
+# 3.Credits
+* The legendary [bisqwit](https://www.youtube.com/watch?v=rpLoS7B6T94) on youtube for the inspiration
 * [cowgod](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0) for the comprehensive documentation
 * Tobias V. Langhoff for his [guidelines and tips](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
 * [dmatlack](https://github.com/dmatlack/chip8) for his publicly available roms
