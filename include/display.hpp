@@ -22,7 +22,7 @@ public:
 protected:
 	void cls();
 	void close();
-	std::string renderAll(uint8_t (&array2D)[32][64]);
+	const std::string renderAll(uint8_t (&array2D)[32][64]); // must have the same return type was screendump
 	uint8_t m_display[32][64] = {0};
 	bool m_debug;
 
@@ -33,7 +33,7 @@ private:
 	SDL_Renderer* m_renderer;
 	void init();
 	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
-	std::string screendump(const std::string outFile = "/tmp/screendump.txt");
+	const std::string screendump(const std::string outFile = "/tmp/screendump.txt");
 };
 
 #define DISPLAY_HPP 
