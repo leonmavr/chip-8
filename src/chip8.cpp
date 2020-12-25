@@ -1,11 +1,9 @@
 #include "chip8.hpp" 
 #include "keyboard.hpp" 
 #include "toot.h" 
-#include <iostream>
 #include <random>
 #include <cstdlib>
 #include <cassert>
-#include <sstream>
 #include <unordered_map>
 #include <chrono>
 #include <thread>
@@ -64,6 +62,7 @@ void Chip8::exec() {
 	auto& Vf = m_V[0xf];
 	auto& I = m_I;
 	auto& PC = m_PC;
+
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
@@ -235,7 +234,7 @@ void Chip8::exec() {
 				m_delayTimer--;
 			if (m_soundTimer > 0) {
 				m_soundTimer--;
-				toot(700.0, 5);
+				toot(700.0, 5); // freq (Hz), duration (ms)
 			}
 		}
 	} else { // overclocked mode
