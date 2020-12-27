@@ -12,6 +12,7 @@
 
 static unsigned execInsrPerSec = 0;
 
+#define MAX_ITER 600
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
 	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
