@@ -16,8 +16,6 @@ void Display::init() {
 	Display::cls();
     //Pause for 100 ms
     SDL_Delay(100);
-	
-	m_debug = false;
 }
 
 
@@ -51,7 +49,7 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 }
 
 
-const std::string Display::renderAll(unsigned char(&array2D)[32][64]) {
+void Display::renderAll(unsigned char(&array2D)[32][64]) {
 	for (unsigned row = 0; row < 32; row++) {
 		for (unsigned col = 0; col < 64; col++) {
 			drawPixelXY(col, row, static_cast<unsigned>(array2D[row][col] != 0));
@@ -60,12 +58,6 @@ const std::string Display::renderAll(unsigned char(&array2D)[32][64]) {
 	SDL_RenderPresent(m_renderer); // copy to screen
 	// delay (in ms) is REQUIRED or the screen will glitch out
     SDL_Delay(5);
-
-	const std::string mystr = "";
-	if (!m_debug)
-		return mystr;
-	else
-		screendump();
 }
 
 
@@ -82,19 +74,4 @@ void Display::cls() {
     //Clear the renderer with the draw color
     SDL_RenderClear(m_renderer);
     SDL_Delay(5);
-}
-
-
-
-// This method is used for unit testing. It's not needed by Chip-8 itself.
-std::string Display::screendump(const std::string outFile) {
-	std::ofstream ofs;
-	ofs.open(outFile, std::ofstream::out | std::ofstream::trunc);
-	for (unsigned row = 0; row < 32; row++) {
-		for (unsigned col = 0; col < 64; col++) {
-			ofs << std::to_string(m_display[row][col]);
-		}
-		ofs << "\n";
-	}
-	return outFile;
 }

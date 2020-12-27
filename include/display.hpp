@@ -16,16 +16,12 @@ public:
 		free(m_window);
 		free(m_renderer);
 	};
-	// this method is only used for debugging and unit testing
-	virtual bool turnOnDebug() { m_debug = true; }
-	std::string screendump(std::string outFile = "/tmp/screendump.txt");
 
 protected:
 	void cls();
 	void close();
-	const std::string renderAll(uint8_t (&array2D)[32][64]); // must have the same return type was screendump
+	void renderAll(uint8_t (&array2D)[32][64]); // must have the same return type was screendump
 	uint8_t m_display[32][64] = {0};
-	bool m_debug;
 
 private:
 	unsigned m_w;
