@@ -276,9 +276,10 @@ void Chip8::run(unsigned startingOffset) {
 			execInsrPerSec = 0;
 		}
 #ifdef MAX_ITER
-		if (Logger::getInstance().log() > MAX_ITER)
+		if (Logger::getInstance().log() > MAX_ITER) {
+			Logger::getInstance().array2d2txt(m_display); // dump screen to file
 			std::exit(0);
-		screendump();
+		}
 #endif
 	}
 }
