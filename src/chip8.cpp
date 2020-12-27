@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <thread>
+#include "logger.hpp" 
 
 
 static unsigned execInsrPerSec = 0;
@@ -275,6 +276,10 @@ void Chip8::run(unsigned startingOffset) {
 					));
 			execInsrPerSec = 0;
 		}
+#ifdef MAX_ITER
+		if (Logger::getInstance().log() > MAX_ITER)
+			std::exit(0);
+#endif
 	}
 }
 
