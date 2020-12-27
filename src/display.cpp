@@ -87,7 +87,7 @@ void Display::cls() {
 
 
 // This method is used for unit testing. It's not needed by Chip-8 itself.
-const std::string Display::screendump(const std::string outFile) {
+std::string Display::screendump(const std::string outFile) {
 	std::ofstream ofs;
 	ofs.open(outFile, std::ofstream::out | std::ofstream::trunc);
 	for (unsigned row = 0; row < 32; row++) {
