@@ -9,7 +9,6 @@
 #include <thread>
 #include "logger.hpp" 
 
-#define MAX_ITER 700
 
 static unsigned execInsrPerSec = 0;
 
