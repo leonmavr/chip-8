@@ -158,6 +158,7 @@ void Chip8::exec() {
 		}
 		case 0xd:
 		{
+			// see also https://github.com/craigthomas/Chip8Python/blob/master/chip8/cpu.py#L670
 			uint8_t height = n;
 			Vf = 0;
 			for (uint8_t row = 0; row < height; row++) {
@@ -278,7 +279,6 @@ void Chip8::run(unsigned startingOffset) {
 #ifdef MAX_ITER
 		if (Logger::getInstance().log() > MAX_ITER)
 			std::exit(0);
-		Display::screendump();
 #endif
 	}
 }

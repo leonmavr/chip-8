@@ -17,7 +17,7 @@ public:
 		free(m_renderer);
 	};
 	// this method is only used for debugging and unit testing
-	const std::string screendump(const std::string outFile = "/tmp/screendump.txt");
+	virtual bool turnOnDebug() { m_debug = true; }
 
 protected:
 	void cls();
@@ -33,6 +33,7 @@ private:
 	SDL_Renderer* m_renderer;
 	void init();
 	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
+	const std::string screendump(const std::string outFile = "/tmp/screendump.txt");
 };
 
 #define DISPLAY_HPP 
