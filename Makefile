@@ -15,7 +15,8 @@ all: $(EXEC)
 $(EXEC): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(EXEC) $(LDFLAGS) 
 
-# TODO: needs a make test which defines MAX_ITER to be ~600 so that it exits and I can check the screendump
+# TODO: needs a make test which defines MAX_ITER to be ~600 so that it exits and I can check the screendump, sth like:
+# g++ catch.cpp tests.cpp ../src/chip8.cpp ../src/display.cpp ../src/keyboard.cpp ../src/logger.cpp ../src/toot.cpp -I../include/ -lSDL2 -DMAX_ITER=600
 
 $(BLD_DIR)%.o: %.cpp
 	$(CC) $(CFLAGS) -c $^ -o $@
