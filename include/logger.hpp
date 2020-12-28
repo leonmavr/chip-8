@@ -13,9 +13,9 @@ class Logger {
 			static Logger instance;
 			return instance;
 		}
-		int log();
+		int count();
 		template <typename T, size_t rows, size_t cols>
-			std::string array2d2txt(T (&array2D)[rows][cols], std::string outFile = "/tmp/array.txt") {
+			std::string screendump(T (&array2D)[rows][cols], std::string outFile = "/tmp/array.txt") {
 				std::ofstream ofs;
 				ofs.open(outFile, std::ofstream::out | std::ofstream::trunc);
 				for (unsigned row = 0; row < rows; row++) {
