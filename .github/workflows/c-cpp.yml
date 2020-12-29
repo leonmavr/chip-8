@@ -16,6 +16,6 @@ jobs:
     - name: Install SDL2
       run: sudo apt-get install libsdl2-dev
     - name: make test
-      run: make test
+      run: export DISPLAY=:0 && make test
     - name: make clean
       run: make clean
