@@ -49,6 +49,12 @@ To clean the generated object files and executable:
 make clean
 ```
 
+### 2.3 Unit tests
+Unit tests can be added monolothically in file `tests/tests.cpp` and are built in conjuction with the Catch2 library. To build and run them, do:
+```
+make tests
+```
+
 ### 2.3 Features implemented 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
