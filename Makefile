@@ -16,7 +16,7 @@ TEST_DIR = tests
 TEST_EXEC = $(TEST_DIR)/test
 TEST_SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp 
 TEST_OBJECTS = $(TEST_SOURCES:%.cpp=%.to)
-TEST_CFLAGS = -std=c++14 -g -I$(INCL_DIR) -DMAX_ITER=600
+TEST_CFLAGS = -std=c++14 -g -I$(INCL_DIR) -DMAX_ITER=600 -DHIDE_DISPLAY=1
 
 ###################################################
 # project                                         #
