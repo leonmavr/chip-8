@@ -50,7 +50,7 @@ make clean
 ```
 
 ### 2.3 Unit tests
-Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the Catch2 library. To build and run them, do:
+Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the [Catch2](https://github.com/catchorg/Catch2) library. To build and run them, do:
 ```
 make tests
 ```
@@ -103,3 +103,4 @@ Some classical game roms, such as Pong, Tetris and Brix, are included in the `ro
 * [dmatlack](https://github.com/dmatlack/chip8) for his publicly available roms
 * [vareille](https://github.com/vareille/) for his [C/C++ sound library](https://github.com/vareille/toot).
 * the [emudev subreddit](https://www.reddit.com/r/EmuDev/) for having so many answered questions regarding Chip-8
+* [Catch2](https://github.com/catchorg/Catch2) library for unit testing
