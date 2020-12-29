@@ -50,7 +50,7 @@ make clean
 ```
 
 ### 2.3 Unit tests
-Unit tests can be added monolothically in file `tests/tests.cpp` and are built in conjunction with the Catch2 library. To build and run them, do:
+Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the Catch2 library. To build and run them, do:
 ```
 make tests
 ```
