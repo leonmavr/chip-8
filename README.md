@@ -40,7 +40,7 @@ It can be compiled on \*nix systems with make (see Makefile):
 cd chip-8
 make
 ```
-The generated executable is called `chip8`, which takes a rom file (`rom` folder) as argument. For example, to play Brix:
+The generated executable is called `chip8`, which takes a rom file (`roms` folder) as argument. For example, to play Brix:
 ```
 ./chip8 roms/Brix.ch8
 ```
@@ -50,7 +50,7 @@ make clean
 ```
 
 ### 2.3 Unit tests
-Unit tests can be added monolothically in file `tests/tests.cpp` and are built in conjuction with the Catch2 library. To build and run them, do:
+Unit tests can be added monolothically in file `tests/tests.cpp` and are built in conjunction with the Catch2 library. To build and run them, do:
 ```
 make tests
 ```
