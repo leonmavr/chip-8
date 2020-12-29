@@ -55,7 +55,7 @@ Unit tests can be added monolithically in file `tests/tests.cpp` and are built i
 make test
 ```
 
-### 2.3 Features implemented 
+### 2.4 Features implemented 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
 - [x] Sound - credits to [vareille's toot library](https://github.com/vareille/toot).
@@ -64,7 +64,7 @@ make test
 - [ ] Reload rom - TODO
 - [ ] Select backgrond and foregound colours on the display - TODO
 
-### 2.4 The keypad
+### 2.5 The keypad
 
 The Chip-8 to modern keyboard mapping was defined like this:
 ```
@@ -86,11 +86,11 @@ Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `Esc` or close window - exit
 
 
-### 2.5 Available roms
+### 2.6 Available roms
 Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
 
 
-### 2.6 Demos
+### 2.7 Demos
 
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
 :-------------------------:|:-------------------------:
