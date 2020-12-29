@@ -278,7 +278,7 @@ void Chip8::run(unsigned startingOffset) {
 #ifdef MAX_ITER
 		if (Logger::getInstance().count() > MAX_ITER) {
 			Logger::getInstance().screendump(m_display); // dump screen to file
-			std::exit(0);
+		return;
 		}
 #endif
 	}
