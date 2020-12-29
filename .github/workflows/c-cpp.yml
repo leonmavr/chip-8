@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install SDL2
+      run: sudo apt-get install libsdl2-dev
+    - name: make test
+      run: export DISPLAY=:0 && make test
+    - name: make clean
+      run: make clean

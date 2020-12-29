@@ -14,9 +14,9 @@ public:
 		init();	
 	};
 	~Display () { 
-#ifndef HIDE_DISPLAY
-		//free(m_window);
-		//free(m_renderer);
+#if !defined HIDE_DISPLAY
+		free(m_window);
+		free(m_renderer);
 #endif
 	};
 

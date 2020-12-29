@@ -68,7 +68,7 @@ void Chip8::exec() {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
 				m_display[32][64] = {0};
-#ifndef HIDE_DISPLAY
+#if !defined HIDE_DISPLAY
 				cls();
 #endif
 			}
@@ -177,7 +177,7 @@ void Chip8::exec() {
 				}
 			}
 			// redraw whole display
-#ifndef HIDE_DISPLAY
+#if !defined HIDE_DISPLAY
 			renderAll(m_display);
 #endif
 			break;
