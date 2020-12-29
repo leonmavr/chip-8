@@ -17,3 +17,5 @@ jobs:
       run: sudo apt-get install libsdl2-dev
     - name: make test
       run: make test
+    - name: make clean
+      run: make clean
