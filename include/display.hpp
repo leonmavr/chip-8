@@ -1,5 +1,4 @@
 #ifndef DISPLAY_HPP
-#define DISPLAY_HPP 
 #include <SDL2/SDL.h>
 #include <unordered_map>
 #include <cinttypes>
@@ -14,10 +13,8 @@ public:
 		init();	
 	};
 	~Display () { 
-#if !defined HIDE_DISPLAY
 		free(m_window);
 		free(m_renderer);
-#endif
 	};
 
 protected:
@@ -35,4 +32,5 @@ private:
 	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
 };
 
+#define DISPLAY_HPP 
 #endif /* DISPLAY_HPP */

@@ -9,7 +9,6 @@
 void Display::init() {
 	// see https://caveofprogramming.com/guest-posts/creating-a-window-with-sdl.html
 	SDL_Init(SDL_INIT_EVERYTHING);
-#ifndef HIDE_DISPLAY
 	m_window = SDL_CreateWindow("Display", SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED, m_w, m_h, SDL_WINDOW_SHOWN);
 	m_renderer = SDL_CreateRenderer(m_window, -1, 0);
@@ -17,7 +16,6 @@ void Display::init() {
 	Display::cls();
     //Pause for 100 ms
     SDL_Delay(100);
-#endif
 }
 
 
@@ -33,7 +31,6 @@ void Display::close() {
 
 
 void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
-#ifndef HIDE_DISPLAY
 	// define the pixel to draw
 	SDL_Rect pixel;
 	// The original Chip-8 display was 64x32 - scale this up to show it properly
@@ -49,12 +46,10 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 	else
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
 	SDL_RenderFillRect(m_renderer, &pixel);
-#endif
 }
 
 
 void Display::renderAll(unsigned char(&array2D)[32][64]) {
-#ifndef HIDE_DISPLAY
 	for (unsigned row = 0; row < 32; row++) {
 		for (unsigned col = 0; col < 64; col++) {
 			drawPixelXY(col, row, static_cast<unsigned>(array2D[row][col] != 0));
@@ -63,12 +58,10 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
 	SDL_RenderPresent(m_renderer); // copy to screen
 	// delay (in ms) is REQUIRED or the screen will glitch out
     SDL_Delay(5);
-#endif
 }
 
 
 void Display::cls() {
-#ifndef HIDE_DISPLAY
 	// clear the display array first
 	for (int row = 0; row < 32; row++) {
 		for (int col= 0; col < 64; col++){
@@ -81,5 +74,4 @@ void Display::cls() {
     //Clear the renderer with the draw color
     SDL_RenderClear(m_renderer);
     SDL_Delay(5);
-#endif
 }

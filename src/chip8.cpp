@@ -67,10 +67,8 @@ void Chip8::exec() {
 	switch(m_bitfields.type) {
 		case 0x0:
 			if (nnn == 0x0e0){		// 00E0 (clear screen)
-				m_display[32][64] = {0};
-#if !defined HIDE_DISPLAY
+				//m_display[32][64] = {0};
 				cls();
-#endif
 			}
 			else if (nnn == 0x0ee){	// 00EE (return from call)
 				PC = m_stack[--m_SP % 12];
@@ -177,9 +175,7 @@ void Chip8::exec() {
 				}
 			}
 			// redraw whole display
-#if !defined HIDE_DISPLAY
 			renderAll(m_display);
-#endif
 			break;
 		}
 		case 0xe:
