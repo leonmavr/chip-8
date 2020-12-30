@@ -62,7 +62,7 @@ make test
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
 - [ ] Reload rom - TODO
-- [ ] Select backgrond and foregound colours on the display - TODO
+- [ ] Select background and foreground colours on the display - TODO
 
 ### 2.5 The keypad
 
