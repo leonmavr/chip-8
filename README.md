@@ -40,7 +40,7 @@ It can be compiled on \*nix systems with make (see Makefile):
 cd chip-8
 make
 ```
-The generated executable is called `chip8`, which takes a rom file (`rom` folder) as argument. For example, to play Brix:
+The generated executable is called `chip8`, which takes a rom file (`roms` folder) as argument. For example, to play Brix:
 ```
 ./chip8 roms/Brix.ch8
 ```
@@ -49,16 +49,22 @@ To clean the generated object files and executable:
 make clean
 ```
 
-### 2.3 Features implemented 
+### 2.3 Unit tests
+Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the [Catch2](https://github.com/catchorg/Catch2) library. To build and run them, do:
+```
+make test
+```
+
+### 2.4 Features implemented 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
 - [x] Sound - credits to [vareille's toot library](https://github.com/vareille/toot).
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
 - [ ] Reload rom - TODO
-- [ ] Select backgrond and foregound colours on the display - TODO
+- [ ] Select background and foreground colours on the display - TODO
 
-### 2.4 The keypad
+### 2.5 The keypad
 
 The Chip-8 to modern keyboard mapping was defined like this:
 ```
@@ -80,11 +86,11 @@ Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `Esc` or close window - exit
 
 
-### 2.5 Available roms
+### 2.6 Available roms
 Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
 
 
-### 2.6 Demos
+### 2.7 Demos
 
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
 :-------------------------:|:-------------------------:
@@ -97,3 +103,4 @@ Some classical game roms, such as Pong, Tetris and Brix, are included in the `ro
 * [dmatlack](https://github.com/dmatlack/chip8) for his publicly available roms
 * [vareille](https://github.com/vareille/) for his [C/C++ sound library](https://github.com/vareille/toot).
 * the [emudev subreddit](https://www.reddit.com/r/EmuDev/) for having so many answered questions regarding Chip-8
+* [Catch2](https://github.com/catchorg/Catch2) library for unit testing
