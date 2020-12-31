@@ -14,8 +14,12 @@ static unsigned execInsrPerSec = 0;
 
 
 void Chip8::loadRom(const char* filename, unsigned offset) {
-	// adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
-	for(std::ifstream f(filename, std::ios::binary); f.good(); ) 
+	std::ifstream infile(filename);
+	if (!infile.good())
+		throw std::runtime_error("ROM not found\n");
+
+	// write to memory - adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
+	for(std::ifstream f(filename, std::ios::binary); f.good();) 
 		m_mem[offset++ & 0xFFF] = f.get();
 }
 
@@ -85,17 +89,17 @@ void Chip8::exec() {
 			break;
 		case 0x3:
 			// If Vx == NN, skip next instruction
-			if(kk == Vx)
+			if (kk == Vx)
 				PC += 2;
 			break;
 		case 0x4:
 			// 4xkk - If Vx != NN, skip next instruction
-			if(kk != Vx)
+			if (kk != Vx)
 				PC += 2;
 			break;
 		case 0x5:
 			// 5xy0 - If Vx == Vy, skip next instruction
-			if(Vx == Vy)
+			if (Vx == Vy)
 				PC += 2;
 			break;
 		case 0x6:
