@@ -1,13 +1,13 @@
 #include "chip8.hpp" 
 #include "keyboard.hpp" 
 #include "toot.h" 
+#include "logger.hpp" 
 #include <random>
 #include <cstdlib>
 #include <cassert>
 #include <unordered_map>
 #include <chrono>
 #include <thread>
-#include "logger.hpp" 
 
 
 static unsigned execInsrPerSec = 0;

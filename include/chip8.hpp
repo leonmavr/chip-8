@@ -10,6 +10,7 @@
 #include <bits/stdc++.h>
 #include "display.hpp"
 #include "keyboard.hpp"
+#include "ini_reader.hpp"
 #include "bitfields.hpp"
 
 
@@ -19,7 +20,7 @@ enum {
 };
 
 
-class Chip8: public Display, public Keyboard {
+class Chip8: public Display, public Keyboard, public IniReader {
 public:
 	Chip8 () {
 		init();
