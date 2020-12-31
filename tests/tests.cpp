@@ -34,7 +34,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
 
 TEST_CASE("Check screen output for IBM logo rom") {
 	auto ch8 = std::make_unique<Chip8>(SPEED_NORMAL, 400);
-	ch8->loadRom("../roms/IBM_logo.ch8");
+	ch8->loadRom("roms/IBM_logo.ch8");
 	SECTION("Compare screen output", "[screen]") {
 		// when compiled with MAX_ITER defined, output at /tmp/array.txt
 		ch8->run();	 
