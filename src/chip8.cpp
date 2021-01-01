@@ -238,7 +238,8 @@ void Chip8::exec() {
 				m_delayTimer--;
 			if (m_soundTimer > 0) {
 				m_soundTimer--;
-				toot(700.0, 5); // freq (Hz), duration (ms)
+				if (!m_mute)
+					toot(700.0, 5); // freq (Hz), duration (ms)
 			}
 		}
 	} else { // overclocked mode
@@ -271,7 +272,7 @@ void Chip8::run(unsigned startingOffset) {
 		Chip8::exec();
 
 		// compensate the fps every 10th of a second to make emulation smoother
-		if ((m_clockSpeed == SPEED_NORMAL) && (execInsrPerSec/10 >= m_instrPerSec/10)) {
+		if ((!m_overclock) && (execInsrPerSec/10 >= m_instrPerSec/10)) {
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
@@ -279,17 +280,17 @@ void Chip8::run(unsigned startingOffset) {
 					));
 			execInsrPerSec = 0;
 		}
-#ifdef MAX_ITER
-		if (Logger::getInstance().count() > MAX_ITER) {
-			Logger::getInstance().screendump(m_display); // dump screen to file
-		return;
+		if (m_maxIter > 0) {
+			if (Logger::getInstance().count() > m_maxIter) {
+				Logger::getInstance().screendump(m_display); // dump screen to file
+			return;
+			}
 		}
-#endif
 	}
 }
 
 
-void Chip8::init(unsigned clockSpeed, unsigned instrPerSec) {
+void Chip8::init(const int& overclock, const int& instrPerSec, const int& maxIter, const int& mute) {
 	// 1. Initialise special registers and memory
 	m_SP = 0x0;
 	m_PC = 0x200;
@@ -298,7 +299,6 @@ void Chip8::init(unsigned clockSpeed, unsigned instrPerSec) {
 		m = 0xff; // 0xff indicates free space
 	m_delayTimer = 0x0;
 	m_soundTimer = 0x0;
-	m_instrPerSec = instrPerSec;
 
 	// 2. Write font sprites to memory (locations 0x0 to 0x4f inclusive)
 	// define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
@@ -326,6 +326,9 @@ void Chip8::init(unsigned clockSpeed, unsigned instrPerSec) {
 	for (const uint8_t& element: m_fontset)
 		m_mem[fontOffset++ & 0xFF] = element;
 
-	// 3. misc options
-	m_clockSpeed = clockSpeed;
+	// 3. config options (from IniReader)
+	m_overclock = static_cast<bool>(overclock);
+	m_instrPerSec = instrPerSec;
+	m_maxIter = maxIter;
+	m_mute = static_cast<bool>(mute);
 }

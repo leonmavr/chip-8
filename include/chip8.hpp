@@ -22,11 +22,19 @@ enum {
 
 class Chip8: public Display, public Keyboard, public IniReader {
 public:
+	// the constructor must call the init(...) method
 	Chip8 () {
 		init();
 	};
-	Chip8 (unsigned cpuSpeed, unsigned instrPerSec) {
-		init(cpuSpeed, instrPerSec);
+	Chip8 (std::string fnameIni) :
+		IniReader(fnameIni) {
+			// initReader constructor saves values in m_iniSettings
+			int overclock = m_iniSettings["overclock"];
+			int instrPerSec = m_iniSettings["instructions_per_sec"];
+			int maxIter = m_iniSettings["stop_after_iter"];
+			int mute = m_iniSettings["mute"];
+			// use m_settings member here	
+			init(overclock, instrPerSec, maxIter, mute);
 	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
@@ -46,12 +54,30 @@ private:
 	std::array<uint16_t, 12>m_stack;			// stack
 	std::vector<uint8_t> m_fontset;				// font sprites
 	uint8_t rand();								// Chip8 has a random number generator 
-	unsigned m_instrPerSec;						// instr. per sec; helps with timing
 
 	inline void fetch();						// handles current instruction
 	inline void decode();						// handles current instruction
 	void exec();								// handles current instruction
-	void init(unsigned clockSpeed = SPEED_NORMAL, unsigned instrPerSec = 400);
+
+	// config options corresponding to .init file fields
+	bool m_overclock;
+	int m_instrPerSec;
+	int m_maxIter;
+	bool m_mute;
+
+	/**
+	 * @brief resets the machine and sets the .init config options
+	 *
+	 * @param overclock If != 0, the host runs the loaded rom as fast as possible, also on mute
+	 * @param instrPerSec How many instructions (2-byte codes) to run per sec
+	 * @param maxIter How many instructions to run before terminating. If < 0, infinite
+	 * @param mute If != 0, don't play beeping sound
+	 */
+	void init(const int& overclock = 0,
+			const int& instrPerSec = 400,
+			const int& maxIter = -1,
+			const int& mute = 0);
+
 };
 
 #endif /* CHIP8_HPP */

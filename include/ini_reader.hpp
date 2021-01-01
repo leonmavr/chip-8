@@ -5,11 +5,11 @@
 #include <unordered_map>
 
 class IniReader {
-	public:
+	protected:
 		IniReader () { readIni(); };
 		IniReader (std::string filename) { readIni(filename); };
 		~IniReader () {};
-		std::unordered_map<std::string, unsigned> m_settings {};
+		std::unordered_map<std::string, int> m_iniSettings {};
 	private:
 		void readIni(std::string filename = "../chip8.ini");
 };

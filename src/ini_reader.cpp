@@ -20,7 +20,7 @@ void IniReader::readIni(std::string filename) {
 			stringRemoveSpaces(key);
 			std::string val = line.substr(line.find(delim)+1, line.find(delim));
 			if (!val.empty() && !onlyContainsSpaces(val)) // integer good to insert
-				m_settings[key] = std::stoi(val);
+				m_iniSettings[key] = std::stoi(val);
 		}
 	}	
 }
