@@ -14,27 +14,18 @@
 #include "bitfields.hpp"
 
 
-enum {
-	SPEED_NORMAL,								// Opcodes per sec configured by user 
-	SPEED_OVERCLOCK								// As fast as host computer allows
-};
-
 
 class Chip8: public Display, public Keyboard, public IniReader {
 public:
-	// the constructor must call the init(...) method
-	Chip8 () {
-		init();
-	};
-	Chip8 (std::string fnameIni) :
-		IniReader(fnameIni) {
-			// initReader constructor saves values in m_iniSettings
-			int overclock = m_iniSettings["overclock"];
-			int instrPerSec = m_iniSettings["instructions_per_sec"];
-			int maxIter = m_iniSettings["stop_after_iter"];
-			int mute = m_iniSettings["mute"];
-			// use m_settings member here	
-			init(overclock, instrPerSec, maxIter, mute);
+	// Chip8 ctor must call the IniReader ctor first to write to m_iniSettings
+	Chip8 (std::string fnameIni): IniReader(fnameIni),
+		m_instrPerSec(m_iniSettings["instructions_per_sec"]),
+		m_mute(m_iniSettings["mute"]),
+		m_overclock(m_iniSettings["overclock"]),
+		m_maxIter(m_iniSettings["stop_after_iter"]),
+		m_freq(static_cast<float>(m_iniSettings["freq"]))
+	{
+			init();
 	};
 	~Chip8 () {};
 	void loadRom(const char* filename, unsigned offset = 0x200);
@@ -59,25 +50,13 @@ private:
 	inline void decode();						// handles current instruction
 	void exec();								// handles current instruction
 
-	// config options corresponding to .init file fields
-	bool m_overclock;
-	int m_instrPerSec;
-	int m_maxIter;
-	bool m_mute;
-
-	/**
-	 * @brief resets the machine and sets the .init config options
-	 *
-	 * @param overclock If != 0, the host runs the loaded rom as fast as possible, also on mute
-	 * @param instrPerSec How many instructions (2-byte codes) to run per sec
-	 * @param maxIter How many instructions to run before terminating. If < 0, infinite
-	 * @param mute If != 0, don't play beeping sound
-	 */
-	void init(const int& overclock = 0,
-			const int& instrPerSec = 400,
-			const int& maxIter = -1,
-			const int& mute = 0);
-
+	void init();
+	
+	const int m_overclock;
+	const int m_instrPerSec;
+	const int m_maxIter;
+	const int m_mute ;
+	const float m_freq;
 };
 
 #endif /* CHIP8_HPP */

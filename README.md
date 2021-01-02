@@ -58,9 +58,11 @@ make test
 ### 2.4 Features implemented 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
-- [x] Sound - credits to [vareille's toot library](https://github.com/vareille/toot).
+- [x] Sound effects and frequency selection - credits to [vareille's toot library](https://github.com/vareille/toot).
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
+- [x] Configure emulation settings via .ini file
+- [x] Mute option (in .ini file)
 - [ ] Reload rom - TODO
 - [ ] Select background and foreground colours on the display - TODO
 

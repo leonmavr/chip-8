@@ -84,7 +84,7 @@ void Chip8::exec() {
 			break;
 		case 0x2:
 			// Call subroutine at NNN
-			m_stack[m_SP++ % 12] = (uint16_t)PC;
+			m_stack[m_SP++ % 12] = PC;
 			PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
 			break;
 		case 0x3:
@@ -215,23 +215,23 @@ void Chip8::exec() {
 					I = Vx * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
 					break;
 				case 0x33: //BCD representation of Vx in memory locations I, I+1, and I+2
-					m_mem[(I+0)&0xFFF] = (Vx % 1000) / 100;
-					m_mem[(I+1)&0xFFF] = (Vx % 100) / 10;
-					m_mem[(I+2)&0xFFF] = Vx % 10;
+					m_mem[(I+0) & 0xfff] = (Vx % 1000) / 100;
+					m_mem[(I+1) & 0xfff] = (Vx % 100) / 10;
+					m_mem[(I+2) & 0xfff] = Vx % 10;
 					break;
 				case 0x55: // Fx55 - Store registers V0 through Vx in memory starting at location I.
 					for(unsigned xx = 0; xx <= x; xx++)
-						m_mem[I++ & 0xFFF] = m_V[xx];
+						m_mem[I++ & 0xfff] = m_V[xx];
 					break;
 				case 0x65: // Fx65 - Read registers V0 through Vx from memory starting at location I 
 					for(unsigned xx = 0; xx <= x; xx++)
-						m_V[xx] = m_mem[I++ & 0xFFF];
+						m_V[xx] = m_mem[I++ & 0xfff];
 					break;
 			}
 		break;
 		}
 
-	if (m_clockSpeed == SPEED_NORMAL) {
+	if (!m_overclock) {
 		// decrement every 60 hz and play sound if necessary
 		if (m_instrPerSec % 10 == 0)   {
 			if (m_delayTimer > 0) 
@@ -239,7 +239,7 @@ void Chip8::exec() {
 			if (m_soundTimer > 0) {
 				m_soundTimer--;
 				if (!m_mute)
-					toot(700.0, 5); // freq (Hz), duration (ms)
+					toot(m_freq, 5); // freq (Hz), duration (ms)
 			}
 		}
 	} else { // overclocked mode
@@ -262,7 +262,7 @@ void Chip8::run(unsigned startingOffset) {
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
 	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
-		if (m_clockSpeed == SPEED_NORMAL)
+		if (!m_overclock)
 			t_start = std::chrono::high_resolution_clock::now();
 
 		// fetch-decode-exec defines the operation of Chip8
@@ -290,7 +290,7 @@ void Chip8::run(unsigned startingOffset) {
 }
 
 
-void Chip8::init(const int& overclock, const int& instrPerSec, const int& maxIter, const int& mute) {
+void Chip8::init() {
 	// 1. Initialise special registers and memory
 	m_SP = 0x0;
 	m_PC = 0x200;
@@ -325,10 +325,4 @@ void Chip8::init(const int& overclock, const int& instrPerSec, const int& maxIte
 	unsigned fontOffset = 0x0;
 	for (const uint8_t& element: m_fontset)
 		m_mem[fontOffset++ & 0xFF] = element;
-
-	// 3. config options (from IniReader)
-	m_overclock = static_cast<bool>(overclock);
-	m_instrPerSec = instrPerSec;
-	m_maxIter = maxIter;
-	m_mute = static_cast<bool>(mute);
 }
