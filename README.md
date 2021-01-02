@@ -49,13 +49,16 @@ To clean the generated object files and executable:
 make clean
 ```
 
-### 2.3 Unit tests
+### 2.3 Emulation configs - the .ini file
+If you want to change an emulation setting, such as how fast a rom shall run, muting the sound etc., you can edit the `chip8.ini` file, recompile, and run. The settings of the .ini file are documented in it.
+
+### 2.4 Unit tests
 Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the [Catch2](https://github.com/catchorg/Catch2) library. To build and run them, do:
 ```
 make test
 ```
 
-### 2.4 Features implemented 
+### 2.5 Features implemented 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
 - [x] Sound effects and frequency selection - credits to [vareille's toot library](https://github.com/vareille/toot).
@@ -66,7 +69,7 @@ make test
 - [ ] Reload rom - TODO
 - [ ] Select background and foreground colours on the display - TODO
 
-### 2.5 The keypad
+### 2.6 The keypad
 
 The Chip-8 to modern keyboard mapping was defined like this:
 ```
@@ -88,11 +91,11 @@ Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `Esc` or close window - exit
 
 
-### 2.6 Available roms
+### 2.7 Available roms
 Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
 
 
-### 2.7 Demos
+### 2.8 Demos
 
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
 :-------------------------:|:-------------------------:
