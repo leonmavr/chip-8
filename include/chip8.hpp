@@ -10,7 +10,6 @@
 #include <bits/stdc++.h>
 #include "display.hpp"
 #include "keyboard.hpp"
-#include "ini_reader.hpp"
 #include "bitfields.hpp"
 
 
@@ -19,11 +18,11 @@ class Chip8: public Display, public Keyboard, public IniReader {
 public:
 	// Chip8 ctor must call the IniReader ctor first to write to m_iniSettings
 	Chip8 (std::string fnameIni): IniReader(fnameIni),
-		m_instrPerSec(m_iniSettings["instructions_per_sec"]),
-		m_mute(m_iniSettings["mute"]),
-		m_overclock(m_iniSettings["overclock"]),
-		m_maxIter(m_iniSettings["stop_after_iter"]),
-		m_freq(static_cast<float>(m_iniSettings["freq"]))
+		m_instrPerSec(std::any_cast<int>(m_iniSettings["i_instructions_per_sec"])),
+		m_mute(std::any_cast<bool>(m_iniSettings["b_mute"])),
+		m_overclock(std::any_cast<bool>(m_iniSettings["b_overclock"])),
+		m_maxIter(std::any_cast<int>(m_iniSettings["i_stop_after_iter"])),
+		m_freq(std::any_cast<int>(m_iniSettings["i_freq"]))
 	{
 			init();
 	};

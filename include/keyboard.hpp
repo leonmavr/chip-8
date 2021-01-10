@@ -1,14 +1,13 @@
 #ifndef KEYBOARD_HPP
 #define KEYBOARD_HPP 
-
 #include <unordered_map>
 #include <SDL2/SDL.h> 
 #include <array>
 #include <cinttypes>
+#include "ini_reader.hpp" 
 
 
-class Keyboard
-{
+class Keyboard {
 public:
 	Keyboard () {
 		m_keyQwerty2Chip8 = {
