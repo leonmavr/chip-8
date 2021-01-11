@@ -4,7 +4,9 @@
 #include <string>
 #include <unordered_map>
 #include <any>
+#include "ini_reader.hpp" 
 
+namespace inireader {
 class IniReader {
 	public:
 		IniReader () { readIni(); };
@@ -12,7 +14,8 @@ class IniReader {
 		~IniReader () {};
 		std::unordered_map<std::string, std::any> m_iniSettings {};
 	private:
-		void readIni(std::string filename = "../chip8.ini");
+		void readIni(std::string filename = "chip8.ini");
 };
 
+}
 #endif /* INI_READER_HPP */
