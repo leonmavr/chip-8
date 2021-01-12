@@ -5,7 +5,7 @@
 #include "ini_reader.hpp" 
 
 
-void IniReader::readIni(std::string filename) {
+void inireader::IniReader::readIni(std::string filename) {
 	std::ifstream filestream(filename);
 	std::string line;
 	std::string delim = "=";
@@ -30,6 +30,7 @@ void IniReader::readIni(std::string filename) {
 			std::string val = line.substr(line.find(delim)+1, line.find(delim));
 			if (!val.empty() && !onlyContainsSpaces(val)) { // line good to insert 
 				std::string prefix = key.substr(0, 2);
+				stringRemoveSpaces(val);
 				if (prefix == "i_") // integer
 					m_iniSettings[key] = std::stoi(val);
 				else if (prefix == "b_") // boolean ("true/false")

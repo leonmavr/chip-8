@@ -6,8 +6,23 @@
 #include <cinttypes>
 #include <any>
 #include <vector>
+#include <algorithm> // find_if
 #include <iostream> // TODO: remove
 #include "ini_reader.hpp" 
+
+
+// copies keys-value pairs to new map only if key starts froom (first 2 charts) a certain string
+static std::unordered_map<std::string, std::any> copyOnlyForPrefix(std::unordered_map<std::string, std::any> map, std::string prefix) {
+	std::unordered_map<std::string, std::any> mapNew {};
+	for (const auto& keyval: map) {
+		if (keyval.first.substr(0, 2) == prefix)	  {
+			mapNew.insert({keyval.first, keyval.second});
+			std::cout << "in.." << keyval.first << ", " <<std::any_cast<std::string> (keyval.second) << std::endl;;
+		}
+	}
+	return mapNew;
+}
+
 
 
 class Keyboard: public inireader::IniReader {
@@ -17,34 +32,43 @@ public:
 		// s_key_x = y
 		// y -> s_key_x -> SDLK_z
 		std::vector<int> keyboardBuffer;
+		// copy only strings to new map
+		auto m_iniSettingsCpy = copyOnlyForPrefix(m_iniSettings, "s_");
+		std::string chip8Key;
+		bool success = false;
 		for (auto const& s2k: m_str2keypad) {
-			std::string key = "s_key_" + s2k.first;
-			if (m_iniSettings.count(key) > 0) {
-				char clast = s2k.first.back();
-				std::string slast(1, clast);
-				std::cout << std::stoi(slast, 0, 16) << ", " << std::any_cast<std::string> (m_iniSettings[key]) <<", " << m_str2keypad[slast] << ", " << s2k.first <<std::endl;;
-				m_keyQwerty2Chip8[m_str2keypad[slast]] = std::stoi(slast, 0, 16);
-				std::cout << m_str2keypad[s2k.first] << " = " << slast << std::endl;
+			// this is the `y`
+			std::string key = s2k.first;
+			// check if m_iniSettings *values* contain key (y from above) 
+			for (const auto& iniPair: m_iniSettings){
+				success = false;
+				// fetch (from .ini file) only key-value pairs whose key starts with "s_key" - these are the Chip8 key-values
+				if  (iniPair.first.substr(0,5) == "s_key") { // s_ means string so proceed
+					if (std::any_cast<std::string> (iniPair.second).compare(key) == 0) {
+						success = true;
+						std::string chip8Key (1, iniPair.first.back());
+						chip8Key = iniPair.first.substr(iniPair.first.size() - 1);
+						for (auto & c: chip8Key) c = toupper(c);
+						m_ch8key = chip8Key;
+						break;
+					}
+				}
+			}
+			//std::cout <<typeid (result ).name();
+			if (success == true) {
+				// "s" -> SDLK_s -> 0xb
+				std::string slast(1, s2k.first.back());
+				m_keyQwerty2Chip8[m_str2keypad[slast]] = std::stoi(m_ch8key, 0, 16);
+				std::cout << m_str2keypad[slast] << " -> "<<  m_keyQwerty2Chip8[m_str2keypad[slast]]<< " -> " << std::stoi(m_ch8key, 0, 16) << std::endl;
 			}
 		}
-		std::cout << "-----\n";
 		m_keyQwerty2Chip8[SDLK_ESCAPE] = 0x10;
-		std::unordered_map<unsigned, unsigned> keyQwerty2Chip8 = {
-			{SDLK_1, 0x0}, {SDLK_2, 0x1}, {SDLK_3, 0x2}, {SDLK_4, 0x3},
-			{SDLK_q, 0x4}, {SDLK_w, 0x5}, {SDLK_e, 0x6}, {SDLK_r, 0x7},
-			{SDLK_a, 0x8}, {SDLK_s, 0x9}, {SDLK_d, 0xA}, {SDLK_f, 0xB},
-			{SDLK_z, 0xC}, {SDLK_x, 0xD}, {SDLK_c, 0xE}, {SDLK_v, 0xF},
-			{SDLK_ESCAPE, 0x10}
-		};
-		std::cout << "-----\n";
-		for (auto const& s2k: keyQwerty2Chip8) {
-			std::cout << s2k.first << " = " << s2k.second << std::endl;
-		}
 	};
 	~Keyboard () {};
 
 protected:
 	uint8_t getKeyPress();
+	std::string m_ch8key;
 	std::unordered_map<unsigned, unsigned> m_keyQwerty2Chip8;
 	std::array<uint8_t, 16> m_keypresses {};
 private:
