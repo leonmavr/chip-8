@@ -37,34 +37,30 @@ public:
 		decltype(m_iniSettings) iniSettingsCpy;
 		copyOnlyForPrefix(m_iniSettings, iniSettingsCpy, "s_key");
 		bool success;
-
-		for (auto const& k2s: m_keyboard2sdl) {
+		for (const auto& key2str: m_keyboard2sdl) {
 			success = false;
-			std::string key = k2s.first; // keyboard key
-			// check if m_iniSettings *values* contain key above
-			for (const auto& iniPair: iniSettingsCpy){
-				if (std::any_cast<std::string> (iniPair.second).compare(key) == 0) {
-					success = true;
-					// rhs of ini entry - i.e. chip8 (hex) key
-					m_ch8key = std::stoi(iniPair.first.substr(iniPair.first.size() - 1), 0, 16);
-					break;
-				}
-			}
-			if (success) {
-				// "s" -> SDLK_s -> 0xb
-				std::string slast(1, k2s.first.back());
-				m_keyQwerty2Chip8[m_keyboard2sdl[slast]] = m_ch8key;
+			std::string key = key2str.first; // keyboard key
+			// if keyboard key (`key`) is in the rhs of the .ini file (value of `iniSettingsCpy`)
+			auto result = std::find_if(iniSettingsCpy.begin(), iniSettingsCpy.end(),
+				[key](const auto& map) {return std::any_cast<std::string>(map.second) == key; });
+
+			if (result != iniSettingsCpy.end()) {
+				unsigned ch8key = std::stoi(result->first.substr(result->first.size() - 1), 0, 16);
+				std::string slast(1, key2str.first.back());
+				m_keyQwerty2Chip8[m_keyboard2sdl[slast]] = ch8key;
 			}
 		}
+		// Add the Esc key for the UI
 		m_keyQwerty2Chip8[SDLK_ESCAPE] = 0x10;
 	};
+
 	~Keyboard () {};
 
 protected:
 	uint8_t getKeyPress();
-	unsigned m_ch8key;
 	std::unordered_map<unsigned, unsigned> m_keyQwerty2Chip8;
 	std::array<uint8_t, 16> m_keypresses {};
+
 private:
 	std::unordered_map<std::string, unsigned> m_keyboard2sdl = 
 	{
