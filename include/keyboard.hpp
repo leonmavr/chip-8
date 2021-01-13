@@ -13,7 +13,7 @@
 
 // copies keys-value pairs to new map only if key starts froom (first 2 charts) a certain string
 static void copyOnlyForPrefix(
-		std::unordered_map<std::string, std::any> map,
+		const std::unordered_map<std::string, std::any>& map,
 		std::unordered_map<std::string, std::any>& mapNew,
 		std::string prefix)
 {
