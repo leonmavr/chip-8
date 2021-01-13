@@ -12,15 +12,15 @@
 
 
 // copies keys-value pairs to new map only if key starts froom (first 2 charts) a certain string
-static std::unordered_map<std::string, std::any> copyOnlyForPrefix(std::unordered_map<std::string, std::any> map, std::string prefix) {
-	std::unordered_map<std::string, std::any> mapNew {};
+static void copyOnlyForPrefix(
+		std::unordered_map<std::string, std::any> map,
+		std::unordered_map<std::string, std::any>& mapNew,
+		std::string prefix)
+{
 	for (const auto& keyval: map) {
-		if (keyval.first.substr(0, 2) == prefix)	  {
+		if (keyval.first.substr(0, prefix.length()) == prefix)
 			mapNew.insert({keyval.first, keyval.second});
-			std::cout << "in.." << keyval.first << ", " <<std::any_cast<std::string> (keyval.second) << std::endl;;
-		}
 	}
-	return mapNew;
 }
 
 
@@ -33,26 +33,25 @@ public:
 		// y -> s_key_x -> SDLK_z
 		std::vector<int> keyboardBuffer;
 		// copy only strings to new map
-		auto m_iniSettingsCpy = copyOnlyForPrefix(m_iniSettings, "s_");
+		decltype(m_iniSettings) m_iniSettingsCpy;
+		copyOnlyForPrefix(m_iniSettings, m_iniSettingsCpy, "s_key");
+
 		std::string chip8Key;
 		bool success = false;
 		for (auto const& s2k: m_str2keypad) {
 			// this is the `y`
 			std::string key = s2k.first;
 			// check if m_iniSettings *values* contain key (y from above) 
-			for (const auto& iniPair: m_iniSettings){
+			for (const auto& iniPair: m_iniSettingsCpy){
 				success = false;
 				// fetch (from .ini file) only key-value pairs whose key starts with "s_key" - these are the Chip8 key-values
-				if  (iniPair.first.substr(0,5) == "s_key") { // s_ means string so proceed
 					if (std::any_cast<std::string> (iniPair.second).compare(key) == 0) {
 						success = true;
 						std::string chip8Key (1, iniPair.first.back());
 						chip8Key = iniPair.first.substr(iniPair.first.size() - 1);
-						for (auto & c: chip8Key) c = toupper(c);
 						m_ch8key = chip8Key;
 						break;
 					}
-				}
 			}
 			//std::cout <<typeid (result ).name();
 			if (success == true) {
