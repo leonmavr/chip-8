@@ -5,7 +5,6 @@
 #include <array>
 #include <cinttypes>
 #include <any>
-#include <vector>
 #include <algorithm> // find_if
 #include "ini_reader.hpp" 
 
@@ -35,18 +34,17 @@ public:
 		// from ini file, select entries that start with s_key, e.g. s_key_5 = w
 		decltype(m_iniSettings) iniSettingsCpy;
 		copyOnlyForPrefix(m_iniSettings, iniSettingsCpy, "s_key");
-		bool success;
-		for (const auto& key2str: m_keyboard2sdl) {
-			success = false;
-			std::string key = key2str.first; // keyboard key
+
+		for (const auto& key2sdl: m_keyboard2sdl) {
+			std::string key = key2sdl.first; // keyboard key
 			// if keyboard key (`key`) is in the rhs of the .ini file (value of `iniSettingsCpy`)
 			auto result = std::find_if(iniSettingsCpy.begin(), iniSettingsCpy.end(),
 				[key](const auto& map) {return std::any_cast<std::string>(map.second) == key; });
 
 			if (result != iniSettingsCpy.end()) {
-				unsigned ch8key = std::stoi(result->first.substr(result->first.size() - 1), 0, 16);
-				std::string slast(1, key2str.first.back());
-				m_keyQwerty2Chip8[m_keyboard2sdl[slast]] = ch8key;
+				unsigned ch8key = std::stoi(result->first.substr(result->first.size() - 1), 0, 16); // result = <s_key_X, Y>
+				std::string slast(1, key2sdl.first.back()); // s_key_X => X, X is in hex 
+				m_keyQwerty2Chip8[m_keyboard2sdl[slast]] = ch8key; // X -> [SDL key for X]
 			}
 		}
 		// Add the Esc key for the UI
