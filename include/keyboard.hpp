@@ -7,7 +7,6 @@
 #include <any>
 #include <vector>
 #include <algorithm> // find_if
-#include <iostream> // TODO: remove
 #include "ini_reader.hpp" 
 
 
@@ -32,7 +31,7 @@ static void copyOnlyForPrefix(
 
 class Keyboard: public inireader::IniReader {
 public:
-	Keyboard (): IniReader() {
+	Keyboard (std::string iniFile): IniReader(iniFile) {
 		// from ini file, select entries that start with s_key, e.g. s_key_5 = w
 		decltype(m_iniSettings) iniSettingsCpy;
 		copyOnlyForPrefix(m_iniSettings, iniSettingsCpy, "s_key");
@@ -57,6 +56,11 @@ public:
 	~Keyboard () {};
 
 protected:
+	/**
+	 * @brief Waits for keypress and then returns a keypad (0x0 - 0xf). This function is required by chip8's architecure
+	 *
+	 * @return The keypad key corresponding to pressed keyboard key (0x0-0xf)
+	 */
 	uint8_t getKeyPress();
 	std::unordered_map<unsigned, unsigned> m_keyQwerty2Chip8;
 	std::array<uint8_t, 16> m_keypresses {};

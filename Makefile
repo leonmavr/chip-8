@@ -50,11 +50,11 @@ clean:
 	$(CC) $(TEST_CFLAGS) -c $^ -o $@
 
 tests.o: $(TEST_DIR)/tests.cpp
-	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.o
+	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.to
 
 catch.o: $(TEST_DIR)/catch.cpp
-	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.o
+	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
 
-test: $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o $(TEST_OBJECTS)
+test: $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS)
 	$(CC) $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
 	./$(TEST_EXEC)
