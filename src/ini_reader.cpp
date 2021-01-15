@@ -22,9 +22,11 @@ void inireader::IniReader::readIni(std::string filename) {
 	// credits Andre Holzner: https://stackoverflow.com/a/3613327
 	auto strIsTrue = [] (const std::string& str) -> bool
 		{ return strcasecmp("true", str.c_str()) == 0; };
+	auto lineIsComment = [] (const std::string& str) -> bool
+		{ return str.find("#") == 0; };
 
 	while (std::getline(filestream, line)) {
-		if (line.find(delim) != std::string::npos) {
+		if ((line.find(delim) != std::string::npos) && (!lineIsComment(line))) {
 			std::string key = line.substr(0, line.find(delim));
 			stringRemoveSpaces(key);
 			std::string val = line.substr(line.find(delim)+1, line.find(delim));
