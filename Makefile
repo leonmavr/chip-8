@@ -37,24 +37,22 @@ clean:
 	$(RM) $(EXEC)
 	$(RM) $(TEST_OBJECTS)
 	$(RM) $(TEST_EXEC)
-	$(RM) vgcore.* 
+	$(RM) $(TEST_DIR)/*.to
 
 
 ###################################################
 # unit tests                                      #
 ###################################################
-#temp: $(TEST_OBJECTS)
-#	$(CC) $(TEST_OBJECTS) $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o -o temp $(LDFLAGS) 
 
 %.to: %.cpp
 	$(CC) $(TEST_CFLAGS) -c $^ -o $@
 
-tests.o: $(TEST_DIR)/tests.cpp
+tests.to: $(TEST_DIR)/tests.cpp
 	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.to
 
-catch.o: $(TEST_DIR)/catch.cpp
+catch.to: $(TEST_DIR)/catch.cpp
 	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
 
 test: $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS)
-	$(CC) $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
+	$(CC) $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
 	./$(TEST_EXEC)
