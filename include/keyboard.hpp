@@ -28,7 +28,7 @@ static void copyOnlyForPrefix(
 }
 
 
-class Keyboard: public inireader::IniReader {
+class Keyboard: virtual public inireader::IniReader {
 public:
 	Keyboard (std::string iniFile): IniReader(iniFile) {
 		// from ini file, select entries that start with s_key, e.g. s_key_5 = w

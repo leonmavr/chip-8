@@ -3,14 +3,16 @@
 #include <SDL2/SDL.h>
 #include <unordered_map>
 #include <cinttypes>
+#include <any>
 #include "keyboard.hpp" 
+#include "ini_reader.hpp" 
 
 
-class Display {
+class Display: virtual public inireader::IniReader {
 public:
-	Display (unsigned w = 640, unsigned h = 320) {
-		m_w = w;
-		m_h = h;
+	Display (std::string iniFile): IniReader(iniFile) {
+		m_w = std::any_cast<int>(m_iniSettings["i_screen_width"]);
+		m_h = std::any_cast<int>(m_iniSettings["i_screen_height"]);
 		init();	
 	};
 	~Display () { 
