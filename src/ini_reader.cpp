@@ -23,7 +23,7 @@ void inireader::IniReader::readIni(std::string filename) {
 	auto strIsTrue = [] (const std::string& str) -> bool
 		{ return strcasecmp("true", str.c_str()) == 0; };
 	auto lineIsComment = [] (const std::string& str) -> bool
-		{ return str.find("#") == 0; };
+		{ return str.rfind("#", 0) == 0; };
 
 	while (std::getline(filestream, line)) {
 		if ((line.find(delim) != std::string::npos) && (!lineIsComment(line))) {

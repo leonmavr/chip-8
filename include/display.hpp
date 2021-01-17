@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <cinttypes>
 #include <any>
-//#include "keyboard.hpp" 
+#include <vector>
 #include "ini_reader.hpp" 
 
 
@@ -13,7 +13,9 @@ public:
 	Display (std::string iniFile): IniReader(iniFile) {
 		m_w = std::any_cast<int>(m_iniSettings["i_screen_width"]);
 		m_h = std::any_cast<int>(m_iniSettings["i_screen_height"]);
-		init();	
+		hex2rgb(std::any_cast<std::string>(m_iniSettings["s_colourBg"]), m_colourBg);
+		hex2rgb(std::any_cast<std::string>(m_iniSettings["s_colourFg"]), m_colourFg);
+		init();									// initialise SDL resources
 	};
 	~Display () { 
 		free(m_window);
@@ -29,6 +31,8 @@ protected:
 private:
 	unsigned m_w;
 	unsigned m_h;
+	std::vector <uint8_t> m_colourBg;
+	std::vector <uint8_t> m_colourFg;
 	SDL_Window* m_window;
 	SDL_Renderer* m_renderer;
 	/**
@@ -43,6 +47,7 @@ private:
 	 * @param colour Pixel colour; 0 for black, 1 for white
 	 */
 	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
+	void hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb);
 };
 
 #endif /* DISPLAY_HPP */
