@@ -47,7 +47,7 @@ TEST_CASE("Check screen output for IBM logo rom") {
 
 TEST_CASE("Test ini reader") {
 	SECTION("Read ini file", "[ini]") {
-		auto reader = std::make_unique<inireader::IniReader>("tests/chip8.ini");
+		auto reader = std::make_unique<IniReader>("tests/chip8.ini");
 		// results written to m_iniSettings <std::string, std::any> map object
 
 		// [Settings] section

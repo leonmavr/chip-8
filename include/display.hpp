@@ -8,7 +8,7 @@
 #include "ini_reader.hpp" 
 
 
-class Display: virtual public inireader::IniReader {
+class Display: virtual public IniReader {
 public:
 	Display (std::string iniFile): IniReader(iniFile) {
 		m_w = std::any_cast<int>(m_iniSettings["i_screen_width"]);

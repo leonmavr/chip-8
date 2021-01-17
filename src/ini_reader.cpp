@@ -5,7 +5,7 @@
 #include "ini_reader.hpp" 
 
 
-void inireader::IniReader::readIni(std::string filename) {
+void IniReader::readIni(std::string filename) {
 	std::ifstream filestream(filename);
 	std::string line;
 	std::string delim = "=";

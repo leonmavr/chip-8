@@ -14,13 +14,13 @@
 #include "bitfields.hpp"
 
 
-class Chip8: public Display, public Keyboard, virtual public inireader::IniReader {
+class Chip8: public Display, public Keyboard, virtual public IniReader {
 public:
 	// don't forget to initialise constant members 
 	Chip8 (std::string fnameIni):
 		Keyboard(fnameIni),
 		Display(fnameIni),
-		inireader::IniReader(fnameIni),
+		IniReader(fnameIni),
 		m_instrPerSec(std::any_cast<int>(m_iniSettings["i_instructions_per_sec"])),
 		m_mute(std::any_cast<bool>(m_iniSettings["b_mute"])),
 		m_overclock(std::any_cast<bool>(m_iniSettings["b_overclock"])),

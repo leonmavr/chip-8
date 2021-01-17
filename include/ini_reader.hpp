@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <any>
 
-namespace inireader {
 class IniReader {
 	public:
 		IniReader ()  { readIni(); };
@@ -16,5 +15,4 @@ class IniReader {
 		void readIni(std::string filename = "chip8.ini");
 };
 
-}
 #endif /* INI_READER_HPP */
