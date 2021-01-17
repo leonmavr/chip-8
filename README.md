@@ -28,7 +28,7 @@ The keypad consists of 16 keys, numbered in hex from `0` to `9` to `a` to `f`. W
 
 # 2. This project
 
-### 2.1 Prerequisites
+### 2.1 Dependencies
 The only needed library is SDL2 for the display. On Debian-based systems, you can install it with:
 ```
 sudo apt-get install libsdl2-dev
@@ -37,6 +37,7 @@ sudo apt-get install libsdl2-dev
 ### 2.2 How to compile and run
 It can be compiled on \*nix systems with make (see Makefile):
 ```
+git clone https://github.com/0xLeo/chip-8.git
 cd chip-8
 make
 ```
@@ -48,30 +49,27 @@ To clean the generated object files and executable:
 ```
 make clean
 ```
-
-### 2.3 Emulation configs - the .ini file
-If you want to change an emulation setting, such as how fast a rom shall run, muting the sound etc., you can edit the `chip8.ini` file, recompile, and run. The settings of the .ini file are documented in it.
-
-### 2.4 Unit tests
-Unit tests can be added monolithically in file `tests/tests.cpp` and are built in conjunction with the [Catch2](https://github.com/catchorg/Catch2) library. To build and run them, do:
+Finally, unit tests can be added monolithically in file `tests/tests.cpp` and can be run with:
 ```
 make test
 ```
 
-### 2.5 Features implemented 
+### 2.3 Emulation configs - the .ini file
+You can change the emulator's settings, such as the keypad mapping, how fast to play the loaded rom, screen colours etc central from file `chip8.ini`. Then recompile for the changes to take effect and load your rom. Documentation is found in the .ini file itself.
+
+### 2.4 Features implemented and future plans 
 - [x] Machine architecture, display, and keypad.
 - [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
 - [x] Sound effects - credits to [vareille's toot library](https://github.com/vareille/toot).
-- [x] Misc. sound options (mute, frequency selection)
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
 - [x] Configure emulation settings via .ini file
 - [ ] Reload rom - TODO
-- [ ] Select background and foreground colours on the display - TODO
+- [ ] Expansion to Super Chip-8 - TODO if there's interest in the future 
 
-### 2.6 The keypad
+### 2.5 The keypad
 
-The Chip-8 to modern keyboard mapping was defined like this:
+The Chip-8 to modern keyboard mapping was defined by default like this:
 ```
 +---+---+---+---+       +---+---+---+---+
 | 0 | 1 | 2 | 3 |       | 1 | 2 | 3 | 4 |
@@ -83,19 +81,18 @@ The Chip-8 to modern keyboard mapping was defined like this:
 | c | d | e | f |       | z | x | c | v |
 +---+---+---+---+       +---+---+---+---+
 ```
-If you wish to change the mapping, you have to edit the following line and recompile:
-https://github.com/0xLeo/chip-8/blob/master/include/keyboard.hpp#L15
+You can define your own mapping in `chip8.ini` file.  
 
 Apart from the keypad, the following keys are implemented to facilitate the UI:
 * `F1` - pause execution
 * `Esc` or close window - exit
 
 
-### 2.7 Available roms
+### 2.6 Available roms
 Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
 
 
-### 2.8 Demos
+### 2.7 Demos
 
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
 :-------------------------:|:-------------------------:
