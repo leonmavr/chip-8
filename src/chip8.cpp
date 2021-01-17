@@ -67,47 +67,59 @@ void Chip8::exec() {
 	auto& I = m_I;
 	auto& PC = m_PC;
 
+	// update program counter
+	auto skipNextInstr = [&PC] () { PC += 4; };
+	auto nextInstr = [&PC] () { PC += 2; };
+
 	switch(m_bitfields.type) {
 		case 0x0:
-			if (nnn == 0x0e0){		// 00E0 (clear screen)
-				//m_display[32][64] = {0};
+			if (nnn == 0x0e0) {		// 00E0 (clear screen)
 				cls();
 			}
 			else if (nnn == 0x0ee){	// 00EE (return from call)
 				PC = m_stack[--m_SP % 12];
 			}
+			nextInstr();
 			break;
 		case 0x1:
 			// if 0x1NNN, jump to NNN
-			PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			PC = nnn;
 			break;
 		case 0x2:
 			// Call subroutine at NNN
 			m_stack[m_SP++ % 12] = PC;
-			PC = nnn - 2;			// decrement by 2 so next opcode is not skipped
+			PC = nnn;			
 			break;
 		case 0x3:
 			// If Vx == NN, skip next instruction
 			if (kk == Vx)
-				PC += 2;
+				skipNextInstr();
+			else
+				nextInstr();
 			break;
 		case 0x4:
 			// 4xkk - If Vx != NN, skip next instruction
 			if (kk != Vx)
-				PC += 2;
+				skipNextInstr();
+			else
+				nextInstr();
 			break;
 		case 0x5:
 			// 5xy0 - If Vx == Vy, skip next instruction
 			if (Vx == Vy)
-				PC += 2;
+				skipNextInstr();
+			else
+				nextInstr();
 			break;
 		case 0x6:
 			// 6xkk - Set Vx = kk
 			Vx = kk;
+			nextInstr();
 			break;
 		case 0x7:
 			// 7xkk - Set Vx = Vx + kk
 			Vx += kk;
+			nextInstr();
 			break;
 		case 0x8:
 			switch(n) {
@@ -144,19 +156,24 @@ void Chip8::exec() {
 					Vx = Vy << 1;
 					break;
 			}
+			nextInstr();
 			break;
 		case 0x9:
 			if (Vx != Vy) //9xy0 - Skip next instruction if Vx != Vy.
-				PC += 2;
+				skipNextInstr();
+			else
+				nextInstr();
 			break;
 		case 0xa: // Set I = nnn.
 			I = nnn;
+			nextInstr();
 			break;
 		case 0xb: // Bnnn - Jump to location nnn + V0.
-			PC = nnn + m_V[0] - 2; // Decrement by 2 so next instr. is not skipped
+			PC = nnn + m_V[0];
 			break;
 		case 0xc: { // Cxkk - Set Vx = random byte AND kk
 			Vx = rand() & kk ;
+			nextInstr();
 			break;
 		}
 		case 0xd:
@@ -179,19 +196,23 @@ void Chip8::exec() {
 			}
 			// redraw whole display
 			renderAll(m_display);
+			nextInstr();
 			break;
 		}
 		case 0xe:
 			if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-				if (m_keypresses[Vx & 15])  {
-					PC += 2;
-				}
+				if (m_keypresses[Vx & 15])
+					skipNextInstr();
+				else
+					nextInstr();
 			}
 			if (kk == 0xa1) {// skip next instruction if  key with the value of Vx  is not pressed
-				if (m_keypresses[Vx & 15] == 0)  {
-					PC += 2;
-				}
+				if (m_keypresses[Vx & 15] == 0)
+					skipNextInstr();
+				else
+					nextInstr();
 			}
+			break;
 		case 0xf: 
 			switch(kk) {
 				case 0x07: // Fx07 - Set Vx = delay timer value.
@@ -227,7 +248,8 @@ void Chip8::exec() {
 						m_V[xx] = m_mem[I++ & 0xfff];
 					break;
 			}
-		break;
+			nextInstr();
+			break;
 		}
 
 	if (!m_overclock) {
@@ -249,8 +271,6 @@ void Chip8::exec() {
 	}
 
 	execInsrPerSec++;
-	// move to next instruction
-	m_PC += 2;
 }
 
 
