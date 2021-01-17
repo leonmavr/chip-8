@@ -17,8 +17,6 @@ void IniReader::readIni(std::string filename) {
 		{ return str.find_first_not_of(" \t\n\v\f\r") == std::string::npos; };
 	auto stringRemoveSpaces = [] (std::string& str)
 		{ str.erase(std::remove(str.begin(), str.end(), ' ')); };
-	auto onlyContainsNumbers = [] (const std::string& str) -> bool
-		{ return std::find_if(str.begin(), str.end(), ::isdigit) != str.end(); };
 	// credits Andre Holzner: https://stackoverflow.com/a/3613327
 	auto strIsTrue = [] (const std::string& str) -> bool
 		{ return strcasecmp("true", str.c_str()) == 0; };
