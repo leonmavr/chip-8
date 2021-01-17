@@ -6,7 +6,7 @@ CC = g++
 EXEC = chip8
 SRC_DIR = src
 INCL_DIR = include
-CFLAGS = -std=c++17 -g -I$(INCL_DIR)
+CFLAGS = -std=c++17 -g -I$(INCL_DIR) -Wall
 LDFLAGS = -lSDL2
 SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp $(SRC_DIR)/ini_reader.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)
