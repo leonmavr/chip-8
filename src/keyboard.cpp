@@ -1,7 +1,6 @@
 #include "keyboard.hpp"
 #include <cinttypes>
 #include <SDL2/SDL.h>
-#include <iostream>
 
 
 uint8_t Keyboard::getKeyPress() {

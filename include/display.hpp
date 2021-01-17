@@ -44,9 +44,15 @@ private:
 	 *
 	 * @param x	x-ordinate of pixel to be drawn
 	 * @param y	y-ordinate of pixel to be drawn
-	 * @param colour Pixel colour; 0 for black, 1 for white
+	 * @param colour Pixel colour; 0 for background, 1 for foreground 
 	 */
 	void drawPixelXY(unsigned x, unsigned y, unsigned colour);
+	/**
+	 * @brief Converts a RGB hex string to a R, G, B triplet
+	 *
+	 * @param strHex A hex string defining a colour, preceeded optionally by #, e.g. #AABBCC 
+	 * @param vecrgb A vector where the R, G, B components of the above colour will be written to 
+	 */
 	void hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb);
 };
 

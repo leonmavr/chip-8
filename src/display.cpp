@@ -1,6 +1,5 @@
 #include <SDL2/SDL.h>
 #include <memory>
-#include <iostream> // for screendump
 #include <string>
 #include "display.hpp" 
 
@@ -44,7 +43,7 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 		// renderer, r, g, b, a
 		SDL_SetRenderDrawColor(m_renderer, m_colourFg[0], m_colourFg[1], m_colourFg[2], 0xff);
 	else
-		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
+		SDL_SetRenderDrawColor(m_renderer, m_colourBg[0], m_colourBg[1], m_colourBg[2], 0);
 	SDL_RenderFillRect(m_renderer, &pixel);
 }
 
@@ -82,6 +81,7 @@ void Display::hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb) {
 	if (strHex.rfind("#", 0) == 0)
 		strHex = strHex.substr(1, strHex.length());
 
+	// extract the 3 bytes
 	unsigned rgb = std::stoi(strHex, 0, 16);
 	uint8_t r = (rgb >> 16) & 0xff;
 	uint8_t g = (rgb >> 8)  & 0xff;
