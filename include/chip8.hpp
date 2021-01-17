@@ -14,21 +14,35 @@
 #include "bitfields.hpp"
 
 
-
-class Chip8: public Display, public Keyboard, public IniReader {
+class Chip8: public Display, public Keyboard, virtual public inireader::IniReader {
 public:
-	// Chip8 ctor must call the IniReader ctor first to write to m_iniSettings
-	Chip8 (std::string fnameIni): IniReader(fnameIni),
-		m_instrPerSec(m_iniSettings["instructions_per_sec"]),
-		m_mute(m_iniSettings["mute"]),
-		m_overclock(m_iniSettings["overclock"]),
-		m_maxIter(m_iniSettings["stop_after_iter"]),
-		m_freq(static_cast<float>(m_iniSettings["freq"]))
+	// don't forget to initialise constant members 
+	Chip8 (std::string fnameIni):
+		Keyboard(fnameIni),
+		Display(fnameIni),
+		inireader::IniReader(fnameIni),
+		m_instrPerSec(std::any_cast<int>(m_iniSettings["i_instructions_per_sec"])),
+		m_mute(std::any_cast<bool>(m_iniSettings["b_mute"])),
+		m_overclock(std::any_cast<bool>(m_iniSettings["b_overclock"])),
+		m_maxIter(std::any_cast<int>(m_iniSettings["i_stop_after_iter"])),
+		m_freq(std::any_cast<int>(m_iniSettings["i_freq"]))
 	{
 			init();
 	};
 	~Chip8 () {};
+	/**
+	 * @brief 				Load a rom from a filepath
+	 *
+	 * @param filename		File name of rom
+	 * @param offset		Starting offset in Chip8's memory. Rom data will be written to this offset onwards (towards higher addresses).
+	 * 						`offset` is part of the architecture to it should be left to the default value of 0x200	.
+	 */
 	void loadRom(const char* filename, unsigned offset = 0x200);
+	/**
+	 * @brief 
+	 *
+	 * @param startingOffset Run the rom data that are starting an offset. Again, the standard offset for the rom is 0x200.
+	 */
 	void run(unsigned startingOffset = 0x200);
 
 private:
@@ -50,13 +64,13 @@ private:
 	inline void decode();						// handles current instruction
 	void exec();								// handles current instruction
 
-	void init();
+	void init();								// initialises memory, registers, and configs
 	
-	const int m_overclock;
-	const int m_instrPerSec;
-	const int m_maxIter;
-	const int m_mute ;
-	const float m_freq;
+	const bool m_overclock;						// config flag; if true, host runs the rom as fast as possible and on mute
+	const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
+	const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
+	const bool m_mute;							// config flag; if true; run on mute
+	const float m_freq;							// config flag; frequency of played sound
 };
 
 #endif /* CHIP8_HPP */

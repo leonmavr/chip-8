@@ -10,6 +10,7 @@
 #include <thread>
 
 
+// helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
 static unsigned execInsrPerSec = 0;
 
 
@@ -41,11 +42,9 @@ inline void Chip8::fetch() {
 
 
 inline void Chip8::decode() {
-	/*
-	 * Extract bit-fields from the opcode
-	 * see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
-	 * for bitfield explanation
-	 */
+	// Extract bit-fields from the opcode
+	// see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
+	// for bitfield explanation
 	m_bitfields.type = (m_opcode >> 12) & 0x000f;
 	m_bitfields.n    = m_opcode         & 0x000f;
 	m_bitfields.x    = (m_opcode >> 8)  & 0x000f;
@@ -276,7 +275,7 @@ void Chip8::run(unsigned startingOffset) {
 			t_end = std::chrono::high_resolution_clock::now();
 			t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
 			std::this_thread::sleep_for(std::chrono::microseconds(
-						static_cast<bool>(100000 > t_deltaUs) * (100000 - t_deltaUs)
+						static_cast<int>(100000 > t_deltaUs) * (100000 - t_deltaUs)
 					));
 			execInsrPerSec = 0;
 		}

@@ -3,6 +3,13 @@
 #include <string>
 #include <fstream>
 
+/**
+ * @brief	Singleton class to log data from Chip8's execution, particularly the current iteration number and the screen data.
+ * 			Usage example:
+ *			Logger::getInstance().screendump(m_display);
+ *			Logger::getInstance().count()
+ *
+ */
 class Logger {
 	private:
 		Logger() {}
@@ -13,7 +20,15 @@ class Logger {
 			static Logger instance;
 			return instance;
 		}
-		int count();
+		int count(); // return and then increment the `iterations` member
+		/**
+		 * @brief Dump data from a 2D input array to a text file. Nonzero values are dumped as 1s and zeros as 0s
+		 *
+		 * @param &array2D 2D array of any type, as long as it can be converted to string (std::to_string)
+		 * @param outFile The file where to dump data
+		 *
+		 * @return the outFile argument
+		 */
 		template <typename T, size_t rows, size_t cols>
 			std::string screendump(T (&array2D)[rows][cols], std::string outFile = "/tmp/array.txt") {
 				std::ofstream ofs;
@@ -24,7 +39,7 @@ class Logger {
 					}
 					ofs << "\n";
 				}
-			return outFile;
+				return outFile;
 			}
 };
 

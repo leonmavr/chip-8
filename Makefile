@@ -6,7 +6,7 @@ CC = g++
 EXEC = chip8
 SRC_DIR = src
 INCL_DIR = include
-CFLAGS = -std=c++14 -g -I$(INCL_DIR)
+CFLAGS = -std=c++17 -g -I$(INCL_DIR)
 LDFLAGS = -lSDL2
 SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp $(SRC_DIR)/ini_reader.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)
@@ -16,7 +16,7 @@ TEST_DIR = tests
 TEST_EXEC = $(TEST_DIR)/test
 TEST_SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp $(SRC_DIR)/ini_reader.cpp
 TEST_OBJECTS = $(TEST_SOURCES:%.cpp=%.to)
-TEST_CFLAGS = -std=c++14 -g -I$(INCL_DIR)
+TEST_CFLAGS = -std=c++17 -g -I$(INCL_DIR)
 
 ###################################################
 # project                                         #
@@ -37,24 +37,22 @@ clean:
 	$(RM) $(EXEC)
 	$(RM) $(TEST_OBJECTS)
 	$(RM) $(TEST_EXEC)
-	$(RM) temp
+	$(RM) $(TEST_DIR)/*.to
 
 
 ###################################################
 # unit tests                                      #
 ###################################################
-#temp: $(TEST_OBJECTS)
-#	$(CC) $(TEST_OBJECTS) $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o -o temp $(LDFLAGS) 
 
 %.to: %.cpp
 	$(CC) $(TEST_CFLAGS) -c $^ -o $@
 
-tests.o: $(TEST_DIR)/tests.cpp
-	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.o
+tests.to: $(TEST_DIR)/tests.cpp
+	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.to
 
-catch.o: $(TEST_DIR)/catch.cpp
-	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.o
+catch.to: $(TEST_DIR)/catch.cpp
+	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
 
-test: $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o $(TEST_OBJECTS)
-	$(CC) $(TEST_DIR)/tests.o $(TEST_DIR)/catch.o $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
+test: $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS)
+	$(CC) $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
 	./$(TEST_EXEC)

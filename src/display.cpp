@@ -1,9 +1,7 @@
 #include <SDL2/SDL.h>
 #include <memory>
+#include <string>
 #include "display.hpp" 
-#include <iostream> // for screendump
-#include <fstream> // for screendump
-#include <string> // to_string()
 
 
 void Display::init() {
@@ -34,17 +32,18 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 	// define the pixel to draw
 	SDL_Rect pixel;
 	// The original Chip-8 display was 64x32 - scale this up to show it properly
-	unsigned scaleX = static_cast<int>(m_w / 64);
-	unsigned scaleY = static_cast<int>(m_h / 32);
+	unsigned scaleX = static_cast<unsigned>(m_w / 64);
+	unsigned scaleY = static_cast<unsigned>(m_h / 32);
 	pixel.x = x * scaleX;
 	pixel.y = y * scaleY;
 	pixel.w = scaleX;
 	pixel.h = scaleY;
 
 	if (colour == 1)
-		SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+		// renderer, r, g, b, a
+		SDL_SetRenderDrawColor(m_renderer, m_colourFg[0], m_colourFg[1], m_colourFg[2], 0xff);
 	else
-		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
+		SDL_SetRenderDrawColor(m_renderer, m_colourBg[0], m_colourBg[1], m_colourBg[2], 0);
 	SDL_RenderFillRect(m_renderer, &pixel);
 }
 
@@ -70,8 +69,22 @@ void Display::cls() {
 		}
 	}
 	// r, g, b, a
-	SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
+	SDL_SetRenderDrawColor(m_renderer, m_colourBg[0], m_colourBg[1], m_colourBg[2], 0);
     //Clear the renderer with the draw color
     SDL_RenderClear(m_renderer);
     SDL_Delay(5);
+}
+
+
+void Display::hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb) {
+	// remove leading # if necessary
+	if (strHex.rfind("#", 0) == 0)
+		strHex = strHex.substr(1, strHex.length());
+
+	// extract the 3 bytes
+	unsigned rgb = std::stoi(strHex, 0, 16);
+	uint8_t r = (rgb >> 16) & 0xff;
+	uint8_t g = (rgb >> 8)  & 0xff;
+	uint8_t b = rgb         & 0xff;
+	vecrgb = {r, g, b};
 }
