@@ -55,7 +55,7 @@ make test
 ```
 
 ### 2.3 Emulation configs - the .ini file
-You can change the emulator's settings, such as the keypad mapping, how fast to play the loaded rom, screen colours etc central from file `chip8.ini`. Then recompile for the change to take effect and load your rom. Documentation is found in the .ini file itself.
+You can change the emulator's settings, such as the keypad mapping, how fast to play the loaded rom, screen colours etc central from file `chip8.ini`. Then recompile for the changes to take effect and load your rom. Documentation is found in the .ini file itself.
 
 ### 2.4 Features implemented and future plans 
 - [x] Machine architecture, display, and keypad.
