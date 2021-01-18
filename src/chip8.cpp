@@ -280,7 +280,7 @@ void Chip8::run(unsigned startingOffset) {
 
 	m_PC = startingOffset;
 	// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
-	while ((m_mem[m_PC] != 0xff) || (m_mem[m_PC+1] != 0xff)) {
+	while (1) {
 		if (!m_overclock)
 			t_start = std::chrono::high_resolution_clock::now();
 
@@ -315,7 +315,7 @@ void Chip8::init() {
 	m_PC = 0x200;
 	m_I = 0x0;
 	for (auto& m: m_mem)
-		m = 0xff; // 0xff indicates free space
+		m = 0x0;
 	m_delayTimer = 0x0;
 	m_soundTimer = 0x0;
 
