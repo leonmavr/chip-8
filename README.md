@@ -55,11 +55,11 @@ make test
 ```
 
 ### 2.3 Emulation configs - the .ini file
-You can change the emulator's settings, such as the keypad mapping, how fast to play the loaded rom, screen colours etc central from file `chip8.ini`. Then recompile for the changes to take effect and load your rom. Documentation is found in the .ini file itself.
+You can change the emulator's settings, such as the keypad mapping, how fast to play the loaded rom, screen colours etc. centrally from file `chip8.ini`. Then recompile for the changes to take effect and load your rom. Documentation is found in the .ini file itself.
 
 ### 2.4 Features implemented and future plans 
 - [x] Machine architecture, display, and keypad.
-- [x] Emulate roms at a fixed speed of certain opcodes per sec - 400 in my case.
+- [x] Emulate roms at a fixed speed of certain opcodes per sec
 - [x] Sound effects - credits to [vareille's toot library](https://github.com/vareille/toot).
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
