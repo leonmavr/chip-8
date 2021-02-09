@@ -9,7 +9,7 @@
 ```
 
 ### 1.1 What is Chip-8?
-Chip-8 is not an actual hardware. It's a a virtual machine (like Java) that was implemented by a number of computers in the 70s and calculators in the 80s. It was designed for people to program really early home microcomputers. Instead of using actual microprocessor opcodes, it was always designed to be a virtual language and be interpreted at runtime ([reference](http://www.emulator101.com/introduction-to-chip-8.html)).
+Chip-8 is not an actual hardware. It's a a virtual machine (like Java) that was implemented by a number of computers in the 70s and calculators in the 80s. It was designed for people to program really early home microcomputers (e.g. [Telmac 1800](http://www.hobbylabs.org/telmac.htm)). Instead of using actual microprocessor opcodes, it was always designed to be a virtual language and be interpreted at runtime ([reference](http://www.emulator101.com/introduction-to-chip-8.html)).
 
 ### 1.2 Its architecture
 Chip-8 operates on 4 kB of RAM memory and certain partitions of it are reserved for the interpreter, the loaded program (rom), and some hardcoded font sprites. It has 16 general-purpose 8-bit registers prfixed by `V`, one special 16-bit register called `I` which points to memory locations, and two special 8-bit sound and timer registers which tick at 60 Hz.  
