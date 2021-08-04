@@ -1,8 +1,8 @@
-#include "logger.hpp" 
 #include <iostream>
 #include <fstream>
+#include "logger.hpp" 
 
 
 int Logger::count() {
-	return iterations++;
+    return iterations++;
 }

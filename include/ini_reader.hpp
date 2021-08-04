@@ -6,13 +6,13 @@
 #include <any>
 
 class IniReader {
-	public:
-		IniReader ()  { readIni(); };
-		IniReader (std::string filename) { readIni(filename); };
-		~IniReader () {};
-		std::unordered_map<std::string, std::any> m_iniSettings {};
-	private:
-		void readIni(const std::string& filename = "chip8.ini");
+    public:
+        IniReader ()  { readIni(); };
+        IniReader (std::string filename) { readIni(filename); };
+        ~IniReader () {};
+        std::unordered_map<std::string, std::any> m_iniSettings {};
+    private:
+        void readIni(const std::string& filename = "chip8.ini");
 };
 
 #endif /* INI_READER_HPP */
