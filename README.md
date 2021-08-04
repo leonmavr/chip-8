@@ -89,11 +89,11 @@ Apart from the keypad, the following keys are implemented to facilitate the UI:
 
 
 ### 2.6 Available roms
-Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Also, a corresponding README manual for each one is provided (again, originally uploaded by dmatlack) as a .txt file. The README explains the keys used.
+Some classical game roms, such as Pong, Tetris and Brix, are included in the `roms` folder. These are public domain and originally found in [dmatlack's repository](https://github.com/dmatlack/chip8), so credits to him. The binary file of each rom ends in `.ch8`. Each rom is accompanied by a .txt file (also originally uploaded by dmatlack) which provides instructions on which keys to use.
 
 
 ### 2.7 Demos
-(demos are recorded are 10 fps instead of the original framerate)
+(demos are recorded in 10 fps instead of the original framerate)
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/pong.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/brix.gif)
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/coin.gif)  |  ![](https://raw.githubusercontent.com/0xLeo/chip-8/master/pics/tetris.gif)
