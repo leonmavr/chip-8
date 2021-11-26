@@ -26,19 +26,20 @@ all: $(EXEC)
 $(EXEC): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(EXEC) $(LDFLAGS) 
 
-
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+.PHONY: quickclean clean
 
-.PHONY: clean
-clean:
+quickclean:
 	$(RM) $(OBJECTS)
 	$(RM) $(EXEC)
 	$(RM) $(TEST_OBJECTS)
 	$(RM) $(TEST_EXEC)
-	$(RM) $(TEST_DIR)/*.to
+	$(RM) $(TEST_DIR)/tests.to
 
+clean: quickclean
+	$(RM) $(TEST_DIR)/*.to
 
 ###################################################
 # unit tests                                      #
@@ -51,7 +52,7 @@ tests.to: $(TEST_DIR)/tests.cpp
 	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.to
 
 catch.to: $(TEST_DIR)/catch.cpp
-	$(CC) $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
+	$(CC) -c $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
 
 test: $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS)
 	$(CC) $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
