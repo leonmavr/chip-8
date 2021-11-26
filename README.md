@@ -68,6 +68,7 @@ You can change the emulator's settings, such as the keypad mapping, how fast to 
 - [x] Pause rom - `F1` key
 - [x] Exit - `Esc` key or close window
 - [x] Configure emulation settings via .ini file
+- [ ] Window UI with basic menus/buttons
 - [ ] Reload rom - TODO
 - [ ] Expansion to Super Chip-8 - TODO if there's interest in the future 
 
