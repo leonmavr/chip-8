@@ -35,7 +35,7 @@ sudo apt-get install libsdl2-dev
 ```
 
 ### 2.2 How to compile and run
-It can be compiled on \*nix systems with make (see Makefile):
+It can be compiled on \*nix systems with GNU make (see `Makefile`):
 ```
 git clone https://github.com/0xLeo/chip-8.git
 cd chip-8
