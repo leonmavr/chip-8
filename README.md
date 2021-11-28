@@ -45,7 +45,7 @@ The generated executable is called `chip8`, which takes a rom file (`roms` folde
 ```
 ./chip8 roms/Brix.ch8
 ```
-To clean the generated object files and executable but *not* the Catch2 object file (since it takes a bit of time to compile it):
+To clean the generated object files and executable but *not* the object file of the Catch2 framework (since it takes a bit of time to compile it):
 ```
 make quickclean
 ```
