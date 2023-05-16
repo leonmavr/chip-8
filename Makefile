@@ -3,18 +3,21 @@
 ###################################################
 CC = g++
 
-EXEC = chip8
+# for project target
+EXEC = demo 
 SRC_DIR = src
 INCL_DIR = include
 CFLAGS = -std=c++17 -g -I$(INCL_DIR) -Wall
 LDFLAGS = -lSDL2
-SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/demo.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp $(SRC_DIR)/ini_reader.cpp
+SOURCES = $(wildcard $(SRC_DIR)/*cpp) \
+	demo.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)
 RM = rm -rf
 
+# for unit test target
 TEST_DIR = tests
 TEST_EXEC = $(TEST_DIR)/test
-TEST_SOURCES = $(SRC_DIR)/chip8.cpp $(SRC_DIR)/display.cpp $(SRC_DIR)/keyboard.cpp $(SRC_DIR)/toot.cpp $(SRC_DIR)/logger.cpp $(SRC_DIR)/ini_reader.cpp
+TEST_SOURCES = $(wildcard $(SRC_DIR)/*cpp)
 TEST_OBJECTS = $(TEST_SOURCES:%.cpp=%.to)
 TEST_CFLAGS = -std=c++17 -g -I$(INCL_DIR)
 
@@ -48,12 +51,15 @@ clean: quickclean
 %.to: %.cpp
 	$(CC) $(TEST_CFLAGS) -c $^ -o $@
 
+# test case file
 tests.to: $(TEST_DIR)/tests.cpp
 	$(CC) $(TEST_DIR)/tests.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/tests.to
 
+# test library (Catch2)
 catch.to: $(TEST_DIR)/catch.cpp
 	$(CC) -c $(TEST_DIR)/catch.cpp $(TEST_CFLAGS) -o $(TEST_DIR)/catch.to
 
+# compile and run unit tests
 test: $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS)
 	$(CC) $(TEST_DIR)/tests.to $(TEST_DIR)/catch.to $(TEST_OBJECTS) -o $(TEST_EXEC) $(LDFLAGS) 
 	./$(TEST_EXEC)
