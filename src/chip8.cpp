@@ -93,7 +93,7 @@ void Chip8::exec() {
             else if (nnn == 0x0ee){	// 00EE (return from call)
                 PC = m_stack[--m_SP % 12];
             }
-            nextInstr();
+            PC += 2;
             break;
         case 0x1:
             // if 0x1NNN, jump to NNN
@@ -107,33 +107,33 @@ void Chip8::exec() {
         case 0x3:
             // If Vx == NN, skip next instruction
             if (kk == Vx)
-                skipNextInstr();
+                PC += 4;
             else
-                nextInstr();
+                PC += 2;
             break;
         case 0x4:
             // 4xkk - If Vx != NN, skip next instruction
             if (kk != Vx)
-                skipNextInstr();
+                PC += 4;
             else
-                nextInstr();
+                PC += 2;
             break;
         case 0x5:
             // 5xy0 - If Vx == Vy, skip next instruction
             if (Vx == Vy)
-                skipNextInstr();
+                PC += 4;
             else
-                nextInstr();
+                PC += 2;
             break;
         case 0x6:
             // 6xkk - Set Vx = kk
             Vx = kk;
-            nextInstr();
+            PC += 2;
             break;
         case 0x7:
             // 7xkk - Set Vx = Vx + kk
             Vx += kk;
-            nextInstr();
+            PC += 2;
             break;
         case 0x8:
             switch(n) {
@@ -159,7 +159,7 @@ void Chip8::exec() {
                     break;
                 case 0x6: // 8xy6 - Set Vx = Vx SHR 1. 
                     Vf = Vx & 1;
-                    Vx >>= 1;
+                    Vx = Vy >>= 1;
                     break;
                 case 0x7: //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
                     Vf = (Vy > Vx) ? 1 : 0;
@@ -170,17 +170,17 @@ void Chip8::exec() {
                     Vx = Vy << 1;
                     break;
             }
-            nextInstr();
+            PC += 2;
             break;
         case 0x9:
             if (Vx != Vy) //9xy0 - Skip next instruction if Vx != Vy.
-                skipNextInstr();
+                PC += 4;
             else
-                nextInstr();
+                PC += 2;
             break;
         case 0xa: // Set I = nnn.
             I = nnn;
-            nextInstr();
+            PC += 2;
             break;
         case 0xb: // Bnnn - Jump to location nnn + V0.
             PC = nnn + m_V[0];
@@ -188,7 +188,7 @@ void Chip8::exec() {
         case 0xc:
             // Cxkk - Set Vx = random byte AND kk
             Vx = rand() & kk ;
-            nextInstr();
+            PC += 2;
             break;
         case 0xd:
             {
@@ -210,21 +210,21 @@ void Chip8::exec() {
                 }
                 // redraw whole display
                 renderAll(m_display);
-                nextInstr();
+                PC += 2;
                 break;
             }
         case 0xe:
             if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
                 if (m_keypresses[Vx & 15])
-                    skipNextInstr();
+                    PC += 4;
                 else
-                    nextInstr();
+                    PC += 2;
             }
             if (kk == 0xa1) { // skip next instruction if  key with the value of Vx  is not pressed
                 if (m_keypresses[Vx & 15] == 0)
-                    skipNextInstr();
+                    PC += 4;
                 else
-                    nextInstr();
+                    PC += 2;
             }
             break;
         case 0xf: 
@@ -262,7 +262,7 @@ void Chip8::exec() {
                         m_V[xx] = m_mem[I++ & 0xfff];
                     break;
             }
-            nextInstr();
+            PC += 2;
             break;
         }
 
