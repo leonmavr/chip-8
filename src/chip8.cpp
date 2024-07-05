@@ -8,6 +8,7 @@
 #include "keyboard.hpp" 
 #include "toot.h" 
 #include "logger.hpp" 
+#include "term.h" 
 
 
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
@@ -238,4 +239,8 @@ void Chip8::init() {
     unsigned fontOffset = 0x0;
     for (const uint8_t& element: m_fontset)
         m_mem[fontOffset++ & 0xFF] = element;
+
+    // TODO: may not work
+    TPRINT_GOTO_TOPLEFT();
+    TPRINT_CLEAR();
 }
