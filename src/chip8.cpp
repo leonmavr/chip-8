@@ -69,11 +69,12 @@ inline void Chip8::decode() {
 
 
 void Chip8::exec() {
-    const auto& x = m_bitfields.x;
-    const auto& y = m_bitfields.y;
-    const auto& kk = m_bitfields.kk;
-    const auto& nnn = m_bitfields.nnn;
-    const auto& n = m_bitfields.n;
+    const auto x = m_bitfields.x;
+    const auto y = m_bitfields.y;
+    const auto nn = m_bitfields.kk;
+    const auto nnn = m_bitfields.nnn;
+    const auto n = m_bitfields.n;
+    const auto prefix = m_bitfields.type;
 
     auto& Vx = m_V[x];
     auto& Vy = m_V[y];
@@ -81,190 +82,75 @@ void Chip8::exec() {
     auto& I = m_I;
     auto& PC = m_PC;
 
-    // update program counter
-    auto skipNextInstr = [&PC] () { PC += 4; };
-    auto nextInstr = [&PC] () { PC += 2; };
+#define EXEC_INSTRUCTION \
+    /* assembly, condition, instruction(s) */ \
+    X("CLS", prefix == 0x0 && nnn == 0x0e0, cls();) \
+    X("RET", prefix == 0x0 && nnn == 0x0ee, PC = m_stack[--m_SP % 12];) \
+    X("JP nnn", prefix == 0x1, PC = nnn - 2;) \
+    X("CALL nnn", prefix == 0x2, m_stack[m_SP++ % 12] = PC; PC = nnn - 2;) \
+    X("SE Vx nn", prefix == 0x3 && nn == Vx, PC += 2;) \
+    X("SNE Vx nn", prefix == 0x4 && nn != Vx, PC += 2;) \
+    X("SE Vx Vy", prefix == 0x5 && Vx == Vy, PC += 2;) \
+    X("LD Vx nn", prefix == 0x6, Vx = nn;) \
+    X("ADD Vx nn", prefix == 0x7, Vx += nn;) \
+    X("LD Vx Vy", prefix == 0x8 && n == 0x0, Vx = Vy;) \
+    X("OR Vx Vy", prefix == 0x8 && n == 0x1, Vx |= Vy;) \
+    X("AND Vx Vy", prefix == 0x8 && n == 0x2, Vx &= Vy;) \
+    X("XOR Vx Vy", prefix == 0x8 && n == 0x3, Vx ^= Vy;) \
+    X("ADD Vx Vy", prefix == 0x8 && n == 0x4, Vf = ((unsigned)Vx + (unsigned)Vy > 0xff) ? 1 : 0; Vx += Vy;) \
+    X("SUB Vx Vy", prefix == 0x8 && n == 0x5, Vf = (Vx > Vy) ? 1 : 0; Vx -= Vy;) \
+    X("SHR Vx Vy", prefix == 0x8 && n == 0x6, Vf = Vx & 1; Vx = Vy >>= 1;) \
+    X("SUBN Vx Vy", prefix == 0x8 && n == 0x7, Vf = (Vy > Vx) ? 1 : 0; Vx = Vy - Vx;) \
+    X("SHL Vx Vy", prefix == 0x8 && n == 0xe, Vf = (Vy >> 7) & 0x1; Vx = Vy << 1;) \
+    X("SNE Vx Vy", prefix == 0x9 && Vx != Vy, PC += 2;) \
+    X("LD I nnn", prefix == 0xa, I = nnn;) \
+    X("JP V0 nnn", prefix == 0xb, PC = nnn + m_V[0] - 2;) \
+    X("RND Vx nn", prefix == 0xc, Vx = rand() & nn;) \
+    X("DRW Vx Vy n", prefix == 0xd, \
+        do { \
+            uint8_t height = n; \
+            Vf = 0; \
+            for (uint8_t row = 0; row < height; row++) { \
+                uint8_t sprite = m_mem[I + row]; \
+                for (uint8_t col = 0; col < 8; col++) { \
+                    if ((sprite & 0x80) != 0) { \
+                        if (m_display[Vy + row][Vx + col] == 1) \
+                            Vf = 1; \
+                        m_display[Vy + row][Vx + col] ^= 1; \
+                    } \
+                    sprite <<= 1; \
+                } \
+            } \
+            renderAll(m_display);\
+        } while(0); ) \
+    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (m_keypresses[Vx & 15]) PC += 2;) \
+    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (m_keypresses[Vx & 15] == 0) PC += 2;) \
+    X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = m_delayTimer;) \
+    X("LD Vx K", prefix == 0xf && nn == 0x0a, Vx = Keyboard::getKeyPress();) \
+    X("LD DT Vx", prefix == 0xf && nn == 0x15, m_delayTimer = Vx;) \
+    X("LD ST Vx", prefix == 0xf && nn == 0x18, m_soundTimer = Vx;) \
+    X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
+    X("LD F Vx", prefix == 0xf && nn == 0x29, I = Vx * 5;) \
+    X("LD B Vx", prefix == 0xf && nn == 0x33, \
+        m_mem[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
+        m_mem[(I + 1) & 0xfff] = (Vx % 100) / 10; \
+        m_mem[(I + 2) & 0xfff] = Vx % 10;) \
+    X("LD [I] Vx", prefix == 0xf && nn == 0x55, \
+        for (unsigned xx = 0; xx <= x; xx++) \
+            m_mem[I++ & 0xfff] = m_V[xx];) \
+    X("LD Vx [I]", prefix == 0xf && nn == 0x65, \
+        for (unsigned xx = 0; xx <= x; xx++) \
+            m_V[xx] = m_mem[I++ & 0xfff];)
 
-    switch(m_bitfields.type) {
-        case 0x0:
-            if (nnn == 0x0e0) {		// 00E0 (clear screen)
-                cls();
-            }
-            else if (nnn == 0x0ee){	// 00EE (return from call)
-                PC = m_stack[--m_SP % 12];
-            }
-            PC += 2;
-            break;
-        case 0x1:
-            // if 0x1NNN, jump to NNN
-            PC = nnn;
-            break;
-        case 0x2:
-            // Call subroutine at NNN
-            m_stack[m_SP++ % 12] = PC;
-            PC = nnn;			
-            break;
-        case 0x3:
-            // If Vx == NN, skip next instruction
-            if (kk == Vx)
-                PC += 4;
-            else
-                PC += 2;
-            break;
-        case 0x4:
-            // 4xkk - If Vx != NN, skip next instruction
-            if (kk != Vx)
-                PC += 4;
-            else
-                PC += 2;
-            break;
-        case 0x5:
-            // 5xy0 - If Vx == Vy, skip next instruction
-            if (Vx == Vy)
-                PC += 4;
-            else
-                PC += 2;
-            break;
-        case 0x6:
-            // 6xkk - Set Vx = kk
-            Vx = kk;
-            PC += 2;
-            break;
-        case 0x7:
-            // 7xkk - Set Vx = Vx + kk
-            Vx += kk;
-            PC += 2;
-            break;
-        case 0x8:
-            switch(n) {
-                case 0x0: // 8xy0 - Set Vx = Vy.
-                    Vx = Vy;
-                    break;
-                case 0x1: // 8xy1 - Set Vx = Vx OR Vy.
-                    Vx |= Vy;
-                    break;
-                case 0x2: // 8xy2 - Set Vx = Vx AND Vy.
-                    Vx &= Vy;
-                    break;
-                case 0x3: // 8xy3 - Set Vx = Vx XOR Vy. 
-                    Vx ^= Vy;
-                    break;
-                case 0x4: // 8xy4 - Set Vx = Vx + Vy, set VF = carry 
-                    Vf = ((unsigned)Vx + (unsigned)Vy > 0xff)? 1: 0;
-                    Vx += Vy;
-                    break;
-                case 0x5: // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
-                    Vf = (Vx > Vy) ? 1 : 0;
-                    Vx -= Vy;
-                    break;
-                case 0x6: // 8xy6 - Set Vx = Vx SHR 1. 
-                    Vf = Vx & 1;
-                    Vx = Vy >>= 1;
-                    break;
-                case 0x7: //  SUBN Vx, Vy Set Vx = Vy - Vx, set VF = NOT borrow
-                    Vf = (Vy > Vx) ? 1 : 0;
-                    Vx = Vy - Vx;
-                    break;
-                case 0xe: // 8xyE - Set Vx = Vx SHL 1.
-                    Vf = (Vy >> 7) & 0x1; 
-                    Vx = Vy << 1;
-                    break;
-            }
-            PC += 2;
-            break;
-        case 0x9:
-            if (Vx != Vy) //9xy0 - Skip next instruction if Vx != Vy.
-                PC += 4;
-            else
-                PC += 2;
-            break;
-        case 0xa: // Set I = nnn.
-            I = nnn;
-            PC += 2;
-            break;
-        case 0xb: // Bnnn - Jump to location nnn + V0.
-            PC = nnn + m_V[0];
-            break;
-        case 0xc:
-            // Cxkk - Set Vx = random byte AND kk
-            Vx = rand() & kk ;
-            PC += 2;
-            break;
-        case 0xd:
-            {
-                uint8_t height = n;
-                Vf = 0;
-                for (uint8_t row = 0; row < height; row++) {
-                    uint8_t sprite = m_mem[I + row] ; // one row of the sprite
-                    for(uint8_t col = 0; col < 8; col++) {
-                        // if this condition is true, we want to turn on a pixel
-                        if((sprite & 0x80) != 0) {
-                            // toggle current pixel and if it was previously on, set Vf to 1
-                            if (m_display[Vy + row][Vx + col] == 1)
-                                Vf = 1;
-                            m_display[Vy + row][Vx + col] ^= 1;
-                        }
-                        // next bit
-                        sprite <<= 1;
-                    }
-                }
-                // redraw whole display
-                renderAll(m_display);
-                PC += 2;
-                break;
-            }
-        case 0xe:
-            if (kk == 0x9e) { // skip next instruction if key the the value of Vx is pressed
-                if (m_keypresses[Vx & 15])
-                    PC += 4;
-                else
-                    PC += 2;
-            }
-            if (kk == 0xa1) { // skip next instruction if  key with the value of Vx  is not pressed
-                if (m_keypresses[Vx & 15] == 0)
-                    PC += 4;
-                else
-                    PC += 2;
-            }
-            break;
-        case 0xf: 
-            switch(kk) {
-                case 0x07: // Fx07 - Set Vx = delay timer value.
-                    Vx = m_delayTimer;
-                    break;
-                case 0x0a: // Fx0A - Wait for a key press, store the value of the key in Vx.
-                    Vx = Keyboard::getKeyPress();
-                    break;
-                case 0x15: // Fx15 - Set delay timer = Vx.
-                    m_delayTimer = Vx;
-                    break;
-                case 0x18: // Fx18 - Set sound timer = Vx.
-                    m_soundTimer = Vx;
-                    break;
-                case 0x1e: // Fx1E - Set I = I + Vx.
-                    Vf = (I + Vx > 0xfff) ? 1 : 0;
-                    I += Vx;
-                    break;
-                case 0x29: // Fx29 - Set I = location of sprite for digit Vx
-                    I = Vx * 5;  // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx
-                    break;
-                case 0x33: //BCD representation of Vx in memory locations I, I+1, and I+2
-                    m_mem[(I+0) & 0xfff] = (Vx % 1000) / 100;
-                    m_mem[(I+1) & 0xfff] = (Vx % 100) / 10;
-                    m_mem[(I+2) & 0xfff] = Vx % 10;
-                    break;
-                case 0x55: // Fx55 - Store registers V0 through Vx in memory starting at location I.
-                    for(unsigned xx = 0; xx <= x; xx++)
-                        m_mem[I++ & 0xfff] = m_V[xx];
-                    break;
-                case 0x65: // Fx65 - Read registers V0 through Vx from memory starting at location I 
-                    for(unsigned xx = 0; xx <= x; xx++)
-                        m_V[xx] = m_mem[I++ & 0xfff];
-                    break;
-            }
-            PC += 2;
-            break;
-        }
+    #define X(assembly, condition, instructions) \
+    if (condition) \
+    { instructions; }
+    EXEC_INSTRUCTION
+
+    PC += 2;
+
+    #undef X
+    #undef EXEC_INSTRUCTION
 
     if (!m_overclock) {
         // decrement every 60 hz and play sound if necessary
