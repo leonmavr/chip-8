@@ -20,7 +20,6 @@ Chip8::Chip8(std::string fnameIni):
     IniReader(fnameIni),
     m_instrPerSec(std::any_cast<int>(m_iniSettings["i_instructions_per_sec"])),
     m_mute(std::any_cast<bool>(m_iniSettings["b_mute"])),
-    m_overclock(std::any_cast<bool>(m_iniSettings["b_overclock"])),
     m_maxIter(std::any_cast<int>(m_iniSettings["i_stop_after_iter"])),
     m_freq(std::any_cast<int>(m_iniSettings["i_freq"]))
 {
@@ -47,34 +46,37 @@ uint8_t Chip8::rand() {
 }
 
 
-inline void Chip8::fetch() {
+uint16_t Chip8::fetch() {
+    // TODO: remove assert when everything is ok
     assert(m_PC < 0x1000);
-    // copy the current byte of the program to the current instruction,
-    // assuming little endian host
-    m_opcode = m_mem[m_PC] << 8 | m_mem[m_PC+1];
+    uint16_t instr = m_mem[m_PC] << 8;
+    instr |= m_mem[m_PC + 1];
+    return instr;
 }
 
 
-inline void Chip8::decode() {
+opcode_t Chip8::decode(uint16_t instr) {
     // Extract bit-fields from the opcode
     // see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
     // for bitfield explanation
-    m_bitfields.type = (m_opcode >> 12) & 0x000f;
-    m_bitfields.n    = m_opcode         & 0x000f;
-    m_bitfields.x    = (m_opcode >> 8)  & 0x000f;
-    m_bitfields.y    = (m_opcode >> 4)  & 0x000f;
-    m_bitfields.kk   = m_opcode         & 0x00ff;
-    m_bitfields.nnn  = m_opcode         & 0x0fff;
+    opcode_t decoded;
+    decoded.prefix = (instr >> 12) & 0x000f;
+    decoded.n      = instr         & 0x000f;
+    decoded.x      = (instr >> 8)  & 0x000f;
+    decoded.y      = (instr >> 4)  & 0x000f;
+    decoded.nn     = instr         & 0x00ff;
+    decoded.nnn    = instr         & 0x0fff;
+    return decoded;
 }
 
 
-void Chip8::exec() {
-    const auto x = m_bitfields.x;
-    const auto y = m_bitfields.y;
-    const auto nn = m_bitfields.kk;
-    const auto nnn = m_bitfields.nnn;
-    const auto n = m_bitfields.n;
-    const auto prefix = m_bitfields.type;
+void Chip8::exec(opcode_t opc) {
+    const auto x = opc.x;
+    const auto y = opc.y;
+    const auto n = opc.n;
+    const auto nn = opc.nn;
+    const auto nnn = opc.nnn;
+    const auto prefix = opc.prefix;
 
     auto& Vx = m_V[x];
     auto& Vy = m_V[y];
@@ -152,22 +154,15 @@ void Chip8::exec() {
     #undef X
     #undef EXEC_INSTRUCTION
 
-    if (!m_overclock) {
-        // decrement every 60 hz and play sound if necessary
-        if (m_instrPerSec % 10 == 0)   {
-            if (m_delayTimer > 0) 
-                m_delayTimer--;
-            if (m_soundTimer > 0) {
-                m_soundTimer--;
-                if (!m_mute)
-                    toot(m_freq, 5); // freq (Hz), duration (ms)
-            }
-        }
-    } else { // overclocked mode
+    // decrement every 60 hz and play sound if necessary
+    if (m_instrPerSec % 10 == 0)   {
         if (m_delayTimer > 0) 
             m_delayTimer--;
-        if (m_soundTimer > 0)
+        if (m_soundTimer > 0) {
             m_soundTimer--;
+            if (!m_mute && m_soundTimer == 0)
+                toot(m_freq, 5); // freq (Hz), duration (ms)
+        }
     }
 
     execInsrPerSec++;
@@ -181,17 +176,16 @@ void Chip8::run(unsigned startingOffset) {
     m_PC = startingOffset;
     // the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
     while (1) {
-        if (!m_overclock)
-            t_start = std::chrono::high_resolution_clock::now();
+        t_start = std::chrono::high_resolution_clock::now();
 
         // fetch-decode-exec defines the operation of Chip8
-        Chip8::fetch();
-        Chip8::decode();
-        Chip8::getKeyPress();
-        Chip8::exec();
+        uint16_t instr = fetch();
+        opcode_t opc = decode(instr);
+        getKeyPress();
+        Chip8::exec(opc);
 
         // compensate the fps every 10th of a second to make emulation smoother
-        if ((!m_overclock) && (execInsrPerSec/10 >= m_instrPerSec/10)) {
+        if (execInsrPerSec/10 >= m_instrPerSec/10) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(

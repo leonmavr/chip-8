@@ -5,6 +5,7 @@
 #include <fstream>
 #include <memory>
 #include <array>
+#include <cstdint>
 #include <algorithm> // fill()
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
@@ -12,6 +13,16 @@
 #include "keyboard.hpp"
 #include "ini_reader.hpp"
 #include "bitfields.hpp"
+
+
+typedef struct opcode_t {
+    uint8_t prefix : 4; 
+    uint8_t x : 4; 
+    uint8_t y : 4; 
+    uint8_t n : 4; 
+    uint8_t nn : 8; 
+    uint16_t nnn : 12; 
+} opcode_t;
 
 
 class Chip8: public Display, public Keyboard, virtual public IniReader {
@@ -42,20 +53,17 @@ class Chip8: public Display, public Keyboard, virtual public IniReader {
         uint16_t m_SP;								// Stack pointer
         uint16_t m_PC;								// Program counter
         uint16_t m_I;								// Index register
-        uint16_t m_opcode;							// current opcode
         unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
-        bitfields m_bitfields;						// opcode bitfields
         std::array<uint16_t, 12>m_stack;			// stack
         std::vector<uint8_t> m_fontset;				// font sprites
         uint8_t rand();								// Chip8 has a random number generator 
 
-        inline void fetch();						// handles current instruction
-        inline void decode();						// handles current instruction
-        void exec();								// handles current instruction
+        uint16_t fetch();                           // handles current instruction
+        opcode_t decode(uint16_t instr);            // handles current instruction
+        void exec(opcode_t opc);                    // handles current instruction
 
         void init();								// initialises memory, registers, and configs
 
-        const bool m_overclock;						// config flag; if true, host runs the rom as fast as possible and on mute
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
