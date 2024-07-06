@@ -8,7 +8,7 @@ EXEC = demo
 SRC_DIR = src
 INCL_DIR = include
 CFLAGS = -std=c++17 -g -I$(INCL_DIR) -Wall
-LDFLAGS = -lSDL2
+LDFLAGS = 
 SOURCES = $(wildcard $(SRC_DIR)/*cpp) \
 	demo.cpp
 OBJECTS = $(SOURCES:%.cpp=%.o)

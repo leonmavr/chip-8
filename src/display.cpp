@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+//#include <SDL2/SDL.h>
 #include <memory>
 #include <string>
 #include <thread>
@@ -8,9 +8,9 @@
 
 
 void Display::init() {
-    TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
+    TPRINT_HIDE_CURSOR();
 #if 0
     // see https://caveofprogramming.com/guest-posts/creating-a-window-with-sdl.html
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -66,9 +66,9 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
         for (unsigned col = 0; col < 64; col++) {
             //drawPixelXY(col, row, static_cast<unsigned>(array2D[row][col] != 0));
             if (array2D[row][col] != 0) {
-                TPRINT_PRINT_AT(col, row, '#');
+                TPRINT_PRINT_AT(col, row+1, '#');
             } else {
-                TPRINT_PRINT_AT(col, row, ' ');
+                TPRINT_PRINT_AT(col, row+1, ' ');
             }
         }
     }
@@ -80,6 +80,8 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
 
 
 void Display::cls() {
+    printf("\n");
+    TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
 #if 0

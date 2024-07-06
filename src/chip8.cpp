@@ -3,9 +3,11 @@
 #include <cassert>
 #include <unordered_map>
 #include <chrono>
+#include <termios.h>
+#include <fcntl.h>
 #include <thread>
 #include "chip8.hpp" 
-#include "keyboard.hpp" 
+//#include "keyboard.hpp" 
 #include "toot.h" 
 #include "logger.hpp" 
 #include "term.h" 
@@ -16,13 +18,11 @@ static unsigned execInsrPerSec = 0;
 
 
 Chip8::Chip8(std::string fnameIni):
-    Keyboard(fnameIni),
     Display(fnameIni),
     IniReader(fnameIni),
-    m_instrPerSec(std::any_cast<int>(m_iniSettings["i_instructions_per_sec"])),
-    m_mute(std::any_cast<bool>(m_iniSettings["b_mute"])),
-    m_maxIter(std::any_cast<int>(m_iniSettings["i_stop_after_iter"])),
-    m_freq(std::any_cast<int>(m_iniSettings["i_freq"]))
+    m_instrPerSec(70),
+    m_mute(false),
+    m_maxIter(-1)
 {
     Chip8::init();
 }
@@ -126,10 +126,10 @@ void Chip8::exec(opcode_t opc) {
             } \
             renderAll(m_display);\
         } while(0); ) \
-    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (m_keypresses[Vx & 15]) PC += 2;) \
-    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (m_keypresses[Vx & 15] == 0) PC += 2;) \
+    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_status_[Vx & 0xF]) PC += 2;) \
+    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_status_[Vx & 0xF]) PC += 2;) \
     X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = m_delayTimer;) \
-    X("LD Vx K", prefix == 0xf && nn == 0x0a, Vx = Keyboard::getKeyPress();) \
+    X("LD Vx K", prefix == 0xf && nn == 0x0a, /* TODO: blocking key press */ Vx = 0xa) \
     X("LD DT Vx", prefix == 0xf && nn == 0x15, m_delayTimer = Vx;) \
     X("LD ST Vx", prefix == 0xf && nn == 0x18, m_soundTimer = Vx;) \
     X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
@@ -159,11 +159,9 @@ void Chip8::exec(opcode_t opc) {
     if (m_instrPerSec % 10 == 0)   {
         if (m_delayTimer > 0) 
             m_delayTimer--;
-        if (m_soundTimer > 0) {
+        if (m_soundTimer > 0)
             m_soundTimer--;
-            if (!m_mute && m_soundTimer == 0)
-                toot(m_freq, 5); // freq (Hz), duration (ms)
-        }
+        // TODO: beef if timer 0w:
     }
 
     execInsrPerSec++;
@@ -182,7 +180,8 @@ void Chip8::run(unsigned startingOffset) {
         // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
-        getKeyPress();
+        // TODO: non blocking get char
+        //getKeyPress();
         Chip8::exec(opc);
 
         // compensate the fps every 10th of a second to make emulation smoother
@@ -202,6 +201,28 @@ void Chip8::run(unsigned startingOffset) {
         }
     }
 }
+static struct termios orig_termios;
+
+static void SetNonBlockingInput() {
+    // Save the original terminal settings
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    struct termios tty = orig_termios;
+    // Disable canonical mode and echo
+    tty.c_lflag &= ~(ICANON | ECHO);
+    // Set new terminal attributes
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    // Set non-blocking mode
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+}
+
+
+static void ResetBlockingInput() {
+    // Restore the original terminal settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+    // Reset blocking mode
+    fcntl(STDIN_FILENO, F_SETFL, 0);
+}
+
 
 
 void Chip8::init() {
@@ -240,7 +261,9 @@ void Chip8::init() {
     for (const uint8_t& element: m_fontset)
         m_mem[fontOffset++ & 0xFF] = element;
 
+    SetNonBlockingInput();
     // TODO: may not work
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
+    printf("\n");
 }

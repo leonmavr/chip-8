@@ -6,11 +6,12 @@
 #include <memory>
 #include <array>
 #include <cstdint>
+#include <unordered_map>
 #include <algorithm> // fill()
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
 #include "display.hpp"
-#include "keyboard.hpp"
+//#include "keyboard.hpp"
 #include "ini_reader.hpp"
 #include "bitfields.hpp"
 
@@ -25,7 +26,7 @@ typedef struct opcode_t {
 } opcode_t;
 
 
-class Chip8: public Display, public Keyboard, virtual public IniReader {
+class Chip8: public Display, virtual public IniReader {
     public:
         // don't forget to initialise constant members 
         Chip8 (std::string fnameIni);
@@ -67,7 +68,21 @@ class Chip8: public Display, public Keyboard, virtual public IniReader {
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
-        const float m_freq;							// config flag; frequency of played sound
+        //const float m_freq;							// config flag; frequency of played sound
+        std::unordered_map<char, uint8_t> keyboard2keypad_ = {
+            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC},
+            {'q', 0x4}, {'w', 0x5}, {'e', 0x6}, {'r', 0xD},
+            {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
+            {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
+        };
+        const bool pressed = false;
+        std::unordered_map<char, uint8_t> key_status_ = {
+            {0x1, pressed}, {0x2, pressed}, {0x3, pressed}, {0xC, pressed},
+            {0x4, pressed}, {0x5, pressed}, {0x6, pressed}, {0xD, pressed},
+            {0x7, pressed}, {0x8, pressed}, {0x9, pressed}, {0xE, pressed},
+            {0xA, pressed}, {0x0, pressed}, {0xB, pressed}, {0xF, pressed}
+        };
+
 };
 
 #endif /* CHIP8_HPP */

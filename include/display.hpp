@@ -1,6 +1,6 @@
 #ifndef DISPLAY_HPP
 #define DISPLAY_HPP 
-#include <SDL2/SDL.h>
+//#include <SDL2/SDL.h>
 #include <unordered_map>
 #include <cinttypes>
 #include <any>
@@ -18,8 +18,10 @@ class Display: virtual public IniReader {
             init();									// initialise SDL resources
         };
         ~Display () { 
+#if 0
             free(m_window);
             free(m_renderer);
+#endif
         };
 
     protected:
@@ -33,8 +35,10 @@ class Display: virtual public IniReader {
         unsigned m_h;
         std::vector <uint8_t> m_colourBg;
         std::vector <uint8_t> m_colourFg;
+#if 0
         SDL_Window* m_window;
         SDL_Renderer* m_renderer;
+#endif
         /**
          * @brief Initialises m_window and m_renderer, also clears the display window
          */
