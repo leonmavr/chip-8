@@ -4,8 +4,10 @@
 #include <unordered_map>
 #include <chrono>
 #include <termios.h>
-#include <fcntl.h>
 #include <thread>
+#include <thread>
+#include <termios.h>
+#include <fcntl.h>
 #include "chip8.hpp" 
 //#include "keyboard.hpp" 
 #include "toot.h" 
@@ -126,8 +128,8 @@ void Chip8::exec(opcode_t opc) {
             } \
             renderAll(m_display);\
         } while(0); ) \
-    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_status_[Vx & 0xF]) PC += 2;) \
-    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_status_[Vx & 0xF]) PC += 2;) \
+    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
+    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
     X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = m_delayTimer;) \
     X("LD Vx K", prefix == 0xf && nn == 0x0a, /* TODO: blocking key press */ Vx = 0xa) \
     X("LD DT Vx", prefix == 0xf && nn == 0x15, m_delayTimer = Vx;) \
@@ -177,12 +179,12 @@ void Chip8::run(unsigned startingOffset) {
     while (1) {
         t_start = std::chrono::high_resolution_clock::now();
 
+        PressKey();
         // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
-        // TODO: non blocking get char
-        //getKeyPress();
         Chip8::exec(opc);
+        // TODO: reset key states
 
         // compensate the fps every 10th of a second to make emulation smoother
         if (execInsrPerSec/10 >= m_instrPerSec/10) {
@@ -199,6 +201,7 @@ void Chip8::run(unsigned startingOffset) {
                 return;
             }
         }
+
     }
 }
 static struct termios orig_termios;
@@ -266,4 +269,14 @@ void Chip8::init() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     printf("\n");
+}
+
+void Chip8::PressKey() {
+for (int i = 0 ; i < 50; ++i) {
+        char ch = getchar();
+        if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())  {
+            key_states_[keyboard2keypad_[ch]] = true;
+            break;
+        }
+}
 }

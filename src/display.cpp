@@ -61,6 +61,7 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 
 
 void Display::renderAll(unsigned char(&array2D)[32][64]) {
+#if 1
     TPRINT_GOTO_TOPLEFT();
     for (unsigned row = 0; row < 32; row++) {
         for (unsigned col = 0; col < 64; col++) {
@@ -72,7 +73,8 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
             }
         }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+#endif
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     //SDL_RenderPresent(m_renderer); // copy to screen
     // delay (in ms) is REQUIRED or the screen will glitch out
     //SDL_Delay(5);
@@ -84,7 +86,7 @@ void Display::cls() {
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-#if 0
+#if 1
     // clear the display array first
     for (int row = 0; row < 32; row++) {
         for (int col= 0; col < 64; col++){
