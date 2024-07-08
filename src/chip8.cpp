@@ -188,21 +188,23 @@ void Chip8::run(unsigned startingOffset) {
         auto current_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - t_keyboard);
         
-        if (duration.count() >= 100) {
+        if (duration.count() >= 50) {
             for (auto& pair: key_states_)
                 pair.second = false;
             t_keyboard = current_time;
         }
 
-        // compensate the fps every 10th of a second to make emulation smoother
-        if (execInsrPerSec/10 >= m_instrPerSec/10) {
+        // compensate the fps every 20ms econd to make emulation smoother
+#if 1
+        if (execInsrPerSec/50 >= m_instrPerSec/50) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(
-                        static_cast<int>(100000 > t_deltaUs) * (100000 - t_deltaUs)
+                        static_cast<int>(75000 > t_deltaUs) * (75000 - t_deltaUs)
                         ));
             execInsrPerSec = 0;
         }
+#endif
         if (m_maxIter > 0) {
             if (Logger::getInstance().count() > m_maxIter) {
                 Logger::getInstance().screendump(m_display); // dump screen to file
