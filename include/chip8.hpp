@@ -66,7 +66,6 @@ class Chip8: public Display {
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
-        //const float m_freq;							// config flag; frequency of played sound
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
             {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC},
             {'q', 0x4}, {'w', 0x5}, {'e', 0x6}, {'r', 0xD},
@@ -81,7 +80,10 @@ class Chip8: public Display {
             {0xA, pressed}, {0x0, pressed}, {0xB, pressed}, {0xF, pressed}
         };
 
+        /* wait for key - non blocking */
         void PressKey();
+        /* wait for key - blocking */
+        uint8_t WaitForKey();
 
 };
 

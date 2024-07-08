@@ -130,7 +130,7 @@ void Chip8::exec(opcode_t opc) {
     X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
     X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
     X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = m_delayTimer;) \
-    X("LD Vx K", prefix == 0xf && nn == 0x0a, /* TODO: blocking key press */ Vx = 0xa) \
+    X("LD Vx k", prefix == 0xf && nn == 0x0a, Vx = WaitForKey();) \
     X("LD DT Vx", prefix == 0xf && nn == 0x15, m_delayTimer = Vx;) \
     X("LD ST Vx", prefix == 0xf && nn == 0x18, m_soundTimer = Vx;) \
     X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
@@ -273,7 +273,6 @@ void Chip8::init() {
         m_mem[fontOffset++ & 0xFF] = element;
 
     SetNonBlockingInput();
-    // TODO: may not work
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
 }
@@ -282,4 +281,12 @@ void Chip8::PressKey() {
     char ch = getchar();
     if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())
         key_states_[keyboard2keypad_[ch]] = true;
+}
+
+uint8_t Chip8::WaitForKey() {
+    char ch;
+    do {
+        ch = getchar(); 
+    } while(keyboard2keypad_.find(ch) == keyboard2keypad_.end());
+    return keyboard2keypad_[ch];
 }

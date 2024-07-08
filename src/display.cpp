@@ -61,7 +61,6 @@ void Display::drawPixelXY(unsigned x, unsigned y, unsigned colour) {
 
 
 void Display::renderAll(unsigned char(&array2D)[32][64]) {
-#if 1
     TPRINT_GOTO_TOPLEFT();
     for (unsigned row = 0; row < 32; row++) {
         for (unsigned col = 0; col < 64; col++) {
@@ -73,8 +72,7 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
             }
         }
     }
-#endif
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(15));
 }
 
 
