@@ -21,8 +21,7 @@ static unsigned execInsrPerSec = 0;
 
 Chip8::Chip8(std::string fnameIni):
     Display(fnameIni),
-    IniReader(fnameIni),
-    m_instrPerSec(70),
+    m_instrPerSec(200),
     m_mute(false),
     m_maxIter(-1)
 {
@@ -158,14 +157,13 @@ void Chip8::exec(opcode_t opc) {
     #undef EXEC_INSTRUCTION
 
     // decrement every 60 hz and play sound if necessary
-    if (m_instrPerSec % 10 == 0)   {
+    //if (m_instrPerSec % 10 == 0)   {
         if (m_delayTimer > 0) 
             m_delayTimer--;
         if (m_soundTimer > 0)
             m_soundTimer--;
-        // TODO: beef if timer 0w:
-    }
-
+        // TODO: beef if timer 0:
+    //}
     execInsrPerSec++;
 }
 
@@ -176,6 +174,8 @@ void Chip8::run(unsigned startingOffset) {
 
     m_PC = startingOffset;
     // the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
+    auto t_keyboard = std::chrono::high_resolution_clock::now();
+
     while (1) {
         t_start = std::chrono::high_resolution_clock::now();
 
@@ -184,7 +184,15 @@ void Chip8::run(unsigned startingOffset) {
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
         Chip8::exec(opc);
-        // TODO: reset key states
+
+        auto current_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - t_keyboard);
+        
+        if (duration.count() >= 100) {
+            for (auto& pair: key_states_)
+                pair.second = false;
+            t_keyboard = current_time;
+        }
 
         // compensate the fps every 10th of a second to make emulation smoother
         if (execInsrPerSec/10 >= m_instrPerSec/10) {
@@ -268,15 +276,10 @@ void Chip8::init() {
     // TODO: may not work
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    printf("\n");
 }
 
 void Chip8::PressKey() {
-for (int i = 0 ; i < 50; ++i) {
-        char ch = getchar();
-        if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())  {
-            key_states_[keyboard2keypad_[ch]] = true;
-            break;
-        }
-}
+    char ch = getchar();
+    if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())
+        key_states_[keyboard2keypad_[ch]] = true;
 }

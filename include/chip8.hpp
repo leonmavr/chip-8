@@ -11,8 +11,6 @@
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
 #include "display.hpp"
-//#include "keyboard.hpp"
-#include "ini_reader.hpp"
 #include "bitfields.hpp"
 
 
@@ -26,7 +24,7 @@ typedef struct opcode_t {
 } opcode_t;
 
 
-class Chip8: public Display, virtual public IniReader {
+class Chip8: public Display {
     public:
         // don't forget to initialise constant members 
         Chip8 (std::string fnameIni);

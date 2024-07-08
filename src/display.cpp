@@ -75,18 +75,13 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
     }
 #endif
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    //SDL_RenderPresent(m_renderer); // copy to screen
-    // delay (in ms) is REQUIRED or the screen will glitch out
-    //SDL_Delay(5);
 }
 
 
 void Display::cls() {
-    printf("\n");
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-#if 1
     // clear the display array first
     for (int row = 0; row < 32; row++) {
         for (int col= 0; col < 64; col++){
@@ -94,26 +89,7 @@ void Display::cls() {
             drawPixelXY(col, row, 0);
         }
     }
-#endif
-    // r, g, b, a
-    //SDL_SetRenderDrawColor(m_renderer, m_colourBg[0], m_colourBg[1], m_colourBg[2], 0);
-    //Clear the renderer with the draw color
-    //SDL_RenderClear(m_renderer);
-    //SDL_Delay(5);
 }
 
 
-void Display::hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb) {
-#if 0
-    // remove leading # if necessary
-    if (strHex.rfind("#", 0) == 0)
-        strHex = strHex.substr(1, strHex.length());
-
-    // extract the 3 bytes
-    unsigned rgb = std::stoi(strHex, 0, 16);
-    uint8_t r = (rgb >> 16) & 0xff;
-    uint8_t g = (rgb >> 8)  & 0xff;
-    uint8_t b = rgb         & 0xff;
-    vecrgb = {r, g, b};
-#endif
-}
+void Display::hex2rgb(std::string strHex, std::vector<uint8_t>& vecrgb) { }

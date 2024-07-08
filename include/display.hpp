@@ -8,13 +8,11 @@
 #include "ini_reader.hpp" 
 
 
-class Display: virtual public IniReader {
+class Display {
     public:
-        Display (std::string iniFile): IniReader(iniFile) {
-            m_w = std::any_cast<int>(m_iniSettings["i_screen_width"]);
-            m_h = std::any_cast<int>(m_iniSettings["i_screen_height"]);
-            hex2rgb(std::any_cast<std::string>(m_iniSettings["s_colourBg"]), m_colourBg);
-            hex2rgb(std::any_cast<std::string>(m_iniSettings["s_colourFg"]), m_colourFg);
+        Display (std::string iniFile) {
+            m_w = 640; //std::any_cast<int>(m_iniSettings["i_screen_width"]);
+            m_h = 320; //std::any_cast<int>(m_iniSettings["i_screen_height"]);
             init();									// initialise SDL resources
         };
         ~Display () { 
