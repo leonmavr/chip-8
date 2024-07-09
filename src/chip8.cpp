@@ -21,7 +21,7 @@ static unsigned execInsrPerSec = 0;
 
 Chip8::Chip8(std::string fnameIni):
     Display(fnameIni),
-    m_instrPerSec(200),
+    m_instrPerSec(500),
     m_mute(false),
     m_maxIter(-1)
 {
@@ -196,11 +196,11 @@ void Chip8::run(unsigned startingOffset) {
 
         // compensate the fps every 20ms econd to make emulation smoother
 #if 1
-        if (execInsrPerSec/50 >= m_instrPerSec/50) {
+        if (execInsrPerSec/40 >= m_instrPerSec/40) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(
-                        static_cast<int>(75000 > t_deltaUs) * (75000 - t_deltaUs)
+                        static_cast<int>(10000 > t_deltaUs) * (10000 - t_deltaUs)
                         ));
             execInsrPerSec = 0;
         }
@@ -235,7 +235,6 @@ static void ResetBlockingInput() {
     // Reset blocking mode
     fcntl(STDIN_FILENO, F_SETFL, 0);
 }
-
 
 
 void Chip8::init() {
@@ -280,9 +279,30 @@ void Chip8::init() {
 }
 
 void Chip8::PressKey() {
+#if 0
     char ch = getchar();
     if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())
         key_states_[keyboard2keypad_[ch]] = true;
+#else
+    // io buffer
+    fd_set readfds;
+    struct timeval timeout;
+
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 1000; // us part of timeout
+    char ch;
+    int io = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    if (io > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+        read(STDIN_FILENO, &ch, 1);
+        key_states_[keyboard2keypad_[ch]] = true;
+    }
+
+    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+#endif
 }
 
 uint8_t Chip8::WaitForKey() {
