@@ -66,7 +66,7 @@ void Display::renderAll(unsigned char(&array2D)[32][64]) {
         for (unsigned col = 0; col < 64; col++) {
             //drawPixelXY(col, row, static_cast<unsigned>(array2D[row][col] != 0));
             if (array2D[row][col] != 0) {
-                TPRINT_PRINT_AT(col, row+1, '#');
+                TPRINT_PRINT_AT(col, row+1, (char)26);
             } else {
                 TPRINT_PRINT_AT(col, row+1, ' ');
             }
