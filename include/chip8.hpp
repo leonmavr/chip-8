@@ -10,7 +10,6 @@
 #include <algorithm> // fill()
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
-#include "display.hpp"
 #include "bitfields.hpp"
 
 
@@ -24,7 +23,7 @@ typedef struct opcode_t {
 } opcode_t;
 
 
-class Chip8: public Display {
+class Chip8 {
     public:
         // don't forget to initialise constant members 
         Chip8 (std::string fnameIni);
@@ -53,6 +52,7 @@ class Chip8: public Display {
         uint16_t m_PC;								// Program counter
         uint16_t m_I;								// Index register
         unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
+        uint8_t m_display[32][64];
         std::array<uint16_t, 12>m_stack;			// stack
         std::vector<uint8_t> m_fontset;				// font sprites
         uint8_t rand();								// Chip8 has a random number generator 
@@ -67,9 +67,8 @@ class Chip8: public Display {
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
-            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC},
-            {'q', 0x4}, {'w', 0x5}, {'e', 0x6}, {'r', 0xD},
-            {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
+            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
+            {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
             {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
         };
         const bool pressed = false;
@@ -84,6 +83,10 @@ class Chip8: public Display {
         void PressKey();
         /* wait for key - blocking */
         uint8_t WaitForKey();
+
+        void cls();
+        
+        void renderAll(unsigned char(&array2D)[32][64]);
 
 };
 

@@ -9,7 +9,6 @@
 #include <termios.h>
 #include <fcntl.h>
 #include "chip8.hpp" 
-//#include "keyboard.hpp" 
 #include "toot.h" 
 #include "logger.hpp" 
 #include "term.h" 
@@ -20,11 +19,14 @@ static unsigned execInsrPerSec = 0;
 
 
 Chip8::Chip8(std::string fnameIni):
-    Display(fnameIni),
     m_instrPerSec(500),
     m_mute(false),
     m_maxIter(-1)
 {
+    // init display
+    TPRINT_GOTO_TOPLEFT();
+    TPRINT_CLEAR();
+    TPRINT_HIDE_CURSOR();
     Chip8::init();
 }
 
@@ -158,13 +160,11 @@ void Chip8::exec(opcode_t opc) {
     #undef EXEC_INSTRUCTION
 
     // decrement every 60 hz and play sound if necessary
-    //if (m_instrPerSec % 10 == 0)   {
-        if (m_delayTimer > 0) 
-            m_delayTimer--;
-        if (m_soundTimer > 0)
-            m_soundTimer--;
-        // TODO: beef if timer 0:
-    //}
+    if (m_delayTimer > 0) 
+        m_delayTimer--;
+    if (m_soundTimer > 0)
+        m_soundTimer--;
+        // TODO: beep if timer 0:
     execInsrPerSec++;
 }
 
@@ -206,13 +206,6 @@ void Chip8::run(unsigned startingOffset) {
             execInsrPerSec = 0;
         }
 #endif
-        if (m_maxIter > 0) {
-            if (Logger::getInstance().count() > m_maxIter) {
-                Logger::getInstance().screendump(m_display); // dump screen to file
-                return;
-            }
-        }
-
     }
 }
 static struct termios orig_termios;
@@ -280,36 +273,51 @@ void Chip8::init() {
 }
 
 void Chip8::PressKey() {
-#if 0
-    char ch = getchar();
-    if (keyboard2keypad_.find(ch) != keyboard2keypad_.end())
-        key_states_[keyboard2keypad_[ch]] = true;
-#else
-    // io buffer
     fd_set readfds;
-    struct timeval timeout;
-
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
 
+    struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 1000; // us part of timeout
+    timeout.tv_usec = 1000;
+
     char ch;
-    int io = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
-    if (io > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+    int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
         read(STDIN_FILENO, &ch, 1);
         key_states_[keyboard2keypad_[ch]] = true;
     }
-
-    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-#endif
 }
 
 uint8_t Chip8::WaitForKey() {
     char ch;
     do {
         ch = getchar(); 
-    } while(keyboard2keypad_.find(ch) == keyboard2keypad_.end());
+    } while (keyboard2keypad_.find(ch) == keyboard2keypad_.end());
     return keyboard2keypad_[ch];
+}
+
+void Chip8::cls() {
+    TPRINT_HIDE_CURSOR();
+    TPRINT_GOTO_TOPLEFT();
+    TPRINT_CLEAR();
+    for (int row = 0; row < 32; row++) {
+        for (int col= 0; col < 64; col++){
+            m_display[row][col] = 0;
+        }
+    }
+}
+
+void Chip8::renderAll(unsigned char(&array2D)[32][64]) {
+    TPRINT_GOTO_TOPLEFT();
+    for (unsigned row = 0; row < 32; row++) {
+        for (unsigned col = 0; col < 64; col++) {
+            if (array2D[row][col] != 0) {
+                TPRINT_PRINT_AT(col, row+1, (char)24);
+            } else {
+                TPRINT_PRINT_AT(col, row+1, ' ');
+            }
+        }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
 }

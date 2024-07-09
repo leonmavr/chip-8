@@ -1,6 +1,5 @@
 #include <memory>
 #include <string>
-#include "display.hpp" 
 #include "chip8.hpp"
 
 int main(int argc, char *argv[])
