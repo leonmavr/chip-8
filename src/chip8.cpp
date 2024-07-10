@@ -128,7 +128,6 @@ void Chip8::exec(opcode_t opc) {
                     sprite <<= 1; \
                 } \
             } \
-            renderAll(m_display);\
         } while(0); ) \
     X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
     X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
@@ -185,6 +184,7 @@ void Chip8::run(unsigned startingOffset) {
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
         Chip8::exec(opc);
+        renderAll(m_display);
 
         auto current_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - t_keyboard);
@@ -197,7 +197,7 @@ void Chip8::run(unsigned startingOffset) {
 
         // compensate the fps every 20ms econd to make emulation smoother
 #if 1
-        if (execInsrPerSec/40 >= m_instrPerSec/40) {
+        if (execInsrPerSec/100 >= m_instrPerSec/100) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(
