@@ -10,7 +10,6 @@
 #include <algorithm> // fill()
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
-#include "bitfields.hpp"
 
 
 typedef struct opcode_t {
