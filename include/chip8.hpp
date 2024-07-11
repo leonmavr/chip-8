@@ -56,6 +56,7 @@ class Chip8 {
         unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
         uint8_t m_display[32][64];
         std::array<int, ROWS*COLS> pixels_;
+        std::array<int, ROWS*COLS> pixels_prev_;
 
         std::array<uint16_t, 12>m_stack;			// stack
         std::vector<uint8_t> m_fontset;				// font sprites

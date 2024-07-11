@@ -1,6 +1,7 @@
 #include <random>
 #include <cstdlib>
 #include <cassert>
+#include <algorithm>
 #include <unordered_map>
 #include <chrono>
 #include <termios.h>
@@ -22,7 +23,8 @@ Chip8::Chip8(std::string fnameIni):
     m_instrPerSec(1000),
     m_mute(false),
     m_maxIter(-1),
-    pixels_{0x00}
+    pixels_{0},
+    pixels_prev_{0}
 {
     // init display
     TPRINT_GOTO_TOPLEFT();
@@ -193,7 +195,7 @@ void Chip8::run(unsigned startingOffset) {
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
         
-        if (dt_keyboard.count() >= 50) {
+        if (dt_keyboard.count() >= 75) {
             for (auto& pair: key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
@@ -307,18 +309,25 @@ void Chip8::cls() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     pixels_.fill(0);
+    pixels_prev_.fill(0);
 }
 
 void Chip8::renderAll() {
     TPRINT_GOTO_TOPLEFT();
-    for (unsigned row = 0; row < ROWS; row++) {
-        for (unsigned col = 0; col < COLS; col++) {
+    for (size_t row = 0; row < ROWS; ++row) {
+        for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            if (pixels_[index] != 0) {
-                TPRINT_PRINT_AT(col, row + 1, (char)24);
-            } else {
-                TPRINT_PRINT_AT(col, row + 1, ' ');
+            if ((pixels_[index] ^ pixels_prev_[index]) != 0) {
+                if (pixels_[index] != 0) {
+                    TPRINT_PRINT_AT(col, row + 1, (char)24);
+                } else {
+                    TPRINT_PRINT_AT(col, row + 1, ' ');
+                }
             }
         }
     }
+    // Update pixels_prev_ to the current state of pixels_
+    pixels_prev_ = pixels_;
+    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
 }
