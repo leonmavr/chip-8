@@ -21,7 +21,8 @@ static unsigned execInsrPerSec = 0;
 Chip8::Chip8(std::string fnameIni):
     m_instrPerSec(1000),
     m_mute(false),
-    m_maxIter(-1)
+    m_maxIter(-1),
+    pixels_{0x00}
 {
     // init display
     TPRINT_GOTO_TOPLEFT();
@@ -115,19 +116,21 @@ void Chip8::exec(opcode_t opc) {
     X("RND Vx nn", prefix == 0xc, Vx = rand() & nn;) \
     X("DRW Vx Vy n", prefix == 0xd, \
         do { \
-            uint8_t height = n; \
-            Vf = 0; \
-            for (uint8_t row = 0; row < height; row++) { \
-                uint8_t sprite = m_mem[I + row]; \
-                for (uint8_t col = 0; col < 8; col++) { \
-                    if ((sprite & 0x80) != 0) { \
-                        if (m_display[Vy + row][Vx + col] == 1) \
-                            Vf = 1; \
-                        m_display[Vy + row][Vx + col] ^= 1; \
-                    } \
-                    sprite <<= 1; \
-                } \
-            } \
+            Vf = 0;\
+            for (uint8_t row = 0; row < n; row++) {\
+                uint8_t sprite = m_mem[I + row];\
+                for (uint8_t col = 0; col < 8; col++) {\
+                    if ((sprite & 0x80) != 0) {\
+                        size_t x = (Vx + col) % COLS;\
+                        size_t y = (Vy + row) % ROWS;\
+                        size_t index = y * COLS + x;\
+                        if (pixels_[index] == 1)\
+                            Vf = 1;\
+                        pixels_[index] ^= 1;\
+                    }\
+                    sprite <<= 1;\
+                }\
+            }\
         } while(0); ) \
     X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
     X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
@@ -207,7 +210,7 @@ void Chip8::run(unsigned startingOffset) {
             execInsrPerSec = 0;
         }
 #endif
-        renderAll(m_display);
+        renderAll();
     }
 }
 static struct termios orig_termios;
@@ -303,21 +306,18 @@ void Chip8::cls() {
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    for (int row = 0; row < 32; row++) {
-        for (int col= 0; col < 64; col++){
-            m_display[row][col] = 0;
-        }
-    }
+    pixels_.fill(0);
 }
 
-void Chip8::renderAll(unsigned char(&array2D)[32][64]) {
+void Chip8::renderAll() {
     TPRINT_GOTO_TOPLEFT();
-    for (unsigned row = 0; row < 32; row++) {
-        for (unsigned col = 0; col < 64; col++) {
-            if (array2D[row][col] != 0) {
-                TPRINT_PRINT_AT(col, row+1, (char)24);
+    for (unsigned row = 0; row < ROWS; row++) {
+        for (unsigned col = 0; col < COLS; col++) {
+            size_t index = row * COLS + col;
+            if (pixels_[index] != 0) {
+                TPRINT_PRINT_AT(col, row + 1, (char)24);
             } else {
-                TPRINT_PRINT_AT(col, row+1, ' ');
+                TPRINT_PRINT_AT(col, row + 1, ' ');
             }
         }
     }

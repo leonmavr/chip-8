@@ -11,6 +11,9 @@
 #include <cinttypes> // uint8_t, uint16_t
 #include <bits/stdc++.h>
 
+#define ROWS 32
+#define COLS 64
+
 
 typedef struct opcode_t {
     uint8_t prefix : 4; 
@@ -52,6 +55,8 @@ class Chip8 {
         uint16_t m_I;								// Index register
         unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
         uint8_t m_display[32][64];
+        std::array<int, ROWS*COLS> pixels_;
+
         std::array<uint16_t, 12>m_stack;			// stack
         std::vector<uint8_t> m_fontset;				// font sprites
         uint8_t rand();								// Chip8 has a random number generator 
@@ -85,7 +90,7 @@ class Chip8 {
 
         void cls();
         
-        void renderAll(unsigned char(&array2D)[32][64]);
+        void renderAll();
 
 };
 
