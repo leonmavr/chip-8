@@ -190,16 +190,16 @@ void Chip8::run(unsigned startingOffset) {
         // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
+        Chip8::exec(opc);
 
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
         
-        if (dt_keyboard.count() >= 75) {
+        if (dt_keyboard.count() >= 125) {
             for (auto& pair: key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
         }
-        Chip8::exec(opc);
 
         // compensate the fps every 20ms econd to make emulation smoother
 #if 0
@@ -307,9 +307,9 @@ uint8_t Chip8::WaitForKey() {
 void Chip8::cls() {
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
-    TPRINT_CLEAR();
+    //TPRINT_CLEAR();
     pixels_.fill(0);
-    pixels_prev_.fill(0);
+    //pixels_prev_.fill(0);
 }
 
 void Chip8::renderAll() {
@@ -317,7 +317,7 @@ void Chip8::renderAll() {
     for (size_t row = 0; row < ROWS; ++row) {
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            bool diff = pixels_[index] ^ pixels_prev_[index];
+            const bool diff = pixels_[index] ^ pixels_prev_[index] != 0;
             if (diff && pixels_[index] != 0) {
                 TPRINT_PRINT_AT(col, row + 1, (char)24);
             } else if (diff && pixels_[index] == 0) {
@@ -328,5 +328,6 @@ void Chip8::renderAll() {
     // Update pixels_prev_ to the current state of pixels_
     pixels_prev_ = pixels_;
     //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::microseconds(60));
 
 }
