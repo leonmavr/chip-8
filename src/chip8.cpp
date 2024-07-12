@@ -24,9 +24,13 @@ Chip8::Chip8(std::string fnameIni):
     m_mute(false),
     m_maxIter(-1),
     pixels_{0},
-    pixels_prev_{0}
+    pixels_prev_{0},
+    delay_timer_(0x00),
+    sound_timer_(0x00),
+    run_timers_(true)
 {
     // init display
+    timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
@@ -136,10 +140,10 @@ void Chip8::exec(opcode_t opc) {
         } while(0); ) \
     X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
     X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
-    X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = m_delayTimer;) \
+    X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = delay_timer_;) \
     X("LD Vx k", prefix == 0xf && nn == 0x0a, Vx = WaitForKey();) \
-    X("LD DT Vx", prefix == 0xf && nn == 0x15, m_delayTimer = Vx;) \
-    X("LD ST Vx", prefix == 0xf && nn == 0x18, m_soundTimer = Vx;) \
+    X("LD DT Vx", prefix == 0xf && nn == 0x15, delay_timer_ = Vx;) \
+    X("LD ST Vx", prefix == 0xf && nn == 0x18, sound_timer_ = Vx;) \
     X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
     X("LD F Vx", prefix == 0xf && nn == 0x29, I = Vx * 5;) \
     X("LD B Vx", prefix == 0xf && nn == 0x33, \
@@ -165,11 +169,13 @@ void Chip8::exec(opcode_t opc) {
 
     // decrement every 60 hz and play sound if necessary
     //if (execInsrPerSec % 2 == 0) {
+#if 0
         if (m_delayTimer > 0) 
             m_delayTimer--;
         if (m_soundTimer > 0)
             m_soundTimer--;
             // TODO: beep if timer 0:
+#endif
     //}
     execInsrPerSec++;
 }
@@ -192,23 +198,17 @@ void Chip8::run(unsigned startingOffset) {
 
         
         PressKey();
-        bool pressed = false;
-        for (const auto& pair: key_states_) { 
-            if (pair.second)
-                pressed = true;
-        }
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
 
         Chip8::exec(opc);
         renderAll();
-        if (pressed && dt_keyboard.count() >= 50) {
+        if (dt_keyboard.count() >= 100) {
             for (auto& pair: key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
         }
 
-        // compensate the fps every 20ms econd to make emulation smoother
 #if 0
         if (execInsrPerSec/2 >= m_instrPerSec/2) {
             t_end = std::chrono::high_resolution_clock::now();
@@ -321,7 +321,7 @@ void Chip8::cls() {
 void Chip8::renderAll() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    std::string sline = "";
+    std::string pixels = "";
     for (size_t row = 0; row < ROWS; ++row) {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
@@ -332,10 +332,18 @@ void Chip8::renderAll() {
                 line[col] = 32;
             }
         }
-        std::string ssline(line.begin(), line.end());
-        sline += ssline;
-        sline += "\n";
+        std::string pixel_row(line.begin(), line.end());
+        pixels += pixel_row;
+        pixels += "\n";
     }
-    std::cout << sline << std::endl;
+    std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(500));
+}
+
+void Chip8::UpdateTimers() {
+    while (run_timers_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 60));
+        if (delay_timer_ > 0) --delay_timer_;
+        if (sound_timer_ > 0) --sound_timer_;
+    }
 }

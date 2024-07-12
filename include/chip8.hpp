@@ -29,7 +29,11 @@ class Chip8 {
     public:
         // don't forget to initialise constant members 
         Chip8 (std::string fnameIni);
-        ~Chip8 () {};
+        ~Chip8 () {
+            run_timers_ = false;
+            if (timer_thread_.joinable())
+                timer_thread_.join();
+        };
         /**
          * @brief 				Load a rom from a filepath
          *
@@ -92,6 +96,12 @@ class Chip8 {
         void cls();
         
         void renderAll();
+
+        std::atomic<uint8_t> delay_timer_;
+        std::atomic<uint8_t> sound_timer_;
+        std::atomic<bool> run_timers_;
+        std::thread timer_thread_;
+        void UpdateTimers();
 
 };
 
