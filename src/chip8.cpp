@@ -164,13 +164,13 @@ void Chip8::exec(opcode_t opc) {
     #undef EXEC_INSTRUCTION
 
     // decrement every 60 hz and play sound if necessary
-    if (execInsrPerSec % 10 == 0) {
+    //if (execInsrPerSec % 2 == 0) {
         if (m_delayTimer > 0) 
             m_delayTimer--;
         if (m_soundTimer > 0)
             m_soundTimer--;
             // TODO: beep if timer 0:
-    }
+    //}
     execInsrPerSec++;
 }
 
@@ -186,16 +186,23 @@ void Chip8::run(unsigned startingOffset) {
     while (1) {
         t_start = std::chrono::high_resolution_clock::now();
 
-        PressKey();
         // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
-        Chip8::exec(opc);
 
+        
+        PressKey();
+        bool pressed = false;
+        for (const auto& pair: key_states_) { 
+            if (pair.second)
+                pressed = true;
+        }
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
-        
-        if (dt_keyboard.count() >= 125) {
+
+        Chip8::exec(opc);
+        renderAll();
+        if (pressed && dt_keyboard.count() >= 50) {
             for (auto& pair: key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
@@ -203,16 +210,15 @@ void Chip8::run(unsigned startingOffset) {
 
         // compensate the fps every 20ms econd to make emulation smoother
 #if 0
-        if (execInsrPerSec/10 >= m_instrPerSec/10) {
+        if (execInsrPerSec/2 >= m_instrPerSec/2) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(
-                        static_cast<int>(5000 > t_deltaUs) * (5000 - t_deltaUs)
+                        static_cast<int>(10000 > t_deltaUs) * (10000 - t_deltaUs)
                         ));
             execInsrPerSec = 0;
         }
 #endif
-        renderAll();
     }
 }
 static struct termios orig_termios;
@@ -307,27 +313,29 @@ uint8_t Chip8::WaitForKey() {
 void Chip8::cls() {
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
-    //TPRINT_CLEAR();
+    TPRINT_CLEAR();
     pixels_.fill(0);
-    //pixels_prev_.fill(0);
+    pixels_prev_.fill(0);
 }
 
 void Chip8::renderAll() {
     TPRINT_GOTO_TOPLEFT();
+    TPRINT_CLEAR();
+    std::string sline = "";
     for (size_t row = 0; row < ROWS; ++row) {
+        std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            const bool diff = pixels_[index] ^ pixels_prev_[index] != 0;
-            if (diff && pixels_[index] != 0) {
-                TPRINT_PRINT_AT(col, row + 1, (char)24);
-            } else if (diff && pixels_[index] == 0) {
-                TPRINT_PRINT_AT(col, row + 1, ' ');
+            if (pixels_[index] != 0) {
+                line[col] = 24;
+            } else {
+                line[col] = 32;
             }
         }
+        std::string ssline(line.begin(), line.end());
+        sline += ssline;
+        sline += "\n";
     }
-    // Update pixels_prev_ to the current state of pixels_
-    pixels_prev_ = pixels_;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    std::this_thread::sleep_for(std::chrono::microseconds(60));
-
+    std::cout << sline << std::endl;
+    std::this_thread::sleep_for(std::chrono::microseconds(500));
 }
