@@ -125,92 +125,106 @@ void Chip8::exec(opcode_t opc) {
             Vf = 0;\
             for (uint8_t row = 0; row < n; row++) {\
                 uint8_t sprite = m_mem[I + row];\
-                for (uint8_t col = 0; col < 8; col++) {\
-                    if ((sprite & 0x80) != 0) {\
-                        size_t x = (Vx + col) % COLS;\
-                        size_t y = (Vy + row) % ROWS;\
-                        size_t index = y * COLS + x;\
-                        if (pixels_[index] == 1)\
-                            Vf = 1;\
-                        pixels_[index] ^= 1;\
-                    }\
-                    sprite <<= 1;\
+            for (uint8_t col = 0; col < 8; col++) {\
+                if ((sprite & 0x80) != 0) {\
+                    size_t x = (Vx + col) % COLS;\
+                    size_t y = (Vy + row) % ROWS;\
+                    size_t index = y * COLS + x;\
+                    if (pixels_[index] == 1)\
+                        Vf = 1;\
+                    pixels_[index] ^= 1;\
                 }\
+                sprite <<= 1;\
             }\
-        } while(0); ) \
-    X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
-    X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
-    X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = delay_timer_;) \
-    X("LD Vx k", prefix == 0xf && nn == 0x0a, Vx = WaitForKey();) \
-    X("LD DT Vx", prefix == 0xf && nn == 0x15, delay_timer_ = Vx;) \
-    X("LD ST Vx", prefix == 0xf && nn == 0x18, sound_timer_ = Vx;) \
-    X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
-    X("LD F Vx", prefix == 0xf && nn == 0x29, I = Vx * 5;) \
-    X("LD B Vx", prefix == 0xf && nn == 0x33, \
-        m_mem[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
-        m_mem[(I + 1) & 0xfff] = (Vx % 100) / 10; \
-        m_mem[(I + 2) & 0xfff] = Vx % 10;) \
-    X("LD [I] Vx", prefix == 0xf && nn == 0x55, \
-        for (unsigned xx = 0; xx <= x; xx++) \
-            m_mem[I++ & 0xfff] = m_V[xx];) \
-    X("LD Vx [I]", prefix == 0xf && nn == 0x65, \
-        for (unsigned xx = 0; xx <= x; xx++) \
-            m_V[xx] = m_mem[I++ & 0xfff];)
+        }\
+    } while(0); ) \
+X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
+X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
+X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = delay_timer_;) \
+X("LD Vx k", prefix == 0xf && nn == 0x0a, Vx = WaitForKey();) \
+X("LD DT Vx", prefix == 0xf && nn == 0x15, delay_timer_ = Vx;) \
+X("LD ST Vx", prefix == 0xf && nn == 0x18, sound_timer_ = Vx;) \
+X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
+X("LD F Vx", prefix == 0xf && nn == 0x29, I = Vx * 5;) \
+X("LD B Vx", prefix == 0xf && nn == 0x33, \
+    m_mem[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
+    m_mem[(I + 1) & 0xfff] = (Vx % 100) / 10; \
+    m_mem[(I + 2) & 0xfff] = Vx % 10;) \
+X("LD [I] Vx", prefix == 0xf && nn == 0x55, \
+    for (unsigned xx = 0; xx <= x; xx++) \
+        m_mem[I++ & 0xfff] = m_V[xx];) \
+X("LD Vx [I]", prefix == 0xf && nn == 0x65, \
+    for (unsigned xx = 0; xx <= x; xx++) \
+        m_V[xx] = m_mem[I++ & 0xfff];)
 
-    #define X(assembly, condition, instructions) \
-    if (condition) \
-    { instructions; }
-    EXEC_INSTRUCTION
+#define X(assembly, condition, instructions) \
+if (condition) \
+{ instructions; }
+EXEC_INSTRUCTION
 
-    PC += 2;
+PC += 2;
 
-    #undef X
-    #undef EXEC_INSTRUCTION
+#undef X
+#undef EXEC_INSTRUCTION
 
-    // decrement every 60 hz and play sound if necessary
-    //if (execInsrPerSec % 2 == 0) {
+// decrement every 60 hz and play sound if necessary
+//if (execInsrPerSec % 2 == 0) {
 #if 0
-        if (m_delayTimer > 0) 
-            m_delayTimer--;
-        if (m_soundTimer > 0)
-            m_soundTimer--;
-            // TODO: beep if timer 0:
+    if (m_delayTimer > 0) 
+        m_delayTimer--;
+    if (m_soundTimer > 0)
+        m_soundTimer--;
+        // TODO: beep if timer 0:
 #endif
-    //}
-    execInsrPerSec++;
+//}
+//execInsrPerSec++;
 }
 
 
 void Chip8::run(unsigned startingOffset) {
-    std::chrono::high_resolution_clock::time_point t_start, t_end;
-    int t_deltaUs;
+std::chrono::high_resolution_clock::time_point t_start, t_end;
+int t_deltaUs;
 
-    m_PC = startingOffset;
-    // the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
-    auto t_keyboard_start = std::chrono::high_resolution_clock::now();
+m_PC = startingOffset;
+// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
+auto t_keyboard_start = std::chrono::high_resolution_clock::now();
+auto t_throttle_start = std::chrono::high_resolution_clock::now();
 
-    while (1) {
-        t_start = std::chrono::high_resolution_clock::now();
+while (1) {
 
-        // fetch-decode-exec defines the operation of Chip8
-        uint16_t instr = fetch();
-        opcode_t opc = decode(instr);
+    // fetch-decode-exec defines the operation of Chip8
+    uint16_t instr = fetch();
+    opcode_t opc = decode(instr);
 
-        
-        PressKey();
-        auto t_keyboard_end = std::chrono::high_resolution_clock::now();
-        auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
+    
+    PressKey();
+    auto t_keyboard_end = std::chrono::high_resolution_clock::now();
+    auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
 
-        Chip8::exec(opc);
-        renderAll();
-        if (dt_keyboard.count() >= 100) {
-            for (auto& pair: key_states_)
-                pair.second = false;
-            t_keyboard_start = t_keyboard_end;
+    Chip8::exec(opc);
+    renderAll();
+    if (dt_keyboard.count() >= 100) {
+        for (auto& pair: key_states_)
+            pair.second = false;
+        t_keyboard_start = t_keyboard_end;
+    }
+    t_end = std::chrono::high_resolution_clock::now();
+    if ((execInsrPerSec % every_100_ms) == 0) {
+        auto t_throttle_end = std::chrono::high_resolution_clock::now();
+        auto dt_throttle = std::chrono::duration_cast<std::chrono::milliseconds>(t_throttle_end - t_throttle_start);
+        if (dt_throttle.count() < 100) {
+            //std::cout << "waittt\n";
+            std::this_thread::sleep_for(std::chrono::microseconds(100000 - 1000*dt_throttle.count()));
+            // wait till we reach ... ms
+            t_throttle_start = std::chrono::high_resolution_clock::now();
+            //toot(400,100);
         }
+            
+    }
+    execInsrPerSec++;
 
 #if 0
-        if (execInsrPerSec/2 >= m_instrPerSec/2) {
+    if (execInsrPerSec/2 >= m_instrPerSec/2) {
             t_end = std::chrono::high_resolution_clock::now();
             t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
             std::this_thread::sleep_for(std::chrono::microseconds(
