@@ -166,73 +166,45 @@ PC += 2;
 
 #undef X
 #undef EXEC_INSTRUCTION
-
-// decrement every 60 hz and play sound if necessary
-//if (execInsrPerSec % 2 == 0) {
-#if 0
-    if (m_delayTimer > 0) 
-        m_delayTimer--;
-    if (m_soundTimer > 0)
-        m_soundTimer--;
-        // TODO: beep if timer 0:
-#endif
-//}
-//execInsrPerSec++;
 }
 
 
 void Chip8::run(unsigned startingOffset) {
-std::chrono::high_resolution_clock::time_point t_start, t_end;
-int t_deltaUs;
+    std::chrono::high_resolution_clock::time_point t_start, t_end;
+    int t_deltaUs;
 
-m_PC = startingOffset;
-// the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
-auto t_keyboard_start = std::chrono::high_resolution_clock::now();
-auto t_throttle_start = std::chrono::high_resolution_clock::now();
+    m_PC = startingOffset;
+    // the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
+    auto t_keyboard_start = std::chrono::high_resolution_clock::now();
+    auto t_throttle_start = std::chrono::high_resolution_clock::now();
 
-while (1) {
+    while (1) {
+        // fetch-decode-exec defines the operation of Chip8
+        uint16_t instr = fetch();
+        PressKey();
+        opcode_t opc = decode(instr);
 
-    // fetch-decode-exec defines the operation of Chip8
-    uint16_t instr = fetch();
-    opcode_t opc = decode(instr);
+        auto t_keyboard_end = std::chrono::high_resolution_clock::now();
+        auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
 
-    
-    PressKey();
-    auto t_keyboard_end = std::chrono::high_resolution_clock::now();
-    auto dt_keyboard = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
-
-    Chip8::exec(opc);
-    renderAll();
-    if (dt_keyboard.count() >= 50) {
-        for (auto& pair: key_states_)
-            pair.second = false;
-        t_keyboard_start = t_keyboard_end;
-    }
-    t_end = std::chrono::high_resolution_clock::now();
-    if ((execInsrPerSec % every_100_ms) == 0) {
-        auto t_throttle_end = std::chrono::high_resolution_clock::now();
-        auto dt_throttle = std::chrono::duration_cast<std::chrono::milliseconds>(t_throttle_end - t_throttle_start);
-        if (dt_throttle.count() < 100) {
-            //std::cout << "waittt\n";
-            std::this_thread::sleep_for(std::chrono::microseconds(100000 - 1000*dt_throttle.count()));
-            // wait till we reach ... ms
-            t_throttle_start = std::chrono::high_resolution_clock::now();
-            //toot(400,100);
+        Chip8::exec(opc);
+        renderAll();
+        if (dt_keyboard.count() >= 50) {
+            for (auto& pair: key_states_)
+                pair.second = false;
+            t_keyboard_start = t_keyboard_end;
         }
-            
-    }
-    execInsrPerSec++;
-
-#if 0
-    if (execInsrPerSec/2 >= m_instrPerSec/2) {
-            t_end = std::chrono::high_resolution_clock::now();
-            t_deltaUs = (t_end - t_start)/std::chrono::milliseconds(1)*1000;
-            std::this_thread::sleep_for(std::chrono::microseconds(
-                        static_cast<int>(10000 > t_deltaUs) * (10000 - t_deltaUs)
-                        ));
-            execInsrPerSec = 0;
+        t_end = std::chrono::high_resolution_clock::now();
+        if ((execInsrPerSec % every_100_ms) == 0) {
+            auto t_throttle_end = std::chrono::high_resolution_clock::now();
+            auto dt_throttle = std::chrono::duration_cast<std::chrono::milliseconds>(t_throttle_end - t_throttle_start);
+            if (dt_throttle.count() < 100) {
+                std::this_thread::sleep_for(std::chrono::microseconds(100000 - 1000*dt_throttle.count()));
+                t_throttle_start = std::chrono::high_resolution_clock::now();
+            }
+                
         }
-#endif
+        execInsrPerSec++;
     }
 }
 static struct termios orig_termios;
