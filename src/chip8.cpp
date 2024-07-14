@@ -203,7 +203,7 @@ while (1) {
 
     Chip8::exec(opc);
     renderAll();
-    if (dt_keyboard.count() >= 100) {
+    if (dt_keyboard.count() >= 50) {
         for (auto& pair: key_states_)
             pair.second = false;
         t_keyboard_start = t_keyboard_end;
@@ -335,7 +335,8 @@ void Chip8::cls() {
 void Chip8::renderAll() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    std::string pixels = "";
+    std::string border_up_down = "+" + std::string(64, '-') + "+\n";
+    std::string pixels = border_up_down;
     for (size_t row = 0; row < ROWS; ++row) {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
@@ -347,9 +348,11 @@ void Chip8::renderAll() {
             }
         }
         std::string pixel_row(line.begin(), line.end());
-        pixels += pixel_row;
+        const std::string border_left_right = "|";
+        pixels += border_left_right + pixel_row + border_left_right;
         pixels += "\n";
     }
+    pixels += border_up_down;
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(500));
 }

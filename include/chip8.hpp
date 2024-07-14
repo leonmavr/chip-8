@@ -73,7 +73,7 @@ class Chip8 {
         void init();								// initialises memory, registers, and configs
 
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
-        const int freq = 200;
+        const int freq = 150;
         int every_100_ms = static_cast<int>(0.1*freq);
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
