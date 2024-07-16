@@ -13,6 +13,7 @@
 #include "toot.h" 
 #include "logger.hpp" 
 #include "term.h" 
+#include "frontend.hpp" 
 
 
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
@@ -313,11 +314,7 @@ void Chip8::renderAll() {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            if (pixels_[index] != 0) {
-                line[col] = 24;
-            } else {
-                line[col] = 32;
-            }
+            pixels_[index] != 0 ? line[col] = 24 : line[col] = 32;
         }
         std::string pixel_row(line.begin(), line.end());
         const std::string border_left_right = "|";
@@ -325,6 +322,11 @@ void Chip8::renderAll() {
         pixels += "\n";
     }
     pixels += border_up_down;
+    Frontend::WriteRegs(pixels, m_V);
+    Frontend::WriteI(pixels, m_I);
+    Frontend::WritePC(pixels, m_PC);
+    Frontend::WriteSP(pixels, m_SP);
+    Frontend::WriteStack(pixels, m_stack);
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(500));
 }

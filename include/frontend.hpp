@@ -51,7 +51,7 @@ namespace Frontend {
 
     std::string WriteStack(std::string& input, std::array<uint16_t, 12>& stack) {
         std::stringstream ss;
-        WriteRight(input, 6, "Stack:\n");
+        WriteRight(input, 6, "Stack[0-3]:\n");
         ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[0] << " ";
         ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[1] << " ";
         ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[2] << " ";
