@@ -49,16 +49,24 @@ namespace Frontend {
         return input;
     }
 
-    std::string WriteSP(std::string& input, std::array<uint16_t, 4>& SP) {
+    std::string WriteStack(std::string& input, std::array<uint16_t, 12>& stack) {
         std::stringstream ss;
-        WriteRight(input, 6, "SP:\n");
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) SP[0] << ", ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) SP[1] << ", ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) SP[2] << ", ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) SP[3] << std::endl;
+        WriteRight(input, 6, "Stack:\n");
+        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[0] << " ";
+        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[1] << " ";
+        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[2] << " ";
+        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[3] << std::endl;
         WriteRight(input, 7, ss.str());
         return "";
     }
+
+    std::string WriteSP(std::string& input, uint16_t SP) {
+        std::stringstream ss;
+        ss << std::hex << "SP: " << std::setw(4) << std::setfill('0') << std::uppercase << (int)SP << std::endl;
+        WriteRight(input, 8, ss.str());
+        return input;
+    }
+
 
     std::string WriteI(std::string& input, uint16_t I) {
         std::stringstream ss;
