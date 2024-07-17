@@ -28,7 +28,8 @@ Chip8::Chip8(std::string fnameIni):
     pixels_prev_{0},
     delay_timer_(0x00),
     sound_timer_(0x00),
-    run_timers_(true)
+    run_timers_(true),
+    state_(STATE_RUNNING)
 {
     // init display
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
@@ -268,6 +269,7 @@ void Chip8::init() {
         m_mem[fontOffset++ & 0xFF] = element;
 
     SetNonBlockingInput();
+
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
 }
@@ -285,6 +287,11 @@ void Chip8::PressKey() {
     int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
     if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
         read(STDIN_FILENO, &ch, 1);
+        constexpr char esc = 27;
+        if (ch == 'P') state_ = STATE_PAUSED;
+        else if (ch == esc) state_ = STATE_STOPPED;
+        else if (ch == 'S') state_ = STATE_STEPPING;
+        else if (ch == 'R') state_ = STATE_RUNNING;
         key_states_[keyboard2keypad_[ch]] = true;
     }
 }
@@ -328,7 +335,7 @@ void Chip8::renderAll() {
     Frontend::WriteSP(pixels, m_SP);
     Frontend::WriteStack(pixels, m_stack);
     std::cout << pixels << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(500));
+    std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }
 
 void Chip8::UpdateTimers() {

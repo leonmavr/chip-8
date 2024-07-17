@@ -24,6 +24,13 @@ typedef struct opcode_t {
     uint16_t nnn : 12; 
 } opcode_t;
 
+enum {
+    STATE_RUNNING = 0,
+    STATE_STEPPING,
+    STATE_PAUSED,
+    STATE_STOPPED,
+};
+
 
 class Chip8 {
     public:
@@ -73,7 +80,7 @@ class Chip8 {
         void init();								// initialises memory, registers, and configs
 
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
-        const int freq = 150;
+        const int freq = 250;
         int every_100_ms = static_cast<int>(0.1*freq);
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
@@ -103,8 +110,10 @@ class Chip8 {
         std::atomic<uint8_t> sound_timer_;
         std::atomic<bool> run_timers_;
         std::thread timer_thread_;
-        void UpdateTimers();
 
+        void UpdateTimers();
+        
+        unsigned state_;
 };
 
 #endif /* CHIP8_HPP */
