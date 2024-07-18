@@ -288,7 +288,8 @@ void Chip8::PressKey() {
     if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
         read(STDIN_FILENO, &ch, 1);
         constexpr char esc = 27;
-        if (ch == 'P') state_ = STATE_PAUSED;
+        if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
+        else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
         else if (ch == esc) state_ = STATE_STOPPED;
         else if (ch == 'S') state_ = STATE_STEPPING;
         else if (ch == 'R') state_ = STATE_RUNNING;
