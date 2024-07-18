@@ -181,9 +181,13 @@ void Chip8::run(unsigned startingOffset) {
     auto t_throttle_start = std::chrono::high_resolution_clock::now();
 
     while (1) {
+        PressKey();
+        if (state_ == STATE_PAUSED) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            continue;    
+        }
         // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
-        PressKey();
         opcode_t opc = decode(instr);
 
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
