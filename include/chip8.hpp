@@ -31,16 +31,11 @@ enum {
     STATE_STOPPED,
 };
 
-
 class Chip8 {
     public:
         // don't forget to initialise constant members 
         Chip8 (std::string fnameIni);
-        ~Chip8 () {
-            run_timers_ = false;
-            if (timer_thread_.joinable())
-                timer_thread_.join();
-        };
+        ~Chip8 ();
         /**
          * @brief 				Load a rom from a filepath
          *
