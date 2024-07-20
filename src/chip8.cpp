@@ -29,7 +29,8 @@ Chip8::Chip8(std::string fnameIni):
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
-    state_(STATE_RUNNING)
+    state_(STATE_RUNNING),
+    freq_(250)
 {
     // init display
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
@@ -182,6 +183,7 @@ void Chip8::run(unsigned startingOffset) {
 
     while (1) {
         PressKey();
+        every_100_ms = static_cast<int>(0.1*freq_);
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             continue;    
@@ -211,6 +213,7 @@ void Chip8::run(unsigned startingOffset) {
 
         Chip8::exec(opc);
         renderAll();
+
         if (dt_keyboard.count() >= 50) {
             for (auto& pair: key_states_)
                 pair.second = false;
@@ -319,6 +322,8 @@ void Chip8::PressKey() {
         else if (ch == esc_key) state_ = STATE_STOPPED;
         else if (ch == 'S') state_ = STATE_STEPPING;
         else if (ch == 'R') state_ = STATE_RUNNING;
+        else if (ch == ']') freq_ += 50;
+        else if (ch == '[' && freq_ > 50) freq_ -= 50;
         key_states_[keyboard2keypad_[ch]] = true;
     }
 }
@@ -379,7 +384,8 @@ void Chip8::renderAll() {
     Frontend::WritePC(pixels, m_PC);
     Frontend::WriteSP(pixels, m_SP);
     Frontend::WriteStack(pixels, m_stack);
-    Frontend::WriteRight(pixels, 9, "[P]ause/Uppause [S]tep [Esc]ape\n");
+    Frontend::WriteRight(pixels, 9, "[P]ause/Unpause [S]tep [Esc]ape\n");
+    Frontend::WriteRight(pixels, 10, "[-] " + std::to_string(freq_) + " Hz [+]\n");
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }
