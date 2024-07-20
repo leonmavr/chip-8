@@ -16,17 +16,17 @@
  * Tweaked by project's author.
  */
 
-static bool isWhitespaceOnly(const std::string& str) {
+static bool IsWhitespaceOnly(const std::string& str) {
     return std::all_of(str.begin(), str.end(), [](unsigned char ch) {
         return std::isspace(ch);
     });
 }
 
-ConfigParser::ConfigParser(const std::string& filename) : frequency_(0) {
-    parseConfigFile(filename);
+CfgParser::CfgParser(const std::string& filename) : frequency_(0) {
+    ParseConfigFile(filename);
 }
 
-void ConfigParser::parseConfigFile(const std::string& filename) {
+void CfgParser::ParseConfigFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open config file: " + filename);
@@ -38,7 +38,7 @@ void ConfigParser::parseConfigFile(const std::string& filename) {
         line.erase(line.begin(), std::find_if(line.begin(), line.end(),
             [](unsigned char ch) { return !std::isspace(ch); }));
 
-        if (line.empty() || line[0] == '#' || isWhitespaceOnly(line))
+        if (line.empty() || line[0] == '#' || IsWhitespaceOnly(line))
             continue;
 
         std::istringstream iss(line);
@@ -53,7 +53,7 @@ void ConfigParser::parseConfigFile(const std::string& filename) {
                 uint8_t hexValue = static_cast<uint8_t>(std::stoi(value, nullptr, 16));
                 key_map_[keyChar] = hexValue;
             } 
-        }  else {
+        } else {
             try {
                 frequency_ = std::stoi(line); // Attempt to convert the string to an integer
             } catch (const std::invalid_argument& e) {
@@ -63,4 +63,3 @@ void ConfigParser::parseConfigFile(const std::string& filename) {
     }
     file.close();
 }
-
