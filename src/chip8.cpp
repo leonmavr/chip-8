@@ -379,6 +379,7 @@ void Chip8::renderAll() {
     Frontend::WritePC(pixels, m_PC);
     Frontend::WriteSP(pixels, m_SP);
     Frontend::WriteStack(pixels, m_stack);
+    Frontend::WriteRight(pixels, 9, "[P]ause/Uppause [S]tep [Esc]ape\n");
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }
