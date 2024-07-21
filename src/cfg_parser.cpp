@@ -22,7 +22,7 @@ static bool IsWhitespaceOnly(const std::string& str) {
     });
 }
 
-CfgParser::CfgParser(const std::string& filename) : frequency_(0) {
+CfgParser::CfgParser(const std::string& filename) : frequency_(250) {
     ParseConfigFile(filename);
 }
 

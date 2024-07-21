@@ -322,8 +322,8 @@ void Chip8::PressKey() {
         else if (ch == esc_key) state_ = STATE_STOPPED;
         else if (ch == 'S') state_ = STATE_STEPPING;
         else if (ch == 'R') state_ = STATE_RUNNING;
-        else if (ch == ']') freq_ += 50;
-        else if (ch == '[' && freq_ > 50) freq_ -= 50;
+        else if (ch == '+') freq_ += 50;
+        else if (ch == '-' && freq_ > 50) freq_ -= 50;
         key_states_[keyboard2keypad_[ch]] = true;
     }
 }
@@ -384,7 +384,7 @@ void Chip8::renderAll() {
     Frontend::WritePC(pixels, m_PC);
     Frontend::WriteSP(pixels, m_SP);
     Frontend::WriteStack(pixels, m_stack);
-    Frontend::WriteRight(pixels, 9, "[P]ause/Unpause [S]tep [Esc]ape\n");
+    Frontend::WriteRight(pixels, 9, "[P]ause/Unpause [R]un [S]tep [Esc]ape\n");
     Frontend::WriteRight(pixels, 10, "[-] " + std::to_string(freq_) + " Hz [+]\n");
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(1000));
