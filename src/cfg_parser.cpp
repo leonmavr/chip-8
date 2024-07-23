@@ -23,14 +23,16 @@ static bool IsWhitespaceOnly(const std::string& str) {
     });
 }
 
-CfgParser::CfgParser(const std::string& filename) : frequency_(250) {
+CfgParser::CfgParser(const std::string& filename) : frequency_(250), cfg_file_found_(false) {
     ParseConfigFile(filename);
 }
 
 void CfgParser::ParseConfigFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open config file: " + filename);
+        cfg_file_found_ = false;
+        key_map_[""] = ""; 
+        return;
     }
 
     std::string line;

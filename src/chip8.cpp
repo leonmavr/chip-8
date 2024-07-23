@@ -14,6 +14,7 @@
 #include "logger.hpp" 
 #include "term.h" 
 #include "frontend.hpp" 
+#include "cfg_parser.hpp" 
 
 
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
@@ -49,6 +50,12 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
     // write to memory - adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
     for(std::ifstream f(filename, std::ios::binary); f.good();) 
         m_mem[offset++ & 0xFFF] = f.get();
+    // load config parser
+    size_t last_dot = std::string(filename).find_last_of(".");
+    std::string cfg_filename = std::string(filename).substr(0, last_dot) + ".cfg" ;
+    std::cout << cfg_filename << std::endl;
+    cfg_parser_ = std::make_unique<CfgParser>(cfg_filename);
+    freq_ = cfg_parser_->GetFrequency();
 }
 
 
@@ -61,8 +68,6 @@ uint8_t Chip8::rand() {
 
 
 uint16_t Chip8::fetch() {
-    // TODO: remove assert when everything is ok
-    //assert(m_PC < 0x1000);
     uint16_t instr = m_mem[m_PC] << 8;
     instr |= m_mem[m_PC + 1];
     return instr;
@@ -258,7 +263,7 @@ Chip8::~Chip8 () {
     run_timers_ = false;
     if (timer_thread_.joinable())
         timer_thread_.join();
-    ResetBlockingInput;
+    ResetBlockingInput();
 };
 
 void Chip8::init() {
@@ -371,7 +376,7 @@ void Chip8::renderAll() {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            pixels_[index] != 0 ? line[col] = 24 : line[col] = 32;
+            pixels_[index] != 0 ? line[col] = 24 : line[col] = ' ';
         }
         std::string pixel_row(line.begin(), line.end());
         const std::string border_left_right = "|";
@@ -384,8 +389,15 @@ void Chip8::renderAll() {
     Frontend::WritePC(pixels, m_PC);
     Frontend::WriteSP(pixels, m_SP);
     Frontend::WriteStack(pixels, m_stack);
-    Frontend::WriteRight(pixels, 9, "[P]ause/Unpause [R]un [S]tep [Esc]ape\n");
+    Frontend::WriteRight(pixels, 9, "[P]ause/Unpause [S]tep [R]un [Esc]ape\n");
     Frontend::WriteRight(pixels, 10, "[-] " + std::to_string(freq_) + " Hz [+]\n");
+    int i = 11;
+    for (const auto& key_descr: cfg_parser_->GetKeyMap()) {
+        std::string key = key_descr.first;
+        std::string descr = key_descr.second;
+        if (key != "")
+            Frontend::WriteRight(pixels, i++, "[" + key + "] " + descr + "\n");
+    }
     std::cout << pixels << std::endl;
     std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }

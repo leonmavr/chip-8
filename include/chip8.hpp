@@ -1,6 +1,7 @@
 #ifndef CHIP8_HPP
 #define CHIP8_HPP 
 
+#include "cfg_parser.hpp"
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -109,6 +110,7 @@ class Chip8 {
         void UpdateTimers();
         
         unsigned state_;
+        std::unique_ptr<CfgParser> cfg_parser_;
 };
 
 #endif /* CHIP8_HPP */

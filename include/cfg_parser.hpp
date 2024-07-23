@@ -1,6 +1,7 @@
 #ifndef CFG_PARSER_HPP
 #define CFG_PARSER_HPP
 
+#include "cfg_parser.hpp"
 #include <string>
 #include <map>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <unordered_map>
+#include <memory>
 
 /*
  * Description:
@@ -39,6 +41,7 @@ private:
             {0x6, "e"}, {0xD, "r"}, {0x7, "a"}, {0x8, "s"}, {0x9, "d"}, {0xE, "f"},
             {0xA, "z"}, {0x0, "x"}, {0xB, "c"}, {0xF, "v"}
         };
+    bool cfg_file_found_;
 };
 
 #endif // CFG_PARSER_HPP
