@@ -23,7 +23,7 @@ static bool IsWhitespaceOnly(const std::string& str) {
     });
 }
 
-CfgParser::CfgParser(const std::string& filename) : frequency_(250), cfg_file_found_(false) {
+CfgParser::CfgParser(const std::string& filename) : frequency_(250), cfg_file_found_(true) {
     ParseConfigFile(filename);
 }
 
@@ -31,7 +31,6 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         cfg_file_found_ = false;
-        key_map_[""] = ""; 
         return;
     }
 
@@ -48,6 +47,7 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
         std::string value;
         std::unordered_map<std::string, std::string> keymap;
         if (std::getline(iss, key, ':') && std::getline(iss, value)) {
+            // TODO: erase only beginning and end
             key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
             value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
             uint8_t hex_key = static_cast<uint8_t>(std::stoi(key.substr(2), nullptr, 16));

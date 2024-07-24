@@ -77,7 +77,7 @@ class Chip8 {
 
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
         unsigned freq_;
-        int every_100_ms = static_cast<int>(0.1*freq_);
+        int throttle_period_ms_ = static_cast<int>(0.1*freq_);
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
