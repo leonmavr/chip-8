@@ -255,7 +255,8 @@ static void ResetBlockingInput() {
     // Restore the original terminal settings
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
     // Reset blocking mode
-    //fcntl(STDIN_FILENO, F_SETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, 0);
+    TPRINT_SHOW_CURSOR();
 }
 
 
@@ -368,6 +369,7 @@ void Chip8::cls() {
 }
 
 void Chip8::renderAll() {
+    // display pixels
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     std::string border_up_down = "+" + std::string(64, '-') + "+\n";
@@ -384,6 +386,7 @@ void Chip8::renderAll() {
         pixels += "\n";
     }
     pixels += border_up_down;
+    // debugger and keyboard controls
     Frontend::WriteRegs(pixels, m_V);
     Frontend::WriteI(pixels, m_I);
     Frontend::WritePC(pixels, m_PC);
@@ -395,11 +398,10 @@ void Chip8::renderAll() {
     for (const auto& key_descr: cfg_parser_->GetKeyMap()) {
         std::string key = key_descr.first;
         std::string descr = key_descr.second;
-        if (key != "")
-            Frontend::WriteRight(pixels, i++, "[" + key + "] " + descr + "\n");
+        Frontend::WriteRight(pixels, i++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(1000));
+    std::this_thread::sleep_for(std::chrono::microseconds(1250));
 }
 
 void Chip8::UpdateTimers() {
