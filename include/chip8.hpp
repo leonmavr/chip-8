@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <thread>
+#include <mutex>
 #include <array>
 #include <cstdint>
 #include <unordered_map>
@@ -76,8 +78,9 @@ class Chip8 {
         void init();								// initialises memory, registers, and configs
 
         const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
+        /* frequency - i.e. how many instructions cycles the machine can run her second */
         unsigned freq_;
-        int throttle_period_ms_ = static_cast<int>(0.1*freq_);
+        int throttle_period_ms_ = 100; //static_cast<int>(0.1*freq_);
         const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
         const bool m_mute;							// config flag; if true; run on mute
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
@@ -106,6 +109,9 @@ class Chip8 {
         std::atomic<uint8_t> sound_timer_;
         std::atomic<bool> run_timers_;
         std::thread timer_thread_;
+        std::mutex key_states_mutex_;
+        std::thread key_thread_;
+        bool stop_key_thread_ = false;
 
         void UpdateTimers();
         

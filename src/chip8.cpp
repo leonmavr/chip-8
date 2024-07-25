@@ -6,7 +6,7 @@
 #include <chrono>
 #include <termios.h>
 #include <thread>
-#include <thread>
+#include <mutex>
 #include <termios.h>
 #include <fcntl.h>
 #include "chip8.hpp" 
@@ -35,6 +35,7 @@ Chip8::Chip8(std::string fnameIni):
 {
     // init display
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
+    key_thread_ = std::thread(&Chip8::PressKey, this);
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
@@ -182,12 +183,10 @@ void Chip8::run(unsigned startingOffset) {
     std::chrono::high_resolution_clock::time_point t_start, t_end;
 
     m_PC = startingOffset;
-    // the trick to stop the loop is when 2 consecutive bytes of free space (0xff) are encountered
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     auto t_throttle_start = std::chrono::high_resolution_clock::now();
 
     while (1) {
-        PressKey();
         throttle_period_ms_ = static_cast<int>(0.1*freq_);
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -209,7 +208,6 @@ void Chip8::run(unsigned startingOffset) {
             break;
         }
 
-        // fetch-decode-exec defines the operation of Chip8
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
 
@@ -219,25 +217,31 @@ void Chip8::run(unsigned startingOffset) {
         Chip8::exec(opc);
         renderAll();
 
+#if 0
         if ((execInsrPerSec % throttle_period_ms_) == 0) {
             auto t_throttle_end = std::chrono::high_resolution_clock::now();
             auto dt_throttle = std::chrono::duration_cast<std::chrono::milliseconds>(t_throttle_end - t_throttle_start);
-            const unsigned max_throttle_time_ms = 10000/freq_;
+            const unsigned max_throttle_time_ms = 10000 / freq_;
             if (dt_throttle.count() < max_throttle_time_ms) {
-                std::this_thread::sleep_for(std::chrono::microseconds(max_throttle_time_ms - 1000*dt_throttle.count()));
+                std::this_thread::sleep_for(std::chrono::microseconds(max_throttle_time_ms - 1000 * dt_throttle.count()));
                 t_throttle_start = std::chrono::high_resolution_clock::now();
             }
-                
         }
-        if (dt_keyboard_ms.count() >= 25) {
-            for (auto& pair: key_states_)
+#endif
+
+        if (dt_keyboard_ms.count() >= 100) {
+            std::lock_guard<std::mutex> lock(key_states_mutex_);
+            for (auto& pair : key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
         }
+
         t_end = std::chrono::high_resolution_clock::now();
         execInsrPerSec++;
     }
 }
+
+
 static struct termios orig_termios;
 
 static void SetNonBlockingInput() {
@@ -265,6 +269,10 @@ Chip8::~Chip8 () {
     run_timers_ = false;
     if (timer_thread_.joinable())
         timer_thread_.join();
+    stop_key_thread_ = true;
+    if (key_thread_.joinable())
+        key_thread_.join();
+
     ResetBlockingInput();
 };
 
@@ -311,27 +319,32 @@ void Chip8::init() {
 }
 
 void Chip8::PressKey() {
-    fd_set readfds;
-    FD_ZERO(&readfds);
-    FD_SET(STDIN_FILENO, &readfds);
+    while (!stop_key_thread_) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
 
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 2000;
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 20000;
 
-    int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
-    if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
-        char ch;
-        read(STDIN_FILENO, &ch, 1);
-        constexpr char esc_key = 27;
-        if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
-        else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
-        else if (ch == esc_key) state_ = STATE_STOPPED;
-        else if (ch == 'S') state_ = STATE_STEPPING;
-        else if (ch == 'R') state_ = STATE_RUNNING;
-        else if (ch == '+' && freq_ < 2000) freq_ += 50;
-        else if (ch == '-' && freq_ > 50) freq_ -= 50;
-        key_states_[keyboard2keypad_[ch]] = true;
+        int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+        if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+            char ch;
+            read(STDIN_FILENO, &ch, 1);
+            constexpr char esc_key = 27;
+            {
+                std::lock_guard<std::mutex> lock(key_states_mutex_);
+                if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
+                else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
+                else if (ch == esc_key) state_ = STATE_STOPPED;
+                else if (ch == 'S') state_ = STATE_STEPPING;
+                else if (ch == 'R') state_ = STATE_RUNNING;
+                else if (ch == '+' && freq_ < 2000) freq_ += 50;
+                else if (ch == '-' && freq_ > 50) freq_ -= 50;
+                key_states_[keyboard2keypad_[ch]] = true;
+            }
+        }
     }
 }
 
@@ -402,7 +415,7 @@ void Chip8::renderAll() {
         Frontend::WriteRight(pixels, i++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(750));
+    std::this_thread::sleep_for(std::chrono::microseconds(1500));
 }
 
 void Chip8::UpdateTimers() {
