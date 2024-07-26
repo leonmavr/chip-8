@@ -44,7 +44,7 @@ namespace Frontend {
 
     std::string WritePC(std::string& input, uint16_t PC) {
         std::stringstream ss;
-        ss << std::hex << "PC: " << std::setw(4) << std::setfill('0') << std::uppercase << (int)PC << std::endl;
+        ss << std::hex << "PC: " << std::setw(3) << std::setfill('0') << std::uppercase << (int)PC << std::endl;
         WriteRight(input, 5, ss.str());
         return input;
     }
@@ -52,17 +52,17 @@ namespace Frontend {
     std::string WriteStack(std::string& input, std::array<uint16_t, 12>& stack) {
         std::stringstream ss;
         WriteRight(input, 6, "Stack[0-3]:\n");
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[0] << " ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[1] << " ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[2] << " ";
-        ss << std::hex << std::setw(4) << std::setfill('0') << std::uppercase << (int) stack[3] << std::endl;
+        ss << std::hex << std::setw(3) << std::setfill('0') << std::uppercase << (int) stack[0] << " ";
+        ss << std::hex << std::setw(3) << std::setfill('0') << std::uppercase << (int) stack[1] << " ";
+        ss << std::hex << std::setw(3) << std::setfill('0') << std::uppercase << (int) stack[2] << " ";
+        ss << std::hex << std::setw(3) << std::setfill('0') << std::uppercase << (int) stack[3] << std::endl;
         WriteRight(input, 7, ss.str());
         return "";
     }
 
     std::string WriteSP(std::string& input, uint16_t SP) {
         std::stringstream ss;
-        ss << std::hex << "SP: " << std::setw(4) << std::setfill('0') << std::uppercase << (int)SP << std::endl;
+        ss << std::hex << "SP: " << std::setw(2) << std::setfill('0') << std::uppercase << (int)SP << std::endl;
         WriteRight(input, 8, ss.str());
         return input;
     }
@@ -70,7 +70,7 @@ namespace Frontend {
 
     std::string WriteI(std::string& input, uint16_t I) {
         std::stringstream ss;
-        ss << std::hex << "I:  " << std::setw(4) << std::setfill('0') <<std::uppercase << (int)I << std::endl;
+        ss << std::hex << "I:  " << std::setw(3) << std::setfill('0') <<std::uppercase << (int)I << std::endl;
         WriteRight(input, 4, ss.str());
         return input;
     }
