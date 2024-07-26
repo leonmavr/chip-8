@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <thread>
 #include <mutex>
+#include <chrono>
 #include <termios.h>
 #include <fcntl.h>
 #include "chip8.hpp" 
@@ -18,7 +19,7 @@
 
 
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
-static unsigned execInsrPerSec = 0;
+static unsigned instr_per_50ms = 0;
 
 
 Chip8::Chip8(std::string fnameIni):
@@ -180,16 +181,29 @@ PC += 2;
 static unsigned orig_state;
 
 void Chip8::run(unsigned startingOffset) {
-    std::chrono::high_resolution_clock::time_point t_start, t_end;
-
+    //std::chrono::high_resolution_clock::time_point t_start, t_end;
+    // TODO: move this to ctor
     m_PC = startingOffset;
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     auto t_throttle_start = std::chrono::high_resolution_clock::now();
+    // get current time in ms
+    auto now_ms = []() -> unsigned {
+        auto now = std::chrono::system_clock::now();
+        auto since_epoch = now.time_since_epoch();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch).count();
+    };
+    // sleep for some ms
+    auto sleep_ms = [](unsigned ms) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    };
+    // t0 and t1 enforce the loop to cycle at frequency `freq_`
+    unsigned t0 = now_ms(), t1 = now_ms();
 
     while (1) {
-        throttle_period_ms_ = static_cast<int>(0.1*freq_);
+        //throttle_period_ms_ = static_cast<int>(0.1*freq_);
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            renderAll();
             continue;    
         } else if (state_ == STATE_STEPPING) {
             char ch = '\0';
@@ -210,24 +224,12 @@ void Chip8::run(unsigned startingOffset) {
 
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
+        Chip8::exec(opc);
+        renderAll();
 
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
 
-        Chip8::exec(opc);
-        renderAll();
-
-#if 0
-        if ((execInsrPerSec % throttle_period_ms_) == 0) {
-            auto t_throttle_end = std::chrono::high_resolution_clock::now();
-            auto dt_throttle = std::chrono::duration_cast<std::chrono::milliseconds>(t_throttle_end - t_throttle_start);
-            const unsigned max_throttle_time_ms = 10000 / freq_;
-            if (dt_throttle.count() < max_throttle_time_ms) {
-                std::this_thread::sleep_for(std::chrono::microseconds(max_throttle_time_ms - 1000 * dt_throttle.count()));
-                t_throttle_start = std::chrono::high_resolution_clock::now();
-            }
-        }
-#endif
 
         if (dt_keyboard_ms.count() >= 100) {
             std::lock_guard<std::mutex> lock(key_states_mutex_);
@@ -235,9 +237,12 @@ void Chip8::run(unsigned startingOffset) {
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
         }
-
-        t_end = std::chrono::high_resolution_clock::now();
-        execInsrPerSec++;
+        if (instr_per_50ms++ % (freq_/20) == 0) {
+            t1 = now_ms();
+            if (t1 - t0 < 50)
+                sleep_ms(50 - (t1 - t0));
+            t0 = t1;
+        }
     }
 }
 
@@ -272,7 +277,6 @@ Chip8::~Chip8 () {
     stop_key_thread_ = true;
     if (key_thread_.joinable())
         key_thread_.join();
-
     ResetBlockingInput();
 };
 
@@ -326,7 +330,7 @@ void Chip8::PressKey() {
 
         struct timeval timeout;
         timeout.tv_sec = 0;
-        timeout.tv_usec = 20000;
+        timeout.tv_usec = 40000;
 
         int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
@@ -415,7 +419,7 @@ void Chip8::renderAll() {
         Frontend::WriteRight(pixels, i++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(1500));
+    std::this_thread::sleep_for(std::chrono::microseconds(1600));
 }
 
 void Chip8::UpdateTimers() {
