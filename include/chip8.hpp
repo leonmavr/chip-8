@@ -117,6 +117,7 @@ class Chip8 {
         
         unsigned state_;
         std::unique_ptr<CfgParser> cfg_parser_;
+        char SteppingKey();
 };
 
 #endif /* CHIP8_HPP */

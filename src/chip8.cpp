@@ -21,6 +21,28 @@
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
 static unsigned instr_per_50ms = 0;
 
+char Chip8::SteppingKey() {
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 1500;
+
+    int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    char ch = '\0';
+    if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
+        read(STDIN_FILENO, &ch, 1);
+        constexpr char esc = 27;
+        if (ch == 'S') state_ = STATE_STEPPING;
+        else if (ch == 'R') state_ = STATE_RUNNING;
+        else if (ch == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
+        else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
+        else if (ch == 27) state_ = STATE_STOPPED;
+    }
+    return ch;
+}
 
 Chip8::Chip8(std::string fnameIni):
     m_instrPerSec(1000),
@@ -201,22 +223,26 @@ void Chip8::run(unsigned startingOffset) {
 
     while (1) {
         //throttle_period_ms_ = static_cast<int>(0.1*freq_);
+        //SteppingKey();
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             renderAll();
             continue;    
         } else if (state_ == STATE_STEPPING) {
             char ch = '\0';
-            while (ch != 'S' && ch != 'R') {
-                ch = getchar();
+            while (ch != 'S' && ch != 'R' && ch != 'P') {
+                ch = SteppingKey();
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 if (ch == 'P') {
                     state_ = STATE_PAUSED;
                     break;
+                } else if (ch == 'R') {
+                    state_ = STATE_RUNNING;
+                    break;
+                } else if (ch == 27) {
+                    state_ = STATE_STOPPED;
+                    break;
                 }
-            }
-            if (ch == 'R') {
-                state_ = STATE_RUNNING;
             }
         } else if (state_ == STATE_STOPPED) {
             break;
@@ -336,15 +362,20 @@ void Chip8::PressKey() {
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
             char ch;
             read(STDIN_FILENO, &ch, 1);
-            constexpr char esc_key = 27;
+            //constexpr char esc_key = 27;
             {
                 std::lock_guard<std::mutex> lock(key_states_mutex_);
-                if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
-                else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
-                else if (ch == esc_key) state_ = STATE_STOPPED;
-                else if (ch == 'S') state_ = STATE_STEPPING;
+                if (ch == 'S') state_ = STATE_STEPPING;
                 else if (ch == 'R') state_ = STATE_RUNNING;
-                else if (ch == '+' && freq_ < 2000) freq_ += 50;
+                else if (ch == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
+                else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
+                else if (ch == 27) state_ = STATE_STOPPED;
+                //if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
+                //else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
+                //else if (ch == esc_key) state_ = STATE_STOPPED;
+                //else if (ch == 'S') state_ = STATE_STEPPING;
+                //else if (ch == 'R') state_ = STATE_RUNNING;
+                if (ch == '+' && freq_ < 2000) freq_ += 50;
                 else if (ch == '-' && freq_ > 50) freq_ -= 50;
                 key_states_[keyboard2keypad_[ch]] = true;
             }
@@ -352,23 +383,6 @@ void Chip8::PressKey() {
     }
 }
 
-static char SteppingKey() {
-    fd_set readfds;
-    FD_ZERO(&readfds);
-    FD_SET(STDIN_FILENO, &readfds);
-
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 1000;
-
-    int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
-    char ch = '0';
-    while (ch != 'S') {
-        if (success >= 0 && FD_ISSET(STDIN_FILENO, &readfds))
-            read(STDIN_FILENO, &ch, 1);
-    }
-    return ch;
-}
 
 uint8_t Chip8::WaitForKey() {
     char ch;
