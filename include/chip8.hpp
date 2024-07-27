@@ -7,6 +7,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <array>
 #include <cstdint>
 #include <unordered_map>
@@ -115,7 +116,7 @@ class Chip8 {
 
         void UpdateTimers();
         
-        unsigned state_;
+        std::atomic<int> state_;
         std::unique_ptr<CfgParser> cfg_parser_;
         char SteppingKey();
         char kbd_pressed_key_;
