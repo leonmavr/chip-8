@@ -347,7 +347,8 @@ void Chip8::PressKey() {
                 else if (kbd_pressed_key_ == KEY_ESC) state_ = STATE_STOPPED;
                 else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
                 else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
-                key_states_[keyboard2keypad_[kbd_pressed_key_]] = true;
+                if (keyboard2keypad_.find(kbd_pressed_key_) != keyboard2keypad_.end())
+                    key_states_[keyboard2keypad_[kbd_pressed_key_]] = true;
             }
         }
     }
