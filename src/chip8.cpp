@@ -17,32 +17,11 @@
 #include "frontend.hpp" 
 #include "cfg_parser.hpp" 
 
+#define KEY_ESC 27
+
 
 // helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
 static unsigned instr_per_50ms = 0;
-
-char Chip8::SteppingKey() {
-    fd_set readfds;
-    FD_ZERO(&readfds);
-    FD_SET(STDIN_FILENO, &readfds);
-
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 1500;
-
-    int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
-    char ch = '\0';
-    if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
-        read(STDIN_FILENO, &ch, 1);
-        constexpr char esc = 27;
-        if (ch == 'S') state_ = STATE_STEPPING;
-        else if (ch == 'R') state_ = STATE_RUNNING;
-        else if (ch == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
-        else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
-        else if (ch == 27) state_ = STATE_STOPPED;
-    }
-    return ch;
-}
 
 Chip8::Chip8(std::string fnameIni):
     m_instrPerSec(1000),
@@ -54,7 +33,8 @@ Chip8::Chip8(std::string fnameIni):
     sound_timer_(0x00),
     run_timers_(true),
     state_(STATE_RUNNING),
-    freq_(250)
+    freq_(250),
+    kbd_pressed_key_('\0')
 {
     // init display
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
@@ -222,24 +202,21 @@ void Chip8::run(unsigned startingOffset) {
     unsigned t0 = now_ms(), t1 = now_ms();
 
     while (1) {
-        //throttle_period_ms_ = static_cast<int>(0.1*freq_);
-        //SteppingKey();
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             renderAll();
             continue;    
         } else if (state_ == STATE_STEPPING) {
-            char ch = '\0';
-            while (ch != 'S' && ch != 'R' && ch != 'P') {
-                ch = SteppingKey();
+            kbd_pressed_key_ = '\0';
+            while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P') {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                if (ch == 'P') {
+                if (kbd_pressed_key_ == 'P') {
                     state_ = STATE_PAUSED;
                     break;
-                } else if (ch == 'R') {
+                } else if (kbd_pressed_key_ == 'R') {
                     state_ = STATE_RUNNING;
                     break;
-                } else if (ch == 27) {
+                } else if (kbd_pressed_key_ == KEY_ESC) {
                     state_ = STATE_STOPPED;
                     break;
                 }
@@ -360,24 +337,17 @@ void Chip8::PressKey() {
 
         int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
-            char ch;
-            read(STDIN_FILENO, &ch, 1);
-            //constexpr char esc_key = 27;
+            read(STDIN_FILENO, &kbd_pressed_key_, 1);
             {
                 std::lock_guard<std::mutex> lock(key_states_mutex_);
-                if (ch == 'S') state_ = STATE_STEPPING;
-                else if (ch == 'R') state_ = STATE_RUNNING;
-                else if (ch == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
-                else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
-                else if (ch == 27) state_ = STATE_STOPPED;
-                //if (ch == 'P' && state_ == STATE_RUNNING) state_ = STATE_PAUSED;
-                //else if (ch == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
-                //else if (ch == esc_key) state_ = STATE_STOPPED;
-                //else if (ch == 'S') state_ = STATE_STEPPING;
-                //else if (ch == 'R') state_ = STATE_RUNNING;
-                if (ch == '+' && freq_ < 2000) freq_ += 50;
-                else if (ch == '-' && freq_ > 50) freq_ -= 50;
-                key_states_[keyboard2keypad_[ch]] = true;
+                if (kbd_pressed_key_ == 'S') state_ = STATE_STEPPING;
+                else if (kbd_pressed_key_ == 'R') state_ = STATE_RUNNING;
+                else if (kbd_pressed_key_ == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
+                else if (kbd_pressed_key_ == 'P' && state_ == STATE_PAUSED) state_ = STATE_RUNNING;
+                else if (kbd_pressed_key_ == KEY_ESC) state_ = STATE_STOPPED;
+                else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
+                else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
+                key_states_[keyboard2keypad_[kbd_pressed_key_]] = true;
             }
         }
     }
