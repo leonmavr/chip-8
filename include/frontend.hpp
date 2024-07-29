@@ -34,7 +34,7 @@ namespace Frontend {
             std::stringstream ss;
             ss << std::uppercase <<
                 "V" << std::hex << i+0 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+0] << " " <<
-                "V" << std::hex << i+1 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+1] << " " <<
+                "V" << std::hex << i+1 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+1] << "    " <<
                 "V" << std::hex << i+2 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+2] << " " <<
                 "V" << std::hex << i+3 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+3] << std::endl; 
             WriteRight(input, i/4, ss.str());
