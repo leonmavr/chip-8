@@ -23,6 +23,13 @@ static bool IsWhitespaceOnly(const std::string& str) {
     });
 }
 
+static void Trim(std::string &key) {
+    // Remove spaces from the beginning and from the end
+    key.erase(key.begin(), std::find_if_not(key.begin(), key.end(), ::isspace));
+    key.erase(std::find_if_not(key.rbegin(), key.rend(), ::isspace).base(), key.end());
+}
+
+
 CfgParser::CfgParser(const std::string& filename) : frequency_(250), cfg_file_found_(true) {
     ParseConfigFile(filename);
 }
@@ -47,9 +54,8 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
         std::string value;
         std::unordered_map<std::string, std::string> keymap;
         if (std::getline(iss, key, ':') && std::getline(iss, value)) {
-            // TODO: erase only beginning and end
-            key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-            value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+            Trim(key);
+            Trim(value);
             uint8_t hex_key = static_cast<uint8_t>(std::stoi(key.substr(2), nullptr, 16));
             key_map_[keyboard2keypad_[hex_key]] = value;
         } else {
