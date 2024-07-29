@@ -126,9 +126,9 @@ void Chip8::exec(opcode_t opc) {
     X("XOR Vx Vy", prefix == 0x8 && n == 0x3, Vx ^= Vy;) \
     X("ADD Vx Vy", prefix == 0x8 && n == 0x4, Vf = (Vx & 0x80) & (Vy & 0x80); Vx += Vy;) \
     X("SUB Vx Vy", prefix == 0x8 && n == 0x5, Vf = (Vx > Vy) ? 1 : 0; Vx -= Vy;) \
-    X("SHR Vx Vy", prefix == 0x8 && n == 0x6, Vf = Vx & 1; Vx = Vy >>= 1;) \
-    X("SUBN Vx Vy", prefix == 0x8 && n == 0x7, Vf = (Vy > Vx) ? 1 : 0; Vx = Vy - Vx;) \
-    X("SHL Vx Vy", prefix == 0x8 && n == 0xe, Vf = (Vy >> 7) & 0x1; Vx = Vy << 1;) \
+    X("SHR Vx Vy", prefix == 0x8 && n == 0x6, Vf = Vx & 1; Vx >>= 1;) \
+    X("SUBN Vx Vy", prefix == 0x8 && n == 0x7, Vf = (Vx > Vx) ? 1 : 0; Vx = Vy - Vx;) \
+    X("SHL Vx Vy", prefix == 0x8 && n == 0xe, Vf = (Vx >> 7) & 0x1; Vx <<= 1;) \
     X("SNE Vx Vy", prefix == 0x9 && Vx != Vy, PC += 2;) \
     X("LD I nnn", prefix == 0xa, I = nnn;) \
     X("JP V0 nnn", prefix == 0xb, PC = nnn + m_V[0] - 2;) \
