@@ -111,71 +111,69 @@ void Chip8::exec(opcode_t opc) {
 
 #define EXEC_INSTRUCTION \
     /* assembly, condition, instruction(s) */ \
-    X("CLS", prefix == 0x0 && nnn == 0x0e0, cls();) \
-    X("RET", prefix == 0x0 && nnn == 0x0ee, PC = m_stack[--m_SP % 12];) \
-    X("JP nnn", prefix == 0x1, PC = nnn - 2;) \
-    X("CALL nnn", prefix == 0x2, m_stack[m_SP++ % 12] = PC; PC = nnn - 2;) \
-    X("SE Vx nn", prefix == 0x3 && nn == Vx, PC += 2;) \
-    X("SNE Vx nn", prefix == 0x4 && nn != Vx, PC += 2;) \
-    X("SE Vx Vy", prefix == 0x5 && Vx == Vy, PC += 2;) \
-    X("LD Vx nn", prefix == 0x6, Vx = nn;) \
-    X("ADD Vx nn", prefix == 0x7, Vx += nn;) \
-    X("LD Vx Vy", prefix == 0x8 && n == 0x0, Vx = Vy;) \
-    X("OR Vx Vy", prefix == 0x8 && n == 0x1, Vx |= Vy;) \
-    X("AND Vx Vy", prefix == 0x8 && n == 0x2, Vx &= Vy;) \
-    X("XOR Vx Vy", prefix == 0x8 && n == 0x3, Vx ^= Vy;) \
-    X("ADD Vx Vy", prefix == 0x8 && n == 0x4, Vf = (Vx & 0x80) & (Vy & 0x80); Vx += Vy;) \
-    X("SUB Vx Vy", prefix == 0x8 && n == 0x5, Vf = (Vx > Vy) ? 1 : 0; Vx -= Vy;) \
-    X("SHR Vx Vy", prefix == 0x8 && n == 0x6, Vf = Vx & 1; Vx >>= 1;) \
-    X("SUBN Vx Vy", prefix == 0x8 && n == 0x7, Vf = (Vx > Vx) ? 1 : 0; Vx = Vy - Vx;) \
-    X("SHL Vx Vy", prefix == 0x8 && n == 0xe, Vf = (Vx >> 7) & 0x1; Vx <<= 1;) \
-    X("SNE Vx Vy", prefix == 0x9 && Vx != Vy, PC += 2;) \
-    X("LD I nnn", prefix == 0xa, I = nnn;) \
-    X("JP V0 nnn", prefix == 0xb, PC = nnn + m_V[0] - 2;) \
-    X("RND Vx nn", prefix == 0xc, Vx = rand() & nn;) \
-    X("DRW Vx Vy n", prefix == 0xd, \
-        do { \
-            Vf = 0;\
-            for (uint8_t row = 0; row < n; row++) {\
-                uint8_t sprite = m_mem[I + row];\
-            for (uint8_t col = 0; col < 8; col++) {\
-                if ((sprite & 0x80) != 0) {\
-                    size_t x = (Vx + col) % COLS;\
-                    size_t y = (Vy + row) % ROWS;\
-                    size_t index = y * COLS + x;\
-                    if (pixels_[index] == 1)\
-                        Vf = 1;\
-                    pixels_[index] ^= 1;\
-                }\
-                sprite <<= 1;\
-            }\
-        }\
-    } while(0); ) \
-X("SKP Vx", prefix == 0xe && nn == 0x9e, if (key_states_[Vx & 0xF]) PC += 2;) \
-X("SKNP Vx", prefix == 0xe && nn == 0xa1, if (!key_states_[Vx & 0xF]) PC += 2;) \
-X("LD Vx DT", prefix == 0xf && nn == 0x07, Vx = delay_timer_;) \
-X("LD Vx k", prefix == 0xf && nn == 0x0a, Vx = WaitForKey();) \
-X("LD DT Vx", prefix == 0xf && nn == 0x15, delay_timer_ = Vx;) \
-X("LD ST Vx", prefix == 0xf && nn == 0x18, sound_timer_ = Vx;) \
-X("ADD I Vx", prefix == 0xf && nn == 0x1e, Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
-X("LD F Vx", prefix == 0xf && nn == 0x29, I = Vx * 5;) \
-X("LD B Vx", prefix == 0xf && nn == 0x33, \
+    X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , cls();) \
+    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = m_stack[--m_SP];) \
+    X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
+    X("CALL nnn"   , prefix == 0x2                 , m_stack[m_SP++] = PC; PC = nnn - 2;) \
+    X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;) \
+    X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;) \
+    X("SE Vx Vy"   , prefix == 0x5 && Vx == Vy     , PC += 2;) \
+    X("LD Vx nn"   , prefix == 0x6                 , Vx = nn;) \
+    X("ADD Vx nn"  , prefix == 0x7                 , Vx += nn;) \
+    X("LD Vx Vy"   , prefix == 0x8 && n == 0x0     , Vx = Vy;) \
+    X("OR Vx Vy"   , prefix == 0x8 && n == 0x1     , Vx |= Vy;) \
+    X("AND Vx Vy"  , prefix == 0x8 && n == 0x2     , Vx &= Vy;) \
+    X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;) \
+    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , Vf = ((Vx & 0x80) >> 7) & ((Vy & 0x80) >> 7); Vx += Vy;) \
+    X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = (Vx > Vy) ? 1 : 0; Vx -= Vy;) \
+    X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 1; Vx >>= 1;) \
+    X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = (Vy > Vx) ? 1 : 0; Vx = Vy - Vx;) \
+    X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; Vx <<= 1;) \
+    X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
+    X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
+    X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + m_V[0] - 2;) \
+    X("RND Vx nn"  , prefix == 0xc                 , Vx = rand() & nn;) \
+    X("DRW Vx Vy n", prefix == 0xd,                 \
+        do {                                        \
+            Vf = 0;                                 \
+            for (uint8_t row = 0; row < n; row++) { \
+                uint8_t sprite = m_mem[I + row];    \
+            for (uint8_t col = 0; col < 8; col++) { \
+                if ((sprite & 0x80) != 0) {         \
+                    size_t x = (Vx + col) % COLS;   \
+                    size_t y = (Vy + row) % ROWS;   \
+                    size_t index = y * COLS + x;    \
+                    if (pixels_[index] == 1)        \
+                        Vf = 1;                     \
+                    pixels_[index] ^= 1;            \
+                }                                   \
+                sprite <<= 1;                       \
+            }                                       \
+        }                                           \
+    } while(0); )                                   \
+X("SKP Vx"        , prefix == 0xe && nn == 0x9e    , if ( key_states_[Vx & 0xF]) PC += 2;) \
+X("SKNP Vx"       , prefix == 0xe && nn == 0xa1    , if (!key_states_[Vx & 0xF]) PC += 2;) \
+X("LD Vx DT"      , prefix == 0xf && nn == 0x07    , Vx = delay_timer_;) \
+X("LD Vx k"       , prefix == 0xf && nn == 0x0a    , Vx = WaitForKey();) \
+X("LD DT Vx"      , prefix == 0xf && nn == 0x15    , delay_timer_ = Vx;) \
+X("LD ST Vx"      , prefix == 0xf && nn == 0x18    , sound_timer_ = Vx;) \
+X("ADD I Vx"      , prefix == 0xf && nn == 0x1e    , Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
+X("LD F Vx"       , prefix == 0xf && nn == 0x29    , I = Vx * 5;) \
+X("LD B Vx"       , prefix == 0xf && nn == 0x33    , \
     m_mem[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
     m_mem[(I + 1) & 0xfff] = (Vx % 100) / 10; \
     m_mem[(I + 2) & 0xfff] = Vx % 10;) \
-X("LD [I] Vx", prefix == 0xf && nn == 0x55, \
+X("LD [I] Vx"     , prefix == 0xf && nn == 0x55    , \
     for (unsigned xx = 0; xx <= x; xx++) \
         m_mem[I++ & 0xfff] = m_V[xx];) \
-X("LD Vx [I]", prefix == 0xf && nn == 0x65, \
+X("LD Vx [I]"     , prefix == 0xf && nn == 0x65    , \
     for (unsigned xx = 0; xx <= x; xx++) \
-        m_V[xx] = m_mem[I++ & 0xfff];)
+        m_V[xx] = m_mem[I++ & 0xfff];) 
 
 #define X(assembly, condition, instructions) \
 if (condition) \
 { instructions; }
 EXEC_INSTRUCTION
-
-PC += 2;
 
 #undef X
 #undef EXEC_INSTRUCTION
@@ -226,6 +224,7 @@ void Chip8::run(unsigned startingOffset) {
             break;
         }
 
+        m_PC += 2;
         uint16_t instr = fetch();
         opcode_t opc = decode(instr);
         Chip8::exec(opc);
