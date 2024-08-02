@@ -96,7 +96,7 @@ class Chip8 {
         std::thread timer_thread_;
         std::mutex key_states_mutex_;
         std::thread key_thread_;
-        bool stop_key_thread_ = false;
+        bool stop_key_thread_;
 
         void UpdateTimers();
         

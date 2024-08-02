@@ -50,17 +50,20 @@ Chip8::Chip8(std::string fnameIni):
     ram_{},
     regs_{},
     stack_{},
-    SP_{},
-    PC_{},
-    I_{},
+    SP_(0x0),
+    PC_(ROM_OFFSET),
+    I_(0x000),
     pixels_{},
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
+    stop_key_thread_(false),
     state_(STATE_RUNNING),
     freq_(250),
-    kbd_pressed_key_('\0')
+    kbd_pressed_key_('\0'),
+    cfg_parser_(nullptr)
 {
+    // write sprites to memory
     const std::vector<uint8_t> font_sprites = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, /* 0 */ 0x20, 0x60, 0x20, 0x20, 0x70, /* 1 */
         0xF0, 0x10, 0xF0, 0x80, 0xF0, /* 2 */ 0xF0, 0x10, 0xF0, 0x10, 0xF0, /* 3 */
@@ -73,13 +76,12 @@ Chip8::Chip8(std::string fnameIni):
     };
     std::copy(std::begin(font_sprites), std::end(font_sprites), std::begin(ram_));
 
-    SetNonBlockingInput();
     constexpr bool is_pressed = false;
     for (size_t i = 0x0; i < 0xF; ++i)
         key_states_[i] = is_pressed;
-    cfg_parser_ = nullptr;
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
     key_thread_ = std::thread(&Chip8::PressKey, this);
+    SetNonBlockingInput();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
@@ -214,9 +216,6 @@ EXEC_INSTRUCTION
 }
 
 void Chip8::Run(unsigned startingOffset) {
-    //std::chrono::high_resolution_clock::time_point t_start, t_end;
-    // TODO: move this to ctor
-    PC_ = startingOffset;
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     // get current time in ms
     auto now_ms = []() -> unsigned {
