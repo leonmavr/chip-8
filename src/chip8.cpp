@@ -212,7 +212,6 @@ void Chip8::Run(unsigned startingOffset) {
             break;
         }
 
-        PC_ += 2;
         uint16_t instr = Fetch();
         opcode_t opc = Decode(instr);
         Chip8::Exec(opc);
@@ -234,6 +233,7 @@ void Chip8::Run(unsigned startingOffset) {
                 sleep_ms(50 - (t1 - t0));
             t0 = t1;
         }
+        PC_ += 2;
     }
 }
 
