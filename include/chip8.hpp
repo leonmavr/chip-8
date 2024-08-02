@@ -57,18 +57,14 @@ class Chip8 {
 
     private:
         /* define the architecture */
-        std::array<uint8_t, 0x1000> m_mem {};		// Whole memory
-        std::array<uint8_t, 16> m_V {};				// V (general) registers
-        uint8_t m_delayTimer, m_soundTimer;			// timers
-        uint16_t m_SP;								// Stack pointer
-        uint16_t m_PC;								// Program counter
-        uint16_t m_I;								// Index register
-        unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
-        uint8_t m_display[32][64];
+        std::array<uint8_t, 0x1000> ram_ {};		// Whole memory
+        std::array<uint8_t, 16> regs_ {};				// V (general) registers
+        uint16_t SP_;								// Stack pointer
+        uint16_t PC_;								// Program counter
+        uint16_t I_;								// Index register
         std::array<uint8_t, ROWS*COLS> pixels_;
 
-        std::array<uint16_t, 12>m_stack;			// stack
-        std::vector<uint8_t> m_fontset;				// font sprites
+        std::array<uint16_t, 12> stack_;			// stack
         uint8_t Rand();								// Chip8 has a random number generator 
 
         uint16_t Fetch();                           // handles current instruction

@@ -52,7 +52,7 @@ void Chip8::LoadRom(const char* filename, unsigned offset) {
     // write to memory - adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
     // TODO: just use reinterpret cast
     for(std::ifstream f(filename, std::ios::binary); f.good();) 
-        m_mem[offset++ & 0xFFF] = f.get();
+        ram_[offset++ & 0xFFF] = f.get();
     // load config parser
     size_t last_dot = std::string(filename).find_last_of(".");
     std::string cfg_filename = std::string(filename).substr(0, last_dot) + ".cfg" ;
@@ -71,8 +71,8 @@ uint8_t Chip8::Rand() {
 
 
 uint16_t Chip8::Fetch() {
-    uint16_t instr = m_mem[m_PC] << 8;
-    instr |= m_mem[m_PC + 1];
+    uint16_t instr = ram_[PC_] << 8;
+    instr |= ram_[PC_ + 1];
     return instr;
 }
 
@@ -100,19 +100,19 @@ void Chip8::Exec(opcode_t opc) {
     const auto nnn = opc.nnn;
     const auto prefix = opc.prefix;
 
-    auto& Vx = m_V[x];
-    auto& Vy = m_V[y];
+    auto& Vx = regs_[x];
+    auto& Vy = regs_[y];
     /* detects overflow, e.g. in additions */
-    auto& Vf = m_V[0xf];
-    auto& I = m_I;
-    auto& PC = m_PC;
+    auto& Vf = regs_[0xf];
+    auto& I = I_;
+    auto& PC = PC_;
 
 #define EXEC_INSTRUCTION \
     /* assembly, condition, instruction(s) */ \
     X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
-    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = m_stack[--m_SP];) \
+    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = stack_[--SP_];) \
     X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
-    X("CALL nnn"   , prefix == 0x2                 , m_stack[m_SP++] = PC; PC = nnn - 2;) \
+    X("CALL nnn"   , prefix == 0x2                 , stack_[SP_++] = PC; PC = nnn - 2;) \
     X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;) \
     X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;) \
     X("SE Vx Vy"   , prefix == 0x5 && Vx == Vy     , PC += 2;) \
@@ -129,13 +129,13 @@ void Chip8::Exec(opcode_t opc) {
     X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; Vx <<= 1;) \
     X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
-    X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + m_V[0] - 2;) \
+    X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
     X("RND Vx nn"  , prefix == 0xc                 , Vx = Rand() & nn;) \
     X("DRW Vx Vy n", prefix == 0xd,                 \
         do {                                        \
             Vf = 0;                                 \
             for (uint8_t row = 0; row < n; row++) { \
-                uint8_t sprite = m_mem[I + row];    \
+                uint8_t sprite = ram_[I + row];    \
             for (uint8_t col = 0; col < 8; col++) { \
                 if ((sprite & 0x80) != 0) {         \
                     size_t x = (Vx + col) % COLS;   \
@@ -158,15 +158,15 @@ X("LD ST Vx"      , prefix == 0xf && nn == 0x18    , sound_timer_ = Vx;) \
 X("ADD I Vx"      , prefix == 0xf && nn == 0x1e    , Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
 X("LD F Vx"       , prefix == 0xf && nn == 0x29    , I = Vx * 5;) \
 X("LD B Vx"       , prefix == 0xf && nn == 0x33    , \
-    m_mem[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
-    m_mem[(I + 1) & 0xfff] = (Vx % 100) / 10; \
-    m_mem[(I + 2) & 0xfff] = Vx % 10;) \
+    ram_[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
+    ram_[(I + 1) & 0xfff] = (Vx % 100) / 10; \
+    ram_[(I + 2) & 0xfff] = Vx % 10;) \
 X("LD [I] Vx"     , prefix == 0xf && nn == 0x55    , \
     for (unsigned xx = 0; xx <= x; xx++) \
-        m_mem[I++ & 0xfff] = m_V[xx];) \
+        ram_[I++ & 0xfff] = regs_[xx];) \
 X("LD Vx [I]"     , prefix == 0xf && nn == 0x65    , \
     for (unsigned xx = 0; xx <= x; xx++) \
-        m_V[xx] = m_mem[I++ & 0xfff];) 
+        regs_[xx] = ram_[I++ & 0xfff];) 
 
 #define X(assembly, condition, instructions) \
 if (condition) \
@@ -180,7 +180,7 @@ EXEC_INSTRUCTION
 void Chip8::Run(unsigned startingOffset) {
     //std::chrono::high_resolution_clock::time_point t_start, t_end;
     // TODO: move this to ctor
-    m_PC = startingOffset;
+    PC_ = startingOffset;
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     // get current time in ms
     auto now_ms = []() -> unsigned {
@@ -219,7 +219,7 @@ void Chip8::Run(unsigned startingOffset) {
             break;
         }
 
-        m_PC += 2;
+        PC_ += 2;
         uint16_t instr = Fetch();
         opcode_t opc = Decode(instr);
         Chip8::Exec(opc);
@@ -280,17 +280,15 @@ Chip8::~Chip8 () {
 
 void Chip8::Init() {
     // 1. Initialise special registers and memory
-    m_SP = 0x0;
-    m_PC = 0x200;
-    m_I = 0x0;
-    for (auto& m: m_mem)
+    SP_ = 0x0;
+    PC_ = 0x200;
+    I_ = 0x0;
+    for (auto& m: ram_)
         m = 0x0;
-    m_delayTimer = 0x0;
-    m_soundTimer = 0x0;
 
     // 2. Write font sprites to memory (locations 0x0 to 0x4f inclusive)
     // define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
-    std::vector<uint8_t> m_fontset = 
+    const std::vector<uint8_t> fontset = 
     {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -309,10 +307,10 @@ void Chip8::Init() {
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
-    // copy to m_mem
+    // copy to ram_
     unsigned fontOffset = 0x0;
-    for (const uint8_t& element: m_fontset)
-        m_mem[fontOffset++ & 0xFF] = element;
+    for (const uint8_t& element: fontset)
+        ram_[fontOffset++ & 0xFF] = element;
 
     SetNonBlockingInput();
 
@@ -384,11 +382,11 @@ void Chip8::RenderAll() {
     }
     pixels += border_up_down;
     // debugger and keyboard controls
-    Frontend::WriteRegs(pixels, m_V);
-    Frontend::WriteI(pixels, m_I);
-    Frontend::WritePC(pixels, m_PC);
-    Frontend::WriteSP(pixels, m_SP);
-    Frontend::WriteStack(pixels, m_stack);
+    Frontend::WriteRegs(pixels, regs_);
+    Frontend::WriteI(pixels, I_);
+    Frontend::WritePC(pixels, PC_);
+    Frontend::WriteSP(pixels, SP_);
+    Frontend::WriteStack(pixels, stack_);
     int i = 10;
     Frontend::WriteRight(pixels, i++, "[P]ause/Unpause [S]tep [R]un [Esc]ape\n");
     Frontend::WriteRight(pixels, i++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
