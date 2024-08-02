@@ -177,14 +177,11 @@ EXEC_INSTRUCTION
 #undef EXEC_INSTRUCTION
 }
 
-static unsigned orig_state;
-
 void Chip8::Run(unsigned startingOffset) {
     //std::chrono::high_resolution_clock::time_point t_start, t_end;
     // TODO: move this to ctor
     m_PC = startingOffset;
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
-    auto t_throttle_start = std::chrono::high_resolution_clock::now();
     // get current time in ms
     auto now_ms = []() -> unsigned {
         auto now = std::chrono::system_clock::now();
