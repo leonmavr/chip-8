@@ -48,11 +48,9 @@ void Chip8::LoadRom(const char* filename, unsigned offset) {
     std::ifstream infile(filename);
     if (!infile.good())
         throw std::runtime_error("ROM not found\n");
-
-    // write to memory - adapted from https://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
-    // TODO: just use reinterpret cast
-    for(std::ifstream f(filename, std::ios::binary); f.good();) 
-        ram_[offset++ & 0xFFF] = f.get();
+    // Write to memory
+    infile.read(reinterpret_cast<char*>(&ram_[offset & 0xFFF]), 0xFFF - offset);
+    infile.close();
     // load config parser
     size_t last_dot = std::string(filename).find_last_of(".");
     std::string cfg_filename = std::string(filename).substr(0, last_dot) + ".cfg" ;
