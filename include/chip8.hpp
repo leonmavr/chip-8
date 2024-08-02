@@ -47,13 +47,13 @@ class Chip8 {
          * @param offset		Starting offset in Chip8's memory. Rom data will be written to this offset onwards (towards higher addresses).
          * 						`offset` is part of the architecture to it should be left to the default value of 0x200	.
          */
-        void loadRom(const char* filename, unsigned offset = 0x200);
+        void LoadRom(const char* filename, unsigned offset = 0x200);
         /**
          * @brief 
          *
          * @param startingOffset Run the rom data that are starting an offset. Again, the standard offset for the rom is 0x200.
          */
-        void run(unsigned startingOffset = 0x200);
+        void Run(unsigned startingOffset = 0x200);
 
     private:
         /* define the architecture */
@@ -66,23 +66,19 @@ class Chip8 {
         unsigned m_clockSpeed;						// clock speed (enum); normal or overclocked
         uint8_t m_display[32][64];
         std::array<uint8_t, ROWS*COLS> pixels_;
-        std::array<uint8_t, ROWS*COLS> pixels_prev_;
 
         std::array<uint16_t, 12>m_stack;			// stack
         std::vector<uint8_t> m_fontset;				// font sprites
-        uint8_t rand();								// Chip8 has a random number generator 
+        uint8_t Rand();								// Chip8 has a random number generator 
 
-        uint16_t fetch();                           // handles current instruction
-        opcode_t decode(uint16_t instr);            // handles current instruction
-        void exec(opcode_t opc);                    // handles current instruction
+        uint16_t Fetch();                           // handles current instruction
+        opcode_t Decode(uint16_t instr);            // handles current instruction
+        void Exec(opcode_t opc);                    // handles current instruction
 
-        void init();								// initialises memory, registers, and configs
+        void Init();								// initialises memory, registers, and configs
 
-        const int m_instrPerSec;					// config flag; defines the CPU speed; how many instructions to run per sec
         /* frequency - i.e. how many instructions cycles the machine can run her second */
         unsigned freq_;
-        const int m_maxIter;						// config flag; how many CPU cycles to run before terminating. If 0, run forever. Used for unit testing.
-        const bool m_mute;							// config flag; if true; run on mute
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
             {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
             {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
@@ -101,9 +97,9 @@ class Chip8 {
         /* wait for key - blocking */
         uint8_t WaitForKey();
 
-        void cls();
+        void Cls();
         
-        void renderAll();
+        void RenderAll();
 
         std::atomic<uint8_t> delay_timer_;
         std::atomic<uint8_t> sound_timer_;

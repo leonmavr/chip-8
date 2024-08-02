@@ -20,15 +20,13 @@
 #define KEY_ESC 27
 
 
-// helps throttle the instructions run per second to `m_instrPerSec` by stalling every 0.1 sec if necessary
+// Helps throttle the instructions run per second to `freq_` instructions per second.
+// It checks how many instructions are run every 0.1 sec and if it's more than `freq_/10`, it
+// stalls the fetch-decode-execute loop until the instructions catch up.
 static unsigned instr_per_50ms = 0;
 
 Chip8::Chip8(std::string fnameIni):
-    m_instrPerSec(1000),
-    m_mute(false),
-    m_maxIter(-1),
     pixels_{0},
-    pixels_prev_{0},
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
@@ -42,11 +40,11 @@ Chip8::Chip8(std::string fnameIni):
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
-    Chip8::init();
+    Chip8::Init();
 }
 
 
-void Chip8::loadRom(const char* filename, unsigned offset) {
+void Chip8::LoadRom(const char* filename, unsigned offset) {
     std::ifstream infile(filename);
     if (!infile.good())
         throw std::runtime_error("ROM not found\n");
@@ -64,7 +62,7 @@ void Chip8::loadRom(const char* filename, unsigned offset) {
 }
 
 
-uint8_t Chip8::rand() {
+uint8_t Chip8::Rand() {
     std::mt19937 rng;
     rng.seed(std::random_device()());
     std::uniform_int_distribution<uint8_t> dist(0, 255);
@@ -72,14 +70,14 @@ uint8_t Chip8::rand() {
 }
 
 
-uint16_t Chip8::fetch() {
+uint16_t Chip8::Fetch() {
     uint16_t instr = m_mem[m_PC] << 8;
     instr |= m_mem[m_PC + 1];
     return instr;
 }
 
 
-opcode_t Chip8::decode(uint16_t instr) {
+opcode_t Chip8::Decode(uint16_t instr) {
     // Extract bit-fields from the opcode
     // see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
     // for bitfield explanation
@@ -94,7 +92,7 @@ opcode_t Chip8::decode(uint16_t instr) {
 }
 
 
-void Chip8::exec(opcode_t opc) {
+void Chip8::Exec(opcode_t opc) {
     const auto x = opc.x;
     const auto y = opc.y;
     const auto n = opc.n;
@@ -111,7 +109,7 @@ void Chip8::exec(opcode_t opc) {
 
 #define EXEC_INSTRUCTION \
     /* assembly, condition, instruction(s) */ \
-    X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , cls();) \
+    X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
     X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = m_stack[--m_SP];) \
     X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
     X("CALL nnn"   , prefix == 0x2                 , m_stack[m_SP++] = PC; PC = nnn - 2;) \
@@ -132,7 +130,7 @@ void Chip8::exec(opcode_t opc) {
     X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
     X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + m_V[0] - 2;) \
-    X("RND Vx nn"  , prefix == 0xc                 , Vx = rand() & nn;) \
+    X("RND Vx nn"  , prefix == 0xc                 , Vx = Rand() & nn;) \
     X("DRW Vx Vy n", prefix == 0xd,                 \
         do {                                        \
             Vf = 0;                                 \
@@ -181,7 +179,7 @@ EXEC_INSTRUCTION
 
 static unsigned orig_state;
 
-void Chip8::run(unsigned startingOffset) {
+void Chip8::Run(unsigned startingOffset) {
     //std::chrono::high_resolution_clock::time_point t_start, t_end;
     // TODO: move this to ctor
     m_PC = startingOffset;
@@ -203,7 +201,7 @@ void Chip8::run(unsigned startingOffset) {
     while (1) {
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            renderAll();
+            RenderAll();
             continue;    
         } else if (state_ == STATE_STEPPING) {
             kbd_pressed_key_ = '\0';
@@ -225,10 +223,10 @@ void Chip8::run(unsigned startingOffset) {
         }
 
         m_PC += 2;
-        uint16_t instr = fetch();
-        opcode_t opc = decode(instr);
-        Chip8::exec(opc);
-        renderAll();
+        uint16_t instr = Fetch();
+        opcode_t opc = Decode(instr);
+        Chip8::Exec(opc);
+        RenderAll();
 
         auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         auto dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
@@ -283,7 +281,7 @@ Chip8::~Chip8 () {
     ResetBlockingInput();
 };
 
-void Chip8::init() {
+void Chip8::Init() {
     // 1. Initialise special registers and memory
     m_SP = 0x0;
     m_PC = 0x200;
@@ -363,15 +361,14 @@ uint8_t Chip8::WaitForKey() {
     return keyboard2keypad_[ch];
 }
 
-void Chip8::cls() {
+void Chip8::Cls() {
     TPRINT_HIDE_CURSOR();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     pixels_.fill(0);
-    pixels_prev_.fill(0);
 }
 
-void Chip8::renderAll() {
+void Chip8::RenderAll() {
     // display pixels
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
