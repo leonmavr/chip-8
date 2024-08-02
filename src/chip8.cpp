@@ -1,3 +1,7 @@
+#include "chip8.hpp" 
+#include "frontend.hpp" 
+#include "cfg_parser.hpp" 
+#include "term.h"
 #include <random>
 #include <cstdlib>
 #include <cassert>
@@ -10,12 +14,6 @@
 #include <chrono>
 #include <termios.h>
 #include <fcntl.h>
-#include "chip8.hpp" 
-#include "toot.h" 
-#include "logger.hpp" 
-#include "term.h" 
-#include "frontend.hpp" 
-#include "cfg_parser.hpp" 
 
 #define KEY_ESC 27
 
@@ -147,24 +145,21 @@ void Chip8::Exec(opcode_t opc) {
             }                                       \
         }                                           \
     } while(0); )                                   \
-X("SKP Vx"        , prefix == 0xe && nn == 0x9e    , if ( key_states_[Vx & 0xF]) PC += 2;) \
-X("SKNP Vx"       , prefix == 0xe && nn == 0xa1    , if (!key_states_[Vx & 0xF]) PC += 2;) \
-X("LD Vx DT"      , prefix == 0xf && nn == 0x07    , Vx = delay_timer_;) \
-X("LD Vx k"       , prefix == 0xf && nn == 0x0a    , Vx = WaitForKey();) \
-X("LD DT Vx"      , prefix == 0xf && nn == 0x15    , delay_timer_ = Vx;) \
-X("LD ST Vx"      , prefix == 0xf && nn == 0x18    , sound_timer_ = Vx;) \
-X("ADD I Vx"      , prefix == 0xf && nn == 0x1e    , Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
-X("LD F Vx"       , prefix == 0xf && nn == 0x29    , I = Vx * 5;) \
-X("LD B Vx"       , prefix == 0xf && nn == 0x33    , \
-    ram_[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
-    ram_[(I + 1) & 0xfff] = (Vx % 100) / 10; \
-    ram_[(I + 2) & 0xfff] = Vx % 10;) \
-X("LD [I] Vx"     , prefix == 0xf && nn == 0x55    , \
-    for (unsigned xx = 0; xx <= x; xx++) \
-        ram_[I++ & 0xfff] = regs_[xx];) \
-X("LD Vx [I]"     , prefix == 0xf && nn == 0x65    , \
-    for (unsigned xx = 0; xx <= x; xx++) \
-        regs_[xx] = ram_[I++ & 0xfff];) 
+X("SKP Vx"         , prefix == 0xe && nn == 0x9e   , if ( key_states_[Vx & 0xF]) PC += 2;) \
+X("SKNP Vx"        , prefix == 0xe && nn == 0xa1   , if (!key_states_[Vx & 0xF]) PC += 2;) \
+X("LD Vx DT"       , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
+X("LD Vx k"        , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
+X("LD DT Vx"       , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
+X("LD ST Vx"       , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
+X("ADD I Vx"       , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
+X("LD F Vx"        , prefix == 0xf && nn == 0x29   , I = Vx * 5;) \
+X("LD B Vx"        , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
+                                                     ram_[(I + 1) & 0xfff] = (Vx % 100) / 10; \
+                                                     ram_[(I + 2) & 0xfff] = Vx % 10;) \
+X("LD [I] Vx"      , prefix == 0xf && nn == 0x55    , for (unsigned xx = 0; xx <= x; xx++) \
+                                                          ram_[I++ & 0xfff] = regs_[xx];) \
+X("LD Vx [I]"      , prefix == 0xf && nn == 0x65    , for (unsigned xx = 0; xx <= x; xx++) \
+                                                          regs_[xx] = ram_[I++ & 0xfff];) 
 
 #define X(assembly, condition, instructions) \
 if (condition) \
