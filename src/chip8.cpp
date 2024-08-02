@@ -61,6 +61,8 @@ Chip8::Chip8(std::string fnameIni):
     state_(STATE_RUNNING),
     freq_(250),
     kbd_pressed_key_('\0'),
+    timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
+    key_thread_(std::thread(&Chip8::PressKey, this)),
     cfg_parser_(nullptr)
 {
     // write sprites to memory
@@ -79,8 +81,6 @@ Chip8::Chip8(std::string fnameIni):
     constexpr bool is_pressed = false;
     for (size_t i = 0x0; i < 0xF; ++i)
         key_states_[i] = is_pressed;
-    timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
-    key_thread_ = std::thread(&Chip8::PressKey, this);
     SetNonBlockingInput();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
@@ -329,10 +329,9 @@ uint8_t Chip8::WaitForKey() {
 }
 
 void Chip8::Cls() {
-    TPRINT_HIDE_CURSOR();
+    pixels_.fill(0);
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    pixels_.fill(0);
 }
 
 void Chip8::RenderAll() {
