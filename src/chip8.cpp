@@ -42,14 +42,14 @@ Chip8::Chip8(std::string fnameIni):
 }
 
 
-void Chip8::LoadRom(const char* filename, unsigned offset) {
+void Chip8::LoadRom(const char* filename) {
     std::ifstream infile(filename);
     if (!infile.good())
         throw std::runtime_error("ROM not found\n");
     // Write to memory
-    infile.read(reinterpret_cast<char*>(&ram_[offset & 0xFFF]), 0xFFF - offset);
+    infile.read(reinterpret_cast<char*>(&ram_[ROM_OFFSET & 0xFFF]), 0xFFF - ROM_OFFSET);
     infile.close();
-    // load config parser
+    // load config parser - if the rom is game.ch8 then it reads game.cfg
     size_t last_dot = std::string(filename).find_last_of(".");
     std::string cfg_filename = std::string(filename).substr(0, last_dot) + ".cfg" ;
     std::cout << cfg_filename << std::endl;
@@ -300,10 +300,10 @@ void Chip8::Init() {
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
-    // copy to ram_
-    unsigned fontOffset = 0x0;
+    // copy fonts to ram_
+    size_t font_offset = 0x0;
     for (const uint8_t& element: fontset)
-        ram_[fontOffset++ & 0xFF] = element;
+        ram_[font_offset++ & 0xFF] = element;
 
     SetNonBlockingInput();
 

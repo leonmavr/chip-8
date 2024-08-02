@@ -17,6 +17,7 @@
 
 #define ROWS 32
 #define COLS 64
+#define ROM_OFFSET 0x200
 
 
 typedef struct opcode_t {
@@ -47,7 +48,7 @@ class Chip8 {
          * @param offset		Starting offset in Chip8's memory. Rom data will be written to this offset onwards (towards higher addresses).
          * 						`offset` is part of the architecture to it should be left to the default value of 0x200	.
          */
-        void LoadRom(const char* filename, unsigned offset = 0x200);
+        void LoadRom(const char* filename);
         /**
          * @brief 
          *
