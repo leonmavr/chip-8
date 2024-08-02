@@ -32,7 +32,10 @@ Chip8::Chip8(std::string fnameIni):
     freq_(250),
     kbd_pressed_key_('\0')
 {
-    // init display
+    constexpr bool is_pressed = false;
+    for (size_t i = 0x0; i < 0xF; ++i)
+        key_states_[i] = is_pressed;
+    cfg_parser_ = nullptr;
     timer_thread_ = std::thread(&Chip8::UpdateTimers, this);
     key_thread_ = std::thread(&Chip8::PressKey, this);
     TPRINT_GOTO_TOPLEFT();
@@ -291,7 +294,6 @@ void Chip8::Init() {
         0xF0, 0x80, 0x80, 0x80, 0xF0, /* C */ 0xE0, 0x90, 0x90, 0x90, 0xE0, /* D */
         0xF0, 0x80, 0xF0, 0x80, 0xF0, /* E */ 0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
     };
-    constexpr size_t font_offset = 0x0;
     std::copy(std::begin(font_sprites), std::end(font_sprites), std::begin(ram_));
 
     SetNonBlockingInput();

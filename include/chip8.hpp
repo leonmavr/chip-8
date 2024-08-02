@@ -81,13 +81,7 @@ class Chip8 {
             {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
             {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
         };
-        const bool pressed = false;
-        std::unordered_map<char, uint8_t> key_states_ = {
-            {0x1, pressed}, {0x2, pressed}, {0x3, pressed}, {0xC, pressed},
-            {0x4, pressed}, {0x5, pressed}, {0x6, pressed}, {0xD, pressed},
-            {0x7, pressed}, {0x8, pressed}, {0x9, pressed}, {0xE, pressed},
-            {0xA, pressed}, {0x0, pressed}, {0xB, pressed}, {0xF, pressed}
-        };
+        std::unordered_map<uint8_t, bool> key_states_;
 
         /* wait for key - non blocking */
         void PressKey();
