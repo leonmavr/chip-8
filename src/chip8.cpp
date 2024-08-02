@@ -23,8 +23,37 @@
 // stalls the fetch-decode-execute loop until the instructions catch up.
 static unsigned instr_per_50ms = 0;
 
+static struct termios orig_termios;
+
+static void SetNonBlockingInput() {
+    // Save the original terminal settings
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    struct termios tty = orig_termios;
+    // Disable canonical mode and echo
+    tty.c_lflag &= ~(ICANON | ECHO);
+    // Set new terminal attributes
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    // Set non-blocking mode
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+}
+
+static void ResetBlockingInput() {
+    // Restore the original terminal settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+    // Reset blocking mode
+    fcntl(STDIN_FILENO, F_SETFL, 0);
+    TPRINT_SHOW_CURSOR();
+}
+
+
 Chip8::Chip8(std::string fnameIni):
-    pixels_{0},
+    ram_{},
+    regs_{},
+    stack_{},
+    SP_{},
+    PC_{},
+    I_{},
+    pixels_{},
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
@@ -32,6 +61,19 @@ Chip8::Chip8(std::string fnameIni):
     freq_(250),
     kbd_pressed_key_('\0')
 {
+    const std::vector<uint8_t> font_sprites = {
+        0xF0, 0x90, 0x90, 0x90, 0xF0, /* 0 */ 0x20, 0x60, 0x20, 0x20, 0x70, /* 1 */
+        0xF0, 0x10, 0xF0, 0x80, 0xF0, /* 2 */ 0xF0, 0x10, 0xF0, 0x10, 0xF0, /* 3 */
+        0x90, 0x90, 0xF0, 0x10, 0x10, /* 4 */ 0xF0, 0x80, 0xF0, 0x10, 0xF0, /* 5 */
+        0xF0, 0x80, 0xF0, 0x90, 0xF0, /* 6 */ 0xF0, 0x10, 0x20, 0x40, 0x40, /* 7 */
+        0xF0, 0x90, 0xF0, 0x90, 0xF0, /* 8 */ 0xF0, 0x90, 0xF0, 0x10, 0xF0, /* 9 */
+        0xF0, 0x90, 0xF0, 0x90, 0x90, /* A */ 0xE0, 0x90, 0xE0, 0x90, 0xE0, /* B */
+        0xF0, 0x80, 0x80, 0x80, 0xF0, /* C */ 0xE0, 0x90, 0x90, 0x90, 0xE0, /* D */
+        0xF0, 0x80, 0xF0, 0x80, 0xF0, /* E */ 0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
+    };
+    std::copy(std::begin(font_sprites), std::end(font_sprites), std::begin(ram_));
+
+    SetNonBlockingInput();
     constexpr bool is_pressed = false;
     for (size_t i = 0x0; i < 0xF; ++i)
         key_states_[i] = is_pressed;
@@ -41,7 +83,6 @@ Chip8::Chip8(std::string fnameIni):
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
-    Chip8::Init();
 }
 
 
@@ -130,24 +171,24 @@ void Chip8::Exec(opcode_t opc) {
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
     X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
     X("RND Vx nn"  , prefix == 0xc                 , Vx = Rand() & nn;) \
-    X("DRW Vx Vy n", prefix == 0xd,                 \
-        do {                                        \
-            Vf = 0;                                 \
-            for (uint8_t row = 0; row < n; row++) { \
-                uint8_t sprite = ram_[I + row];    \
-            for (uint8_t col = 0; col < 8; col++) { \
-                if ((sprite & 0x80) != 0) {         \
-                    size_t x = (Vx + col) % COLS;   \
-                    size_t y = (Vy + row) % ROWS;   \
-                    size_t index = y * COLS + x;    \
-                    if (pixels_[index] == 1)        \
-                        Vf = 1;                     \
-                    pixels_[index] ^= 1;            \
-                }                                   \
-                sprite <<= 1;                       \
-            }                                       \
-        }                                           \
-    } while(0); )                                   \
+    X("DRW Vx Vy n", prefix == 0xd,                     \
+        do {                                            \
+            Vf = 0;                                     \
+            for (uint8_t row = 0; row < n; row++) {     \
+                uint8_t sprite = ram_[I + row];         \
+                for (uint8_t col = 0; col < 8; col++) { \
+                    if ((sprite & 0x80) != 0) {         \
+                        size_t x = (Vx + col) % COLS;   \
+                        size_t y = (Vy + row) % ROWS;   \
+                        size_t index = y * COLS + x;    \
+                        if (pixels_[index] == 1)        \
+                            Vf = 1;                     \
+                        pixels_[index] ^= 1;            \
+                    }                                   \
+                    sprite <<= 1;                       \
+                }                                       \
+            }                                           \
+        } while(0); )                                   \
 X("SKP Vx"         , prefix == 0xe && nn == 0x9e   , if ( key_states_[Vx & 0xF]) PC += 2;) \
 X("SKNP Vx"        , prefix == 0xe && nn == 0xa1   , if (!key_states_[Vx & 0xF]) PC += 2;) \
 X("LD Vx DT"       , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
@@ -165,8 +206,7 @@ X("LD Vx [I]"      , prefix == 0xf && nn == 0x65    , for (unsigned xx = 0; xx <
                                                           regs_[xx] = ram_[I++ & 0xfff];) 
 
 #define X(assembly, condition, instructions) \
-if (condition) \
-{ instructions; }
+if (condition) { instructions; }
 EXEC_INSTRUCTION
 
 #undef X
@@ -241,29 +281,6 @@ void Chip8::Run(unsigned startingOffset) {
 }
 
 
-static struct termios orig_termios;
-
-static void SetNonBlockingInput() {
-    // Save the original terminal settings
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    struct termios tty = orig_termios;
-    // Disable canonical mode and echo
-    tty.c_lflag &= ~(ICANON | ECHO);
-    // Set new terminal attributes
-    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-    // Set non-blocking mode
-    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-}
-
-static void ResetBlockingInput() {
-    // Restore the original terminal settings
-    tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
-    // Reset blocking mode
-    fcntl(STDIN_FILENO, F_SETFL, 0);
-    TPRINT_SHOW_CURSOR();
-}
-
-
 Chip8::~Chip8 () {
     run_timers_ = false;
     if (timer_thread_.joinable())
@@ -273,33 +290,6 @@ Chip8::~Chip8 () {
         key_thread_.join();
     ResetBlockingInput();
 };
-
-void Chip8::Init() {
-    // 1. Initialise special registers and memory
-    SP_ = 0x0;
-    PC_ = 0x200;
-    I_ = 0x0;
-    for (auto& m: ram_)
-        m = 0x0;
-
-    // 2. Write font sprites to memory (locations 0x0 to 0x4f inclusive)
-    // define font sprites - see https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#font
-    const std::vector<uint8_t> font_sprites = {
-        0xF0, 0x90, 0x90, 0x90, 0xF0, /* 0 */ 0x20, 0x60, 0x20, 0x20, 0x70, /* 1 */
-        0xF0, 0x10, 0xF0, 0x80, 0xF0, /* 2 */ 0xF0, 0x10, 0xF0, 0x10, 0xF0, /* 3 */
-        0x90, 0x90, 0xF0, 0x10, 0x10, /* 4 */ 0xF0, 0x80, 0xF0, 0x10, 0xF0, /* 5 */
-        0xF0, 0x80, 0xF0, 0x90, 0xF0, /* 6 */ 0xF0, 0x10, 0x20, 0x40, 0x40, /* 7 */
-        0xF0, 0x90, 0xF0, 0x90, 0xF0, /* 8 */ 0xF0, 0x90, 0xF0, 0x10, 0xF0, /* 9 */
-        0xF0, 0x90, 0xF0, 0x90, 0x90, /* A */ 0xE0, 0x90, 0xE0, 0x90, 0xE0, /* B */
-        0xF0, 0x80, 0x80, 0x80, 0xF0, /* C */ 0xE0, 0x90, 0x90, 0x90, 0xE0, /* D */
-        0xF0, 0x80, 0xF0, 0x80, 0xF0, /* E */ 0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
-    };
-    std::copy(std::begin(font_sprites), std::end(font_sprites), std::begin(ram_));
-
-    SetNonBlockingInput();
-    TPRINT_GOTO_TOPLEFT();
-    TPRINT_CLEAR();
-}
 
 void Chip8::PressKey() {
     while (!stop_key_thread_) {

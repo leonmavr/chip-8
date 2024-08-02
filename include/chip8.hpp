@@ -58,11 +58,11 @@ class Chip8 {
 
     private:
         /* define the architecture */
-        std::array<uint8_t, 0x1000> ram_ {};		// Whole memory
-        std::array<uint8_t, 16> regs_ {};				// V (general) registers
-        uint16_t SP_;								// Stack pointer
-        uint16_t PC_;								// Program counter
-        uint16_t I_;								// Index register
+        std::array<uint8_t, 0x1000> ram_;           // Whole memory
+        std::array<uint8_t, 16> regs_;              // V (general) registers
+        uint16_t SP_;                               // Stack pointer
+        uint16_t PC_;                               // Program counter
+        uint16_t I_;                                // Index register
         std::array<uint8_t, ROWS*COLS> pixels_;
 
         std::array<uint16_t, 12> stack_;			// stack
@@ -71,8 +71,6 @@ class Chip8 {
         uint16_t Fetch();                           // handles current instruction
         opcode_t Decode(uint16_t instr);            // handles current instruction
         void Exec(opcode_t opc);                    // handles current instruction
-
-        void Init();								// initialises memory, registers, and configs
 
         /* frequency - i.e. how many instructions cycles the machine can run her second */
         unsigned freq_;
