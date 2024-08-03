@@ -18,11 +18,6 @@
 #define KEY_ESC 27
 
 
-// Helps throttle the instructions run per second to `freq_` instructions per second.
-// It checks how many instructions are run every 0.1 sec and if it's more than `freq_/10`, it
-// stalls the fetch-decode-execute loop until the instructions catch up.
-static unsigned instr_per_50ms = 0;
-
 static struct termios orig_termios;
 
 static void SetNonBlockingInput() {
@@ -98,23 +93,20 @@ void Chip8::LoadRom(const char* filename) {
     freq_ = cfg_parser_->GetFrequency();
 }
 
-
-uint8_t Chip8::Rand() {
-    std::mt19937 rng;
-    rng.seed(std::random_device()());
-    std::uniform_int_distribution<uint8_t> dist(0, 255);
+inline uint8_t Chip8::Rand() const {
+    static std::mt19937 rng(std::random_device{}());
+    static std::uniform_int_distribution<uint8_t> dist(0, 255);
     return dist(rng);
 }
 
-
-uint16_t Chip8::Fetch() const {
+inline uint16_t Chip8::Fetch() const {
     uint16_t instr = ram_[PC_] << 8;
     instr |= ram_[PC_ + 1];
     return instr;
 }
 
 
-opcode_t Chip8::Decode(uint16_t instr) const {
+inline opcode_t Chip8::Decode(uint16_t instr) const {
     // Extract bit-fields from the opcode
     // see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
     // for bitfield explanation
@@ -222,9 +214,12 @@ void Chip8::Run() {
     };
     // t0 and t1 enforce the loop to cycle at frequency `freq_`
     unsigned t0 = now_ms(), t1 = now_ms();
+    // Helps throttle the instructions run per second to `freq_` instructions per second.
+    // It checks how many instructions are run every 0.1 sec and if it's more than `freq_/10`, it
+    // stalls the fetch-decode-execute loop until the instructions catch up.
+    static unsigned instr_per_50ms = 0;
 
     while (true) {
-        if (state_ == STATE_STOPPED) break;
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             RenderAll();
@@ -244,10 +239,12 @@ void Chip8::Run() {
                     break;
                 }
             }
+        } else if (state_ == STATE_STOPPED) {
+            break;
         }
 
-        uint16_t instr = Fetch();
-        opcode_t opc = Decode(instr);
+        const uint16_t instr = Fetch();
+        const opcode_t opc = Decode(instr);
         Chip8::Exec(opc);
         RenderAll();
 

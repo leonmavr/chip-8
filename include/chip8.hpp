@@ -57,23 +57,23 @@ class Chip8 {
 
     private:
         /* define the architecture */
-        std::array<uint8_t, 0x1000> ram_;           // Whole memory
-        std::array<uint8_t, 16> regs_;              // V (general) registers
-        uint16_t SP_;                               // Stack pointer
-        uint16_t PC_;                               // Program counter
-        uint16_t I_;                                // Index register
+        std::array<uint8_t, 0x1000> ram_;             // Whole memory
+        std::array<uint8_t, 16> regs_;                // V (general) registers
+        uint16_t SP_;                                 // Stack pointer
+        uint16_t PC_;                                 // Program counter
+        uint16_t I_;                                  // Index register
         std::array<uint8_t, ROWS*COLS> pixels_;
 
-        std::array<uint16_t, 12> stack_;			// stack
-        uint8_t Rand();								// Chip8 has a random number generator 
+        std::array<uint16_t, 12> stack_;
+        inline uint8_t Rand() const;                  // Chip8 has a random number generator 
 
-        uint16_t Fetch() const;                     // handles current instruction
-        opcode_t Decode(uint16_t instr) const;      // handles current instruction
-        void Exec(opcode_t opc);                    // handles current instruction
+        inline uint16_t Fetch() const;                // handles current instruction
+        inline opcode_t Decode(uint16_t instr) const; // handles current instruction
+        void Exec(opcode_t opc);                      // handles current instruction
 
         /* frequency - i.e. how many instructions cycles the machine can run her second */
         unsigned freq_;
-        std::unordered_map<char, uint8_t> keyboard2keypad_ = {
+        const std::unordered_map<char, uint8_t> keyboard2keypad_ = {
             {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
             {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
             {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
@@ -95,7 +95,7 @@ class Chip8 {
         std::thread timer_thread_;
         std::mutex key_states_mutex_;
         std::thread key_thread_;
-        bool stop_key_thread_;
+        std::atomic<bool> stop_key_thread_;
 
         void UpdateTimers();
         
