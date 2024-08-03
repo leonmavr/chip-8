@@ -11,9 +11,9 @@
 #include <termios.h>
 #include <thread>
 #include <mutex>
-#include <chrono>
-#include <termios.h>
 #include <fcntl.h>
+#include <iostream>
+#include <fstream>
 
 #define KEY_ESC 27
 
@@ -26,21 +26,16 @@ static unsigned instr_per_50ms = 0;
 static struct termios orig_termios;
 
 static void SetNonBlockingInput() {
-    // Save the original terminal settings
     tcgetattr(STDIN_FILENO, &orig_termios);
     struct termios tty = orig_termios;
-    // Disable canonical mode and echo
+    // do not return what's written, do not echo
     tty.c_lflag &= ~(ICANON | ECHO);
-    // Set new terminal attributes
     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-    // Set non-blocking mode
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 }
 
 static void ResetBlockingInput() {
-    // Restore the original terminal settings
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
-    // Reset blocking mode
     fcntl(STDIN_FILENO, F_SETFL, 0);
     TPRINT_SHOW_CURSOR();
 }
@@ -95,9 +90,9 @@ void Chip8::LoadRom(const char* filename) {
     // Write to memory
     infile.read(reinterpret_cast<char*>(&ram_[ROM_OFFSET & 0xFFF]), 0xFFF - ROM_OFFSET);
     infile.close();
-    // load config parser - if the rom is game.ch8 then it reads game.cfg
-    size_t last_dot = std::string(filename).find_last_of(".");
-    std::string cfg_filename = std::string(filename).substr(0, last_dot) + ".cfg" ;
+
+    const size_t pos_last_dot = std::string(filename).find_last_of(".");
+    std::string cfg_filename = std::string(filename).substr(0, pos_last_dot) + ".cfg" ;
     std::cout << cfg_filename << std::endl;
     cfg_parser_ = std::make_unique<CfgParser>(cfg_filename);
     freq_ = cfg_parser_->GetFrequency();
@@ -112,14 +107,14 @@ uint8_t Chip8::Rand() {
 }
 
 
-uint16_t Chip8::Fetch() {
+uint16_t Chip8::Fetch() const {
     uint16_t instr = ram_[PC_] << 8;
     instr |= ram_[PC_ + 1];
     return instr;
 }
 
 
-opcode_t Chip8::Decode(uint16_t instr) {
+opcode_t Chip8::Decode(uint16_t instr) const {
     // Extract bit-fields from the opcode
     // see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
     // for bitfield explanation
@@ -207,10 +202,8 @@ X("LD [I] Vx"      , prefix == 0xf && nn == 0x55    , for (unsigned xx = 0; xx <
 X("LD Vx [I]"      , prefix == 0xf && nn == 0x65    , for (unsigned xx = 0; xx <= x; xx++) \
                                                           regs_[xx] = ram_[I++ & 0xfff];) 
 
-#define X(assembly, condition, instructions) \
-if (condition) { instructions; }
+#define X(assembly, condition, instructions) if (condition) { instructions; }
 EXEC_INSTRUCTION
-
 #undef X
 #undef EXEC_INSTRUCTION
 }

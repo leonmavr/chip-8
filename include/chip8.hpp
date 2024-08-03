@@ -68,8 +68,8 @@ class Chip8 {
         std::array<uint16_t, 12> stack_;			// stack
         uint8_t Rand();								// Chip8 has a random number generator 
 
-        uint16_t Fetch();                           // handles current instruction
-        opcode_t Decode(uint16_t instr);            // handles current instruction
+        uint16_t Fetch() const;                     // handles current instruction
+        opcode_t Decode(uint16_t instr) const;      // handles current instruction
         void Exec(opcode_t opc);                    // handles current instruction
 
         /* frequency - i.e. how many instructions cycles the machine can run her second */
