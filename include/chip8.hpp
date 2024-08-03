@@ -38,9 +38,8 @@ enum {
 
 class Chip8 {
     public:
-        // don't forget to initialise constant members 
-        Chip8 (std::string fnameIni);
-        ~Chip8 ();
+        Chip8();
+        ~Chip8();
         /**
          * @brief 				Load a rom from a filepath
          *
@@ -54,7 +53,7 @@ class Chip8 {
          *
          * @param startingOffset Run the rom data that are starting an offset. Again, the standard offset for the rom is 0x200.
          */
-        void Run(unsigned startingOffset = 0x200);
+        void Run();
 
     private:
         /* define the architecture */

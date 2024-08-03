@@ -41,7 +41,7 @@ static void ResetBlockingInput() {
 }
 
 
-Chip8::Chip8(std::string fnameIni):
+Chip8::Chip8():
     ram_{},
     regs_{},
     stack_{},
@@ -208,7 +208,7 @@ EXEC_INSTRUCTION
 #undef EXEC_INSTRUCTION
 }
 
-void Chip8::Run(unsigned startingOffset) {
+void Chip8::Run() {
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     // get current time in ms
     auto now_ms = []() -> unsigned {
@@ -223,11 +223,12 @@ void Chip8::Run(unsigned startingOffset) {
     // t0 and t1 enforce the loop to cycle at frequency `freq_`
     unsigned t0 = now_ms(), t1 = now_ms();
 
-    while (1) {
+    while (true) {
+        if (state_ == STATE_STOPPED) break;
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             RenderAll();
-            continue;    
+            continue;
         } else if (state_ == STATE_STEPPING) {
             kbd_pressed_key_ = '\0';
             while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P') {
@@ -243,8 +244,6 @@ void Chip8::Run(unsigned startingOffset) {
                     break;
                 }
             }
-        } else if (state_ == STATE_STOPPED) {
-            break;
         }
 
         uint16_t instr = Fetch();

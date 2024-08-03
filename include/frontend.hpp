@@ -30,7 +30,7 @@ namespace Frontend {
     }
 
     std::string WriteRegs(std::string& input, std::array<uint8_t, 16> regs) {
-        for (int i = 0; i < regs.size(); i += 4) {
+        for (size_t i = 0; i < regs.size(); i += 4) {
             std::stringstream ss;
             ss << std::uppercase <<
                 "V" << std::hex << i+0 << ": " << std::setfill('0') << std::setw(2) << (int) regs[i+0] << " " <<
