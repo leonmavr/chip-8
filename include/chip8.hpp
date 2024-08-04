@@ -11,9 +11,7 @@
 #include <array>
 #include <cstdint>
 #include <unordered_map>
-#include <algorithm> // fill()
 #include <cinttypes> // uint8_t, uint16_t
-#include <bits/stdc++.h>
 
 #define ROWS 32
 #define COLS 64
@@ -63,9 +61,7 @@ class Chip8 {
         uint16_t PC_;                                 // Program counter
         uint16_t I_;                                  // Index register
         std::array<uint8_t, ROWS*COLS> pixels_;
-
         std::array<uint16_t, 12> stack_;
-        inline uint8_t Rand() const;                  // Chip8 has a random number generator 
 
         inline uint16_t Fetch() const;                // handles current instruction
         inline opcode_t Decode(uint16_t instr) const; // handles current instruction

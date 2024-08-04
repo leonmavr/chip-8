@@ -30,7 +30,7 @@ private:
     void ParseConfigFile(const std::string& filename);
     int frequency_;
     // TODO: find chip8 keyboard2keypad_ and reverse it
-    std::unordered_map<uint8_t, std::string> keyboard2keypad_ = {
+    const std::unordered_map<uint8_t, std::string> keyboard2keypad_ = {
             {0x1, "1"}, {0x2, "2"}, {0x3, "3"}, {0xC, "4"}, {0x4, "q"}, {0x5, "w"},
             {0x6, "e"}, {0xD, "r"}, {0x7, "a"}, {0x8, "s"}, {0x9, "d"}, {0xE, "f"},
             {0xA, "z"}, {0x0, "x"}, {0xB, "c"}, {0xF, "v"}

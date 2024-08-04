@@ -93,23 +93,71 @@ void Chip8::LoadRom(const char* filename) {
     freq_ = cfg_parser_->GetFrequency();
 }
 
-inline uint8_t Chip8::Rand() const {
-    static std::mt19937 rng(std::random_device{}());
-    static std::uniform_int_distribution<uint8_t> dist(0, 255);
-    return dist(rng);
-}
-
 inline uint16_t Chip8::Fetch() const {
+   /*
+    * Read two consecutive bytes from RAM and join them into a 16-bit instruction.
+    * Start to read where PC is currently pointing. Return a 16-bit field containing
+    *  [mem[PC] mem[PC+1]]. Here's how it's done e.g. for the 0x00E0 (CLS) instruction.
+    *
+    * RAM bytes:        Instruction
+    *                   (destination)
+    *  @PC  @PC+1
+    *   |     | 
+    *   v     v         <-16 bits->
+    * +----+----+       +---------+
+    * | 00 | E0 |       |         |
+    * +----+----+       +---------+
+    *
+    * 1. dest =    | 2. dest <<= 8   | 3. dest |= 
+    *    mem[PC]   |                 |    mem[PC+1]
+
+    * +---------+  |    +---------+  |    +---------+
+    * |      00 |  |    | 00      |  |    | 00   e0 |
+    * +---------+  |    +---------+  |    +---------+
+    */
     uint16_t instr = ram_[PC_] << 8;
     instr |= ram_[PC_ + 1];
     return instr;
 }
 
-
 inline opcode_t Chip8::Decode(uint16_t instr) const {
-    // Extract bit-fields from the opcode
-    // see http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
-    // for bitfield explanation
+    /*
+     * A Chip8 instruction always takes 2 bytes, or 4 nibbles (half-bytes).
+     * N0 denotes the highest address nibble (leftmost), N1 the second-highest,
+     * N2 the third and N3 the fourth.
+     * An instruction encodes the following 6 fields in an overlapping region;
+     * prefix, x operand, y operand, nnn, nn, n. These fields are  decoded into
+     * a structure. Not all of them are used together. For example, if either x
+     * or y is used, then nn is not * used.
+     *
+     * MSB (@0xFF)        LSB (@0x0)
+     *  |                   |
+     *  v                   v
+     *  +----+----+----+----+
+     *  | N0 | N1 | N2 | N3 | (N: nibble = 4 bits)
+     *  +----+----+----+----+
+     *  <---->    |    |    |
+     *  prefix    |    |    |
+     *       |    |    |    |
+     *       <---->    |    |
+     *       | x  |    |    |
+     *       |    |    |    |
+     *       |    <---->    |
+     *       |    | y  |    |
+     *       |    |    |    |
+     *       |    |    <---->
+     *       |    |      n  | 
+     *       |    |         |
+     *       |    <--------->
+     *       |        nn    |
+     *       |              |
+     *       <-------------->
+     *              nnn 
+     *
+     * References:
+     * -----------
+     * 1. https://johnearnest.github.io/Octo/docs/chip8ref.pdf
+     */
     opcode_t decoded;
     decoded.prefix = (instr >> 12) & 0x000f;
     decoded.n      = instr         & 0x000f;
@@ -128,13 +176,15 @@ void Chip8::Exec(opcode_t opc) {
     const auto nn = opc.nn;
     const auto nnn = opc.nnn;
     const auto prefix = opc.prefix;
-
+    // aliases for registers and pointers
     auto& Vx = regs_[x];
     auto& Vy = regs_[y];
-    /* detects overflow, e.g. in additions */
-    auto& Vf = regs_[0xf];
+    auto& Vf = regs_[0xf]; // detects overflow, e.g. in addition
     auto& I = I_;
     auto& PC = PC_;
+    // initialise random seed and random number generator
+    static std::mt19937 seed(std::random_device{}());
+    static std::uniform_int_distribution<uint8_t> rng(0, 255);
 
 #define EXEC_INSTRUCTION \
     /* assembly, condition, instruction(s) */ \
@@ -159,7 +209,7 @@ void Chip8::Exec(opcode_t opc) {
     X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
     X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
-    X("RND Vx nn"  , prefix == 0xc                 , Vx = Rand() & nn;) \
+    X("RND Vx nn"  , prefix == 0xc                 , Vx = rng() & nn;) \
     X("DRW Vx Vy n", prefix == 0xd,                     \
         do {                                            \
             Vf = 0;                                     \
