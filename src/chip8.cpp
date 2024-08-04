@@ -209,7 +209,7 @@ void Chip8::Exec(opcode_t opc) {
     X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
     X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
-    X("RND Vx nn"  , prefix == 0xc                 , Vx = rng() & nn;) \
+    X("RND Vx nn"  , prefix == 0xc                 , Vx = rng(seed) & nn;) \
     X("DRW Vx Vy n", prefix == 0xd,                     \
         do {                                            \
             Vf = 0;                                     \
@@ -352,7 +352,7 @@ void Chip8::PressKey() {
                 else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
                 else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
                 if (keyboard2keypad_.find(kbd_pressed_key_) != keyboard2keypad_.end())
-                    key_states_[keyboard2keypad_[kbd_pressed_key_]] = true;
+                    key_states_.at(keyboard2keypad_.at(kbd_pressed_key_)) = true;
             }
         }
     }

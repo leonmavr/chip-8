@@ -57,7 +57,7 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
             Trim(key);
             Trim(value);
             uint8_t hex_key = static_cast<uint8_t>(std::stoi(key.substr(2), nullptr, 16));
-            key_descrs_.push_back(std::make_pair(keyboard2keypad_[hex_key], value));
+            key_descrs_.push_back(std::make_pair(std::string(keyboard2keypad_.at(hex_key)), value));
         } else {
             try {
                 frequency_ = std::stoi(line);
