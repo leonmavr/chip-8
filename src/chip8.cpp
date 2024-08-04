@@ -406,7 +406,7 @@ void Chip8::RenderAll() {
         Frontend::WriteRight(pixels, line++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl;
-    std::this_thread::sleep_for(std::chrono::microseconds(1600));
+    std::this_thread::sleep_for(std::chrono::microseconds(1400));
 }
 
 void Chip8::UpdateTimers() {

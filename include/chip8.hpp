@@ -17,7 +17,6 @@
 #define COLS 64
 #define ROM_OFFSET 0x200
 
-
 typedef struct opcode_t {
     uint8_t prefix : 4; 
     uint8_t x : 4; 
@@ -36,25 +35,29 @@ enum {
 
 class Chip8 {
     public:
-        Chip8();
-        ~Chip8();
         /**
-         * @brief 				Load a rom from a filepath
-         *
-         * @param filename		File name of rom
-         * @param offset		Starting offset in Chip8's memory. Rom data will be written to this offset onwards (towards higher addresses).
-         * 						`offset` is part of the architecture to it should be left to the default value of 0x200	.
+         * @brief Default constructor for Chip8
+         */
+        Chip8();
+        
+        /**
+         * @brief Destructor for Chip8
+         */
+        ~Chip8();
+        
+        /**
+         * @brief Load a ROM from a filepath
+         * 
+         * @param filename The name of the ROM file
          */
         void LoadRom(const char* filename);
+        
         /**
-         * @brief 
-         *
-         * @param startingOffset Run the rom data that are starting an offset. Again, the standard offset for the rom is 0x200.
+         * @brief Run the loaded ROM
          */
         void Run();
 
     private:
-        /* define the architecture */
         std::array<uint8_t, 0x1000> ram_;             // Whole memory
         std::array<uint8_t, 16> regs_;                // V (general) registers
         uint16_t SP_;                                 // Stack pointer
@@ -63,11 +66,28 @@ class Chip8 {
         std::array<uint8_t, ROWS*COLS> pixels_;
         std::array<uint16_t, 12> stack_;
 
-        inline uint16_t Fetch() const;                // handles current instruction
-        inline opcode_t Decode(uint16_t instr) const; // handles current instruction
-        void Exec(opcode_t opc);                      // handles current instruction
+        /**
+         * @brief Fetch the current instruction
+         * 
+         * @returns The current instruction
+         */
+        inline uint16_t Fetch() const;
+        
+        /**
+         * @brief Decode the given instruction
+         * 
+         * @param instr The instruction to decode
+         * @returns The decoded opcode
+         */
+        inline opcode_t Decode(uint16_t instr) const;
+        
+        /**
+         * @brief Execute the given opcode
+         * 
+         * @param opc The opcode to execute
+         */
+        void Exec(opcode_t opc);
 
-        /* frequency - i.e. how many instructions cycles the machine can run her second */
         unsigned freq_;
         std::unordered_map<char, uint8_t> keyboard2keypad_ = {
             {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
@@ -76,13 +96,26 @@ class Chip8 {
         };
         std::unordered_map<uint8_t, bool> key_states_;
 
-        /* wait for key - non blocking */
+        /**
+         * @brief Handle key press (non-blocking)
+         */
         void PressKey();
-        /* wait for key - blocking */
+        
+        /**
+         * @brief Wait for a key press (blocking)
+         * 
+         * @returns The pressed key
+         */
         uint8_t WaitForKey();
 
+        /**
+         * @brief Clear the screen
+         */
         void Cls();
         
+        /**
+         * @brief Render the entire screen
+         */
         void RenderAll();
 
         std::atomic<uint8_t> delay_timer_;
@@ -93,6 +126,9 @@ class Chip8 {
         std::thread key_thread_;
         std::atomic<bool> stop_key_thread_;
 
+        /**
+         * @brief Update the timers
+         */
         void UpdateTimers();
         
         std::atomic<int> state_;
