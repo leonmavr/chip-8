@@ -337,7 +337,7 @@ void Chip8::PressKey() {
 
         struct timeval timeout;
         timeout.tv_sec = 0;
-        timeout.tv_usec = 40000;
+        timeout.tv_usec = 25000;
 
         int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
