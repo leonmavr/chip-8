@@ -244,8 +244,10 @@ X("LD [I] Vx"      , prefix == 0xf && nn == 0x55    , for (unsigned xx = 0; xx <
 X("LD Vx [I]"      , prefix == 0xf && nn == 0x65    , for (unsigned xx = 0; xx <= x; xx++) \
                                                           regs_[xx] = ram_[I++ & 0xfff];) 
 
-#define X(assembly, condition, instructions) if (condition) { instructions; }
-EXEC_INSTRUCTION
+#define X(assembly, condition, instructions) if (condition) { instructions; break; }
+do {
+    EXEC_INSTRUCTION
+} while(0);
 #undef X
 #undef EXEC_INSTRUCTION
 }
