@@ -10,7 +10,7 @@
 
 namespace Frontend { 
     std::string WriteRight(std::string& input, unsigned row, const std::string& appended) {
-        int count = 0;
+        unsigned count = 0;
         size_t pos = 0;
         while ((pos = input.find('\n', pos)) != std::string::npos) {
             count++;

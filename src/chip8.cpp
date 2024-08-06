@@ -38,22 +38,22 @@ static void ResetBlockingInput() {
 
 Chip8::Chip8():
     ram_{},
+    PC_(ROM_OFFSET),
     regs_{},
     stack_{},
     SP_(0x00),
-    PC_(ROM_OFFSET),
     I_(0x000),
     frame_buffer_{},
+    freq_(350),
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
     run_key_thread_(true),
-    state_(STATE_RUNNING),
-    freq_(350),
-    kbd_pressed_key_('\0'),
     timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
     key_thread_(std::thread(&Chip8::ListenForKey, this)),
-    cfg_parser_(nullptr)
+    state_(STATE_RUNNING),
+    cfg_parser_(nullptr),
+    kbd_pressed_key_('\0')
 {
     // write sprites to memory
     const std::vector<uint8_t> font_sprites = {
@@ -302,7 +302,6 @@ void Chip8::Run() {
 
         const auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         const unsigned dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start).count();
-
         if (dt_keyboard_ms >= 100) {
             std::lock_guard<std::mutex> lock(mutex_key_press_);
             for (auto& pair : key_states_)

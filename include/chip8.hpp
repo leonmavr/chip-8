@@ -49,13 +49,6 @@ class Chip8 {
         void Run();
 
     private:
-        std::array<uint8_t, 0x1000> ram_;  // Main memory
-        uint16_t PC_;                      // Program counter - points at current instruction
-        std::array<uint8_t, 16> regs_;     // Arithmetic operation registers
-        std::array<uint16_t, 12> stack_;   // Stack - stores addresses for subroutine calls
-        uint16_t SP_;                      // Stack pointer
-        uint16_t I_;                       // Index register - read and write in RAM
-        std::array<uint8_t, ROWS*COLS> frame_buffer_; // Pixels to render (monochrome)
         /**
          * @brief Fetch the instruction that PC points to.
          * @return The current instruction as a 2-byte.
@@ -85,6 +78,13 @@ class Chip8 {
         void RenderFrame();
         /** @brief Update the delay and sound timer. */
         void UpdateTimers();
+        std::array<uint8_t, 0x1000> ram_;  // Main memory
+        uint16_t PC_;                      // Program counter - points to current instruction
+        std::array<uint8_t, 16> regs_;     // Arithmetic operation registers
+        std::array<uint16_t, 12> stack_;   // Stack - stores addresses for subroutine calls
+        uint16_t SP_;                      // Stack pointer
+        uint16_t I_;                       // Index register - read and write in RAM
+        std::array<uint8_t, ROWS*COLS> frame_buffer_; // Pixels to render (monochrome)
         /** The hardware clock - i.e. how many instructions the emulator can run per sec */
         unsigned freq_;
         /** If non zero, ticks down at 60 Hz */
