@@ -30,7 +30,9 @@ static void Trim(std::string &key) {
 }
 
 
-CfgParser::CfgParser(const std::string& filename) : frequency_(250), cfg_file_found_(true) {
+CfgParser::CfgParser(const std::string& filename) :
+    frequency_(350),
+    cfg_file_found_(true) {
     ParseConfigFile(filename);
 }
 

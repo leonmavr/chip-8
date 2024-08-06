@@ -92,7 +92,7 @@ class Chip8 {
          */
         uint8_t WaitForKey();
         /** @brief Clear the screen. */
-        void Cls();
+        inline void Cls();
         /** @brief Render the entire screen. */
         void RenderFrame();
 

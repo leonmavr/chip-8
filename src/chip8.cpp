@@ -40,7 +40,7 @@ Chip8::Chip8():
     ram_{},
     regs_{},
     stack_{},
-    SP_(0x0),
+    SP_(0x00),
     PC_(ROM_OFFSET),
     I_(0x000),
     frame_buffer_{},
@@ -49,7 +49,7 @@ Chip8::Chip8():
     run_timers_(true),
     run_key_thread_(true),
     state_(STATE_RUNNING),
-    freq_(250),
+    freq_(350),
     kbd_pressed_key_('\0'),
     timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
     key_thread_(std::thread(&Chip8::ListenForKey, this)),
@@ -368,7 +368,7 @@ uint8_t Chip8::WaitForKey() {
     return keyboard2keypad_[ch];
 }
 
-void Chip8::Cls() {
+inline void Chip8::Cls() {
     frame_buffer_.fill(0);
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
@@ -377,7 +377,7 @@ void Chip8::Cls() {
 void Chip8::RenderFrame() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
-    std::string border_up_down = "+" + std::string(64, '-') + "+\n";
+    const std::string border_up_down = "+" + std::string(64, '-') + "+\n";
     std::string pixels = border_up_down;
     for (size_t row = 0; row < ROWS; ++row) {
         std::array<uint8_t, COLS> line {};
