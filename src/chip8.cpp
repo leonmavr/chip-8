@@ -52,7 +52,7 @@ Chip8::Chip8():
     freq_(250),
     kbd_pressed_key_('\0'),
     timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
-    key_thread_(std::thread(&Chip8::PressKey, this)),
+    key_thread_(std::thread(&Chip8::ListenForKey, this)),
     cfg_parser_(nullptr)
 {
     // write sprites to memory
@@ -331,7 +331,7 @@ Chip8::~Chip8 () {
     ResetBlockingInput();
 };
 
-void Chip8::PressKey() {
+void Chip8::ListenForKey() {
     while (!stop_key_thread_) {
         fd_set readfds;
         FD_ZERO(&readfds);

@@ -35,25 +35,16 @@ enum {
 
 class Chip8 {
     public:
-        /**
-         * @brief Default constructor for Chip8
-         */
         Chip8();
-        
-        /**
-         * @brief Destructor for Chip8
-         */
         ~Chip8();
-        
         /**
          * @brief Load a ROM from a filepath
-         * 
-         * @param filename The name of the ROM file
+         * @param file path to the ROM file
          */
         void LoadRom(const char* filename);
-        
         /**
-         * @brief Run the loaded ROM
+         * @brief Run the emulator after loading the ROM. It runs the
+                  fetch-decode-execute cycle until the user interrupts it.
          */
         void Run();
 
@@ -67,23 +58,19 @@ class Chip8 {
         std::array<uint16_t, 12> stack_;
 
         /**
-         * @brief Fetch the current instruction
-         * 
-         * @returns The current instruction
+         * @brief Fetch the instruction that PC points to.
+         * @return The current instruction as a 2-byte.
          */
         inline uint16_t Fetch() const;
-        
         /**
-         * @brief Decode the given instruction
-         * 
-         * @param instr The instruction to decode
-         * @returns The decoded opcode
+         * @brief Decode the given instruction.
+         * @param instr The 2-byte instruction to decode.
+         * @returns The decoded instruction as an opcode structure.
          */
         inline opcode_t Decode(uint16_t instr) const;
         
         /**
-         * @brief Execute the given opcode
-         * 
+         * @brief Execute the decoded opcode
          * @param opc The opcode to execute
          */
         void Exec(opcode_t opc);
@@ -96,26 +83,19 @@ class Chip8 {
         };
         std::unordered_map<uint8_t, bool> key_states_;
 
-        /**
-         * @brief Handle key press (non-blocking)
-         */
-        void PressKey();
+        /** @brief Listen for a key press (without blocking the program).  */
+        void ListenForKey();
         
         /**
-         * @brief Wait for a key press (blocking)
-         * 
-         * @returns The pressed key
+         * @brief Wait for a key press (blocks the program).
+         * @returns The pressed Chip8 keypad key.
          */
         uint8_t WaitForKey();
 
-        /**
-         * @brief Clear the screen
-         */
+        /** @brief Clear the screen. */
         void Cls();
         
-        /**
-         * @brief Render the entire screen
-         */
+        /** @brief Render the entire screen. */
         void RenderAll();
 
         std::atomic<uint8_t> delay_timer_;
@@ -126,9 +106,7 @@ class Chip8 {
         std::thread key_thread_;
         std::atomic<bool> stop_key_thread_;
 
-        /**
-         * @brief Update the timers
-         */
+        /** @brief Update the delay and sound timer. */
         void UpdateTimers();
         
         std::atomic<int> state_;
