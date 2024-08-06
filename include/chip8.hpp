@@ -49,14 +49,13 @@ class Chip8 {
         void Run();
 
     private:
-        std::array<uint8_t, 0x1000> ram_;             // Whole memory
-        std::array<uint8_t, 16> regs_;                // V (general) registers
-        uint16_t SP_;                                 // Stack pointer
-        uint16_t PC_;                                 // Program counter
-        uint16_t I_;                                  // Index register
-        std::array<uint8_t, ROWS*COLS> frame_buffer_;
-        std::array<uint16_t, 12> stack_;
-
+        std::array<uint8_t, 0x1000> ram_;  // Main memory
+        uint16_t PC_;                      // Program counter - points at current instruction
+        std::array<uint8_t, 16> regs_;     // Arithmetic operation registers
+        std::array<uint16_t, 12> stack_;   // Stack - stores addresses for subroutine calls
+        uint16_t SP_;                      // Stack pointer
+        uint16_t I_;                       // Index register - read and write in RAM
+        std::array<uint8_t, ROWS*COLS> frame_buffer_; // Pixels to render (monochrome)
         /**
          * @brief Fetch the instruction that PC points to.
          * @return The current instruction as a 2-byte.
@@ -68,24 +67,13 @@ class Chip8 {
          * @returns The decoded instruction as an opcode structure.
          */
         inline opcode_t Decode(uint16_t instr) const;
-        
         /**
          * @brief Execute the decoded opcode
          * @param opc The opcode to execute
          */
         void Exec(opcode_t opc);
-
-        unsigned freq_;
-        std::unordered_map<char, uint8_t> keyboard2keypad_ = {
-            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
-            {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
-            {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
-        };
-        std::unordered_map<uint8_t, bool> key_states_;
-
         /** @brief Listen for a key press (without blocking the program).  */
         void ListenForKey();
-        
         /**
          * @brief Wait for a key press (blocks the program).
          * @returns The pressed Chip8 keypad key.
@@ -95,20 +83,31 @@ class Chip8 {
         inline void Cls();
         /** @brief Render the entire screen. */
         void RenderFrame();
-
-        std::atomic<uint8_t> delay_timer_;
-        std::atomic<uint8_t> sound_timer_;
-        std::atomic<bool> run_timers_;
-        std::thread timer_thread_;
-        std::mutex mutex_key_press_;
-        std::thread key_thread_;
-        std::atomic<bool> run_key_thread_;
-
         /** @brief Update the delay and sound timer. */
         void UpdateTimers();
+        /** The hardware clock - i.e. how many instructions the emulator can run per sec */
+        unsigned freq_;
+        /** If non zero, ticks down at 60 Hz */
+        std::atomic<uint8_t> delay_timer_;
+        /** If non zero, ticks down at 60 Hz. Should make the system beep is zero. */
+        std::atomic<uint8_t> sound_timer_;
+        /** Maps keys from a real keyboard to Chip8's keypad */
+        std::unordered_map<char, uint8_t> keyboard2keypad_ = {
+            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
+            {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
+            {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
+        };
+        std::unordered_map<uint8_t, bool> key_states_;
         
+        std::atomic<bool> run_timers_;     // flag to start delay and sound timer thread
+        std::atomic<bool> run_key_thread_; // flag to start keyboard listener thread
+        std::thread timer_thread_;
+        std::thread key_thread_;
+        std::mutex mutex_key_press_;
+        /** Running state - running/paused/stepping/stopped */ 
         std::atomic<int> state_;
         std::unique_ptr<CfgParser> cfg_parser_;
+        /** Last key pressed by the actual keyboard */
         char kbd_pressed_key_;
 };
 
