@@ -54,7 +54,7 @@ class Chip8 {
         uint16_t SP_;                                 // Stack pointer
         uint16_t PC_;                                 // Program counter
         uint16_t I_;                                  // Index register
-        std::array<uint8_t, ROWS*COLS> pixels_;
+        std::array<uint8_t, ROWS*COLS> frame_buffer_;
         std::array<uint16_t, 12> stack_;
 
         /**
@@ -91,20 +91,18 @@ class Chip8 {
          * @returns The pressed Chip8 keypad key.
          */
         uint8_t WaitForKey();
-
         /** @brief Clear the screen. */
         void Cls();
-        
         /** @brief Render the entire screen. */
-        void RenderAll();
+        void RenderFrame();
 
         std::atomic<uint8_t> delay_timer_;
         std::atomic<uint8_t> sound_timer_;
         std::atomic<bool> run_timers_;
         std::thread timer_thread_;
-        std::mutex key_states_mutex_;
+        std::mutex mutex_key_press_;
         std::thread key_thread_;
-        std::atomic<bool> stop_key_thread_;
+        std::atomic<bool> run_key_thread_;
 
         /** @brief Update the delay and sound timer. */
         void UpdateTimers();

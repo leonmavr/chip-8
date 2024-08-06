@@ -43,11 +43,11 @@ Chip8::Chip8():
     SP_(0x0),
     PC_(ROM_OFFSET),
     I_(0x000),
-    pixels_{},
+    frame_buffer_{},
     delay_timer_(0x00),
     sound_timer_(0x00),
     run_timers_(true),
-    stop_key_thread_(false),
+    run_key_thread_(true),
     state_(STATE_RUNNING),
     freq_(250),
     kbd_pressed_key_('\0'),
@@ -220,9 +220,9 @@ void Chip8::Exec(opcode_t opc) {
                         size_t x = (Vx + col) % COLS;   \
                         size_t y = (Vy + row) % ROWS;   \
                         size_t index = y * COLS + x;    \
-                        if (pixels_[index] == 1)        \
+                        if (frame_buffer_[index] == 1)        \
                             Vf = 1;                     \
-                        pixels_[index] ^= 1;            \
+                        frame_buffer_[index] ^= 1;            \
                     }                                   \
                     sprite <<= 1;                       \
                 }                                       \
@@ -274,7 +274,7 @@ void Chip8::Run() {
     while (true) {
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            RenderAll();
+            RenderFrame();
             continue;
         } else if (state_ == STATE_STEPPING) {
             kbd_pressed_key_ = '\0';
@@ -298,14 +298,13 @@ void Chip8::Run() {
         const uint16_t instr = Fetch();
         const opcode_t opc = Decode(instr);
         Chip8::Exec(opc);
-        RenderAll();
+        RenderFrame();
 
-        auto t_keyboard_end = std::chrono::high_resolution_clock::now();
-        auto dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start);
+        const auto t_keyboard_end = std::chrono::high_resolution_clock::now();
+        const unsigned dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start).count();
 
-
-        if (dt_keyboard_ms.count() >= 100) {
-            std::lock_guard<std::mutex> lock(key_states_mutex_);
+        if (dt_keyboard_ms >= 100) {
+            std::lock_guard<std::mutex> lock(mutex_key_press_);
             for (auto& pair : key_states_)
                 pair.second = false;
             t_keyboard_start = t_keyboard_end;
@@ -325,14 +324,14 @@ Chip8::~Chip8 () {
     run_timers_ = false;
     if (timer_thread_.joinable())
         timer_thread_.join();
-    stop_key_thread_ = true;
+    run_key_thread_ = false;
     if (key_thread_.joinable())
         key_thread_.join();
     ResetBlockingInput();
 };
 
 void Chip8::ListenForKey() {
-    while (!stop_key_thread_) {
+    while (run_key_thread_) {
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(STDIN_FILENO, &readfds);
@@ -345,7 +344,7 @@ void Chip8::ListenForKey() {
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
             read(STDIN_FILENO, &kbd_pressed_key_, 1);
             {
-                std::lock_guard<std::mutex> lock(key_states_mutex_);
+                std::lock_guard<std::mutex> lock(mutex_key_press_);
                 if (kbd_pressed_key_ == 'S') state_ = STATE_STEPPING;
                 else if (kbd_pressed_key_ == 'R') state_ = STATE_RUNNING;
                 else if (kbd_pressed_key_ == 'P' && state_ != STATE_PAUSED) state_ = STATE_PAUSED;
@@ -370,13 +369,12 @@ uint8_t Chip8::WaitForKey() {
 }
 
 void Chip8::Cls() {
-    pixels_.fill(0);
+    frame_buffer_.fill(0);
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
 }
 
-void Chip8::RenderAll() {
-    // display pixels
+void Chip8::RenderFrame() {
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     std::string border_up_down = "+" + std::string(64, '-') + "+\n";
@@ -385,11 +383,11 @@ void Chip8::RenderAll() {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            pixels_[index] != 0 ? line[col] = 24 : line[col] = ' ';
+            frame_buffer_[index] != 0 ? line[col] = 24 : line[col] = ' ';
         }
-        std::string pixel_row(line.begin(), line.end());
+        std::string frame_row(line.begin(), line.end());
         const std::string border_left_right = "|";
-        pixels += border_left_right + pixel_row + border_left_right;
+        pixels += border_left_right + frame_row + border_left_right;
         pixels += "\n";
     }
     pixels += border_up_down;
