@@ -2,6 +2,7 @@
 #define CFG_PARSER_HPP
 
 #include "cfg_parser.hpp"
+#include "keypad.hpp"
 #include <string>
 #include <map>
 #include <fstream>
@@ -24,17 +25,21 @@ class CfgParser {
 public:
     CfgParser(const std::string& filename);
     int GetFrequency() const { return frequency_; }
-    const std::vector<std::pair<std::string, std::string>>& GetKeyMap() const { return key_descrs_; }
+    const std::vector<std::pair<std::string, std::string>>& GetKeyMap() const {
+        return key_descrs_;
+    }
 
 private:
     void ParseConfigFile(const std::string& filename);
     int frequency_;
-    // TODO: find chip8 keyboard2keypad_ and reverse it
-    const std::unordered_map<uint8_t, std::string> keyboard2keypad_ = {
-            {0x1, "1"}, {0x2, "2"}, {0x3, "3"}, {0xC, "4"}, {0x4, "q"}, {0x5, "w"},
-            {0x6, "e"}, {0xD, "r"}, {0x7, "a"}, {0x8, "s"}, {0x9, "d"}, {0xE, "f"},
-            {0xA, "z"}, {0x0, "x"}, {0xB, "c"}, {0xF, "v"}
-    };
+    // define it with a lambda expression to evaluate at compile time
+    const std::unordered_map<uint8_t, std::string> keyboard2keypad_ =
+        [input = Keypad::keyboard2keypad]{
+        std::unordered_map<uint8_t, std::string> ret;
+        for (const auto& pair: input)
+            ret[pair.second] = pair.first;
+        return ret;
+    }();
     std::vector<std::pair<std::string, std::string>> key_descrs_;
     bool cfg_file_found_;
 };

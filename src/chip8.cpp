@@ -394,7 +394,7 @@ void Chip8::RenderFrame() {
     Frontend::WriteSP(pixels, SP_);
     Frontend::WriteStack(pixels, stack_);
     int line = 10;
-    Frontend::WriteRight(pixels, line++, "[P]ause/Unpause [S]tep [R]un [Esc]ape\n");
+    Frontend::WriteRight(pixels, line++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
     Frontend::WriteRight(pixels, line++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
     for (const auto& key_descr: cfg_parser_->GetKeyMap()) {
         std::string key = key_descr.first;

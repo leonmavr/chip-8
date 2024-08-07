@@ -2,6 +2,7 @@
 #define CHIP8_HPP 
 
 #include "cfg_parser.hpp"
+#include "keypad.hpp"
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -92,11 +93,7 @@ class Chip8 {
         /** If non zero, ticks down at 60 Hz. Should make the system beep is zero. */
         std::atomic<uint8_t> sound_timer_;
         /** Maps keys from a real keyboard to Chip8's keypad */
-        std::unordered_map<char, uint8_t> keyboard2keypad_ = {
-            {'1', 0x1}, {'2', 0x2}, {'3', 0x3}, {'4', 0xC}, {'q', 0x4}, {'w', 0x5},
-            {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
-            {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
-        };
+        std::unordered_map<char, uint8_t> keyboard2keypad_ = Keypad::keyboard2keypad;
         std::unordered_map<uint8_t, bool> pressed_keys_;
         
         std::atomic<bool> run_timers_;     // flag to start delay and sound timer thread
