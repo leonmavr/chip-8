@@ -55,8 +55,8 @@ Chip8::Chip8():
     cfg_parser_(nullptr),
     kbd_pressed_key_('\0')
 {
-    // write sprites to memory
-    const std::vector<uint8_t> font_sprites = {
+    // preload memory with sprites 
+    constexpr std::array<uint8_t, 80> font_sprites = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, /* 0 */ 0x20, 0x60, 0x20, 0x20, 0x70, /* 1 */
         0xF0, 0x10, 0xF0, 0x80, 0xF0, /* 2 */ 0xF0, 0x10, 0xF0, 0x10, 0xF0, /* 3 */
         0x90, 0x90, 0xF0, 0x10, 0x10, /* 4 */ 0xF0, 0x80, 0xF0, 0x10, 0xF0, /* 5 */
@@ -70,13 +70,22 @@ Chip8::Chip8():
 
     constexpr bool is_pressed = false;
     for (size_t i = 0x0; i < 0xF; ++i)
-        key_states_[i] = is_pressed;
+        pressed_keys_[i] = is_pressed;
     SetNonBlockingInput();
     TPRINT_GOTO_TOPLEFT();
     TPRINT_CLEAR();
     TPRINT_HIDE_CURSOR();
 }
 
+Chip8::~Chip8 () {
+    run_timers_ = false;
+    if (timer_thread_.joinable())
+        timer_thread_.join();
+    run_key_thread_ = false;
+    if (key_thread_.joinable())
+        key_thread_.join();
+    ResetBlockingInput();
+};
 
 void Chip8::LoadRom(const char* filename) {
     std::ifstream infile(filename);
@@ -91,6 +100,71 @@ void Chip8::LoadRom(const char* filename) {
     std::cout << cfg_filename << std::endl;
     cfg_parser_ = std::make_unique<CfgParser>(cfg_filename);
     freq_ = cfg_parser_->GetFrequency();
+}
+
+void Chip8::Run() {
+    auto t_keyboard_start = std::chrono::high_resolution_clock::now();
+    // clock functions - get time and sleep (milliseconds) 
+    auto now_ms = []() -> unsigned {
+        auto now = std::chrono::system_clock::now();
+        auto since_epoch = now.time_since_epoch();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch).count();
+    };
+    auto sleep_ms = [](unsigned ms) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    };
+    // t0 and t1 enforce the loop to cycle at frequency `freq_`
+    unsigned t0 = now_ms(), t1 = now_ms();
+    /** Throttles the instructions at `freq_` instructions per second. It checks
+     * how many instructions have run every 1/20 sec. If more than `freq_/20`, 
+     * stall the loop until 1/20 of a sec has ellapsed. */
+    static unsigned instr_per_50ms = 0;
+
+    while (true) {
+        if (state_ == STATE_PAUSED) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            RenderFrame();
+            continue;
+        } else if (state_ == STATE_STEPPING) {
+            kbd_pressed_key_ = '\0';
+            while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P') {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                if (kbd_pressed_key_ == 'P') {
+                    state_ = STATE_PAUSED;
+                    break;
+                } else if (kbd_pressed_key_ == 'R') {
+                    state_ = STATE_RUNNING;
+                    break;
+                } else if (kbd_pressed_key_ == KEY_ESC) {
+                    state_ = STATE_STOPPED;
+                    break;
+                }
+            }
+        } else if (state_ == STATE_STOPPED) {
+            break;
+        }
+
+        const uint16_t instr = Fetch();
+        const opcode_t opc = Decode(instr);
+        Chip8::Exec(opc);
+        RenderFrame();
+
+        const auto t_keyboard_end = std::chrono::high_resolution_clock::now();
+        const unsigned dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start).count();
+        if (dt_keyboard_ms >= 100) {
+            std::lock_guard<std::mutex> lock(mutex_key_press_);
+            for (auto& pair : pressed_keys_)
+                pair.second = false;
+            t_keyboard_start = t_keyboard_end;
+        }
+        if (instr_per_50ms++ % (freq_/20) == 0) {
+            t1 = now_ms();
+            if (t1 - t0 < 50)
+                sleep_ms(50 - (t1 - t0));
+            t0 = t1;
+        }
+        PC_ += 2;
+    }
 }
 
 inline uint16_t Chip8::Fetch() const {
@@ -169,7 +243,7 @@ inline opcode_t Chip8::Decode(uint16_t instr) const {
 }
 
 
-void Chip8::Exec(opcode_t opc) {
+void Chip8::Exec(const opcode_t& opc) {
     const auto x = opc.x;
     const auto y = opc.y;
     const auto n = opc.n;
@@ -228,8 +302,8 @@ void Chip8::Exec(opcode_t opc) {
                 }                                       \
             }                                           \
         } while(0); )                                   \
-X("SKP Vx"         , prefix == 0xe && nn == 0x9e   , if ( key_states_[Vx & 0xF]) PC += 2;) \
-X("SKNP Vx"        , prefix == 0xe && nn == 0xa1   , if (!key_states_[Vx & 0xF]) PC += 2;) \
+X("SKP Vx"         , prefix == 0xe && nn == 0x9e   , if ( pressed_keys_[Vx & 0xF]) PC += 2;) \
+X("SKNP Vx"        , prefix == 0xe && nn == 0xa1   , if (!pressed_keys_[Vx & 0xF]) PC += 2;) \
 X("LD Vx DT"       , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
 X("LD Vx k"        , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
 X("LD DT Vx"       , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
@@ -251,83 +325,6 @@ do {
 #undef X
 #undef EXEC_INSTRUCTION
 }
-
-void Chip8::Run() {
-    auto t_keyboard_start = std::chrono::high_resolution_clock::now();
-    // get current time in ms
-    auto now_ms = []() -> unsigned {
-        auto now = std::chrono::system_clock::now();
-        auto since_epoch = now.time_since_epoch();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch).count();
-    };
-    // sleep for some ms
-    auto sleep_ms = [](unsigned ms) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    };
-    // t0 and t1 enforce the loop to cycle at frequency `freq_`
-    unsigned t0 = now_ms(), t1 = now_ms();
-    // Helps throttle the instructions run per second to `freq_` instructions per second.
-    // It checks how many instructions are run every 0.1 sec and if it's more than `freq_/10`, it
-    // stalls the fetch-decode-execute loop until the instructions catch up.
-    static unsigned instr_per_50ms = 0;
-
-    while (true) {
-        if (state_ == STATE_PAUSED) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            RenderFrame();
-            continue;
-        } else if (state_ == STATE_STEPPING) {
-            kbd_pressed_key_ = '\0';
-            while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P') {
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                if (kbd_pressed_key_ == 'P') {
-                    state_ = STATE_PAUSED;
-                    break;
-                } else if (kbd_pressed_key_ == 'R') {
-                    state_ = STATE_RUNNING;
-                    break;
-                } else if (kbd_pressed_key_ == KEY_ESC) {
-                    state_ = STATE_STOPPED;
-                    break;
-                }
-            }
-        } else if (state_ == STATE_STOPPED) {
-            break;
-        }
-
-        const uint16_t instr = Fetch();
-        const opcode_t opc = Decode(instr);
-        Chip8::Exec(opc);
-        RenderFrame();
-
-        const auto t_keyboard_end = std::chrono::high_resolution_clock::now();
-        const unsigned dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start).count();
-        if (dt_keyboard_ms >= 100) {
-            std::lock_guard<std::mutex> lock(mutex_key_press_);
-            for (auto& pair : key_states_)
-                pair.second = false;
-            t_keyboard_start = t_keyboard_end;
-        }
-        if (instr_per_50ms++ % (freq_/20) == 0) {
-            t1 = now_ms();
-            if (t1 - t0 < 50)
-                sleep_ms(50 - (t1 - t0));
-            t0 = t1;
-        }
-        PC_ += 2;
-    }
-}
-
-
-Chip8::~Chip8 () {
-    run_timers_ = false;
-    if (timer_thread_.joinable())
-        timer_thread_.join();
-    run_key_thread_ = false;
-    if (key_thread_.joinable())
-        key_thread_.join();
-    ResetBlockingInput();
-};
 
 void Chip8::ListenForKey() {
     while (run_key_thread_) {
@@ -352,7 +349,7 @@ void Chip8::ListenForKey() {
                 else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
                 else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
                 if (keyboard2keypad_.find(kbd_pressed_key_) != keyboard2keypad_.end())
-                    key_states_.at(keyboard2keypad_.at(kbd_pressed_key_)) = true;
+                    pressed_keys_.at(keyboard2keypad_.at(kbd_pressed_key_)) = true;
             }
         }
     }

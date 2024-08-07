@@ -64,7 +64,7 @@ class Chip8 {
          * @brief Execute the decoded opcode
          * @param opc The opcode to execute
          */
-        void Exec(opcode_t opc);
+        void Exec(const opcode_t& opc);
         /** @brief Listen for a key press (without blocking the program).  */
         void ListenForKey();
         /**
@@ -97,7 +97,7 @@ class Chip8 {
             {'e', 0x6}, {'r', 0xD}, {'a', 0x7}, {'s', 0x8}, {'d', 0x9}, {'f', 0xE},
             {'z', 0xA}, {'x', 0x0}, {'c', 0xB}, {'v', 0xF}
         };
-        std::unordered_map<uint8_t, bool> key_states_;
+        std::unordered_map<uint8_t, bool> pressed_keys_;
         
         std::atomic<bool> run_timers_;     // flag to start delay and sound timer thread
         std::atomic<bool> run_key_thread_; // flag to start keyboard listener thread
