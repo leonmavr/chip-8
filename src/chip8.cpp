@@ -204,7 +204,7 @@ inline opcode_t Chip8::Decode(uint16_t instr) const {
      * a structure. Not all of them are used together. For example, if either x
      * or y is used, then nn is not * used.
      *
-     * MSB (@0xFF)        LSB (@0x0)
+     * MSB (@0xFF-1)     LSB (@0x0)
      *  |                   |
      *  v                   v
      *  +----+----+----+----+
@@ -294,9 +294,9 @@ void Chip8::Exec(const opcode_t& opc) {
                         size_t x = (Vx + col) % COLS;   \
                         size_t y = (Vy + row) % ROWS;   \
                         size_t index = y * COLS + x;    \
-                        if (frame_buffer_[index] == 1)        \
+                        if (frame_buffer_[index] == 1)  \
                             Vf = 1;                     \
-                        frame_buffer_[index] ^= 1;            \
+                        frame_buffer_[index] ^= 1;      \
                     }                                   \
                     sprite <<= 1;                       \
                 }                                       \
@@ -308,15 +308,15 @@ X("LD Vx DT"       , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
 X("LD Vx k"        , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
 X("LD DT Vx"       , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
 X("LD ST Vx"       , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
-X("ADD I Vx"       , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xfff) ? 1 : 0; I += Vx;) \
+X("ADD I Vx"       , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xFFF) ? 1 : 0; I += Vx;) \
 X("LD F Vx"        , prefix == 0xf && nn == 0x29   , I = Vx * 5;) \
-X("LD B Vx"        , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xfff] = (Vx % 1000) / 100; \
-                                                     ram_[(I + 1) & 0xfff] = (Vx % 100) / 10; \
-                                                     ram_[(I + 2) & 0xfff] = Vx % 10;) \
-X("LD [I] Vx"      , prefix == 0xf && nn == 0x55    , for (unsigned xx = 0; xx <= x; xx++) \
-                                                          ram_[I++ & 0xfff] = regs_[xx];) \
-X("LD Vx [I]"      , prefix == 0xf && nn == 0x65    , for (unsigned xx = 0; xx <= x; xx++) \
-                                                          regs_[xx] = ram_[I++ & 0xfff];) 
+X("LD B Vx"        , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
+                                                     ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10; \
+                                                     ram_[(I + 2) & 0xFFF] = Vx % 10;) \
+X("LD [I] Vx"      , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
+                                                         ram_[I++ & 0xFFF] = regs_[xx];) \
+X("LD Vx [I]"      , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
+                                                         regs_[xx] = ram_[I++ & 0xFFF];) 
 
 #define X(assembly, condition, instructions) if (condition) { instructions; break; }
 do {
@@ -349,7 +349,7 @@ void Chip8::ListenForKey() {
                 else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
                 else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
                 if (keyboard2keypad_.find(kbd_pressed_key_) != keyboard2keypad_.end())
-                    pressed_keys_.at(keyboard2keypad_.at(kbd_pressed_key_)) = true;
+                    pressed_keys_[keyboard2keypad_[kbd_pressed_key_]] = true;
             }
         }
     }
