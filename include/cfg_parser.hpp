@@ -15,24 +15,22 @@
 #include <vector>
 #include <utility>
 
-/*
+/**
  * Description:
- * Parses a .cfg file for Chip8 emulator roms and fetches rom's settings (keypad,
+ * Parses a .cfg file for Chip8 emulator roms and reads rom's settings (keypad,
  * frequency.
  */
-
 class CfgParser {
 public:
     CfgParser(const std::string& filename);
-    int GetFrequency() const { return frequency_; }
-    const std::vector<std::pair<std::string, std::string>>& GetKeyMap() const {
+    int frequency() const { return frequency_; }
+    const std::vector<std::pair<std::string, std::string>>& key_descrs() const {
         return key_descrs_;
     }
 
 private:
     void ParseConfigFile(const std::string& filename);
     int frequency_;
-    // define it with a lambda expression to evaluate at compile time
     const std::unordered_map<uint8_t, std::string> keyboard2keypad_ =
         [input = Keypad::keyboard2keypad]{
         std::unordered_map<uint8_t, std::string> ret;

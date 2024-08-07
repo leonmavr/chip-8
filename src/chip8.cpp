@@ -99,7 +99,7 @@ void Chip8::LoadRom(const char* filename) {
     std::string cfg_filename = std::string(filename).substr(0, pos_last_dot) + ".cfg" ;
     std::cout << cfg_filename << std::endl;
     cfg_parser_ = std::make_unique<CfgParser>(cfg_filename);
-    freq_ = cfg_parser_->GetFrequency();
+    freq_ = cfg_parser_->frequency();
 }
 
 void Chip8::Run() {
@@ -184,7 +184,7 @@ inline uint16_t Chip8::Fetch() const {
     *
     * 1. dest =    | 2. dest <<= 8   | 3. dest |= 
     *    mem[PC]   |                 |    mem[PC+1]
-
+    *              |                 |
     * +---------+  |    +---------+  |    +---------+
     * |      00 |  |    | 00      |  |    | 00   e0 |
     * +---------+  |    +---------+  |    +---------+
@@ -396,7 +396,7 @@ void Chip8::RenderFrame() {
     int line = 10;
     Frontend::WriteRight(pixels, line++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
     Frontend::WriteRight(pixels, line++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
-    for (const auto& key_descr: cfg_parser_->GetKeyMap()) {
+    for (const auto& key_descr: cfg_parser_->key_descrs()) {
         std::string key = key_descr.first;
         std::string descr = key_descr.second;
         Frontend::WriteRight(pixels, line++, "[" + key + "] " + descr + "\n");
