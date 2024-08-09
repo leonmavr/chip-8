@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <cinttypes> // uint8_t, uint16_t
+#include <limits>
 
 #define ROWS 32
 #define COLS 64
@@ -47,8 +48,7 @@ class Chip8 {
          * @brief Run the emulator after loading the ROM. It runs the
                   fetch-decode-execute cycle until the user interrupts it.
          */
-        void Run();
-
+        void Run(size_t max_iterations = std::numeric_limits<size_t>::max());
     private:
         /**
          * @brief Fetch the instruction that PC points to.

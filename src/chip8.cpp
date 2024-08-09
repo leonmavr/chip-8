@@ -102,7 +102,7 @@ void Chip8::LoadRom(const char* filename) {
     freq_ = cfg_parser_->frequency();
 }
 
-void Chip8::Run() {
+void Chip8::Run(size_t max_iterations) {
     auto t_keyboard_start = std::chrono::high_resolution_clock::now();
     // clock functions - get time and sleep (milliseconds) 
     auto now_ms = []() -> unsigned {
