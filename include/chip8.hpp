@@ -12,8 +12,13 @@
 #include <array>
 #include <cstdint>
 #include <unordered_map>
-#include <cinttypes> // uint8_t, uint16_t
+#include <cinttypes>
 #include <limits>
+
+
+#ifdef RUN_UNIT_TESTS
+class Chip8Tester; // forward declaration of unit tester class
+#endif
 
 #define ROWS 32
 #define COLS 64
@@ -49,6 +54,10 @@ class Chip8 {
                   fetch-decode-execute cycle until the user interrupts it.
          */
         void Run(size_t max_iterations = std::numeric_limits<size_t>::max());
+#ifdef RUN_UNIT_TESTS
+        /** Unit tester class; has access to this class' data */
+        friend class Chip8Tester;
+#endif
     private:
         /**
          * @brief Fetch the instruction that PC points to.

@@ -120,7 +120,8 @@ void Chip8::Run(size_t max_iterations) {
      * stall the loop until 1/20 of a sec has ellapsed. */
     static unsigned instr_per_50ms = 0;
 
-    while (true) {
+    size_t iteration = 0;
+    while (iteration++ < max_iterations) {
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             RenderFrame();
@@ -204,7 +205,7 @@ inline opcode_t Chip8::Decode(uint16_t instr) const {
      * a structure. Not all of them are used together. For example, if either x
      * or y is used, then nn is not * used.
      *
-     * MSB (@0xFF-1)     LSB (@0x0)
+     * MSB (@0xFE)     LSB (@0x0)
      *  |                   |
      *  v                   v
      *  +----+----+----+----+
