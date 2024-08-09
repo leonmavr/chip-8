@@ -121,7 +121,7 @@ void Chip8::Run(size_t max_iterations) {
     static unsigned instr_per_50ms = 0;
 
     size_t iteration = 0;
-    while (iteration++ < max_iterations) {
+    while (iteration < max_iterations) {
         if (state_ == STATE_PAUSED) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             RenderFrame();
@@ -165,6 +165,7 @@ void Chip8::Run(size_t max_iterations) {
             t0 = t1;
         }
         PC_ += 2;
+        iteration++;
     }
 }
 
