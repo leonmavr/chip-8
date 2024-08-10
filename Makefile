@@ -12,6 +12,7 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp) $(DEMO_SRC)
 ifeq ($(MAKECMDGOALS), test)
     CFLAGS += -DRUN_UNIT_TESTS
     SRC = $(wildcard $(SRC_DIR)/*.cpp) $(TEST_SRC)
+    TARGET = test/test
 endif
 
 OBJECTS = $(SRC:%.cpp=%.o)
