@@ -3,28 +3,27 @@
 
 #include "chip8.hpp"
 #include <iostream>
-#include <cstdint>
 #include <cassert>
 
 
 /**
  * This class is responsible for testing the Chip8 class as a whole. The goal 
- * is to verify Chip8's sanity. It does that for example by checking whether
- * the rendered output (frame buffer) is correct.
+ * is to verify Chip8's sanity. It does so by checking the internal state of
+ * Chip8, e.g. the rendered output (frame buffer), PC, etc.
  */
 class Chip8Tester {
     public:
-        void AssertFrameBuffer(const Chip8& ch8, const std::array<uint8_t, 64*32>& target)  {
+        template <typename T>
+        void AssertFrameBuffer(const Chip8& ch8, const std::array<T, 64*32>& target)  {
             for (int i = 0; i < target.size(); ++i) {
-                //std::cout << (int)ch8.frame_buffer_[i] << ", ";
-                assert(ch8.frame_buffer_ == target);
-                if (ch8.frame_buffer_[i] != target[i])
-                    std::cout << i << std::endl;
+                assert(static_cast<int>(ch8.frame_buffer_[i]) ==
+                static_cast<int>(target[i]));
             }
         }
+
         template <typename T>
         void AssertPC(const Chip8& ch8, const T& target) {
-            assert(ch8.PC_ == static_cast<uint16_t>(target));
+            assert(static_cast<int>(ch8.PC_) == static_cast<int>(target));
         }
         
     private:
