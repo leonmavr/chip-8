@@ -10,4 +10,6 @@ Here's an example config:
 0x4: Move left
 0x6: Move right
 0x5: Shoot
+# Frequency
+1000
 ```
