@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 #include <array>
+#include <string>
+#include <iostream>
 
 
 constexpr static auto ibm_logo = []() {
@@ -37,5 +39,7 @@ int main(int argc, char** argv) {
     ch8->LoadRom("./roms/test/Ibm_logo.ch8");
     ch8->Run(1000);
     tester->AssertFrameBuffer(*ch8, ibm_logo); 
+    std::cout << "\033[2J\033[H";
+    std::cout << std::string(80, '=') + "\n" + "All tests passed!\n" + std::string(80, '=') << std::endl;;
     return 0;
 }

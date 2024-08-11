@@ -2,9 +2,7 @@
 #define CHIP8_TESTER_HPP
 
 #include "chip8.hpp"
-#include <iostream>
 #include <cassert>
-
 
 /**
  * This class is responsible for testing the Chip8 class as a whole. The goal 
@@ -15,7 +13,7 @@ class Chip8Tester {
     public:
         template <typename T>
         void AssertFrameBuffer(const Chip8& ch8, const std::array<T, 64*32>& target)  {
-            for (int i = 0; i < target.size(); ++i) {
+            for (size_t i = 0; i < target.size(); ++i) {
                 assert(static_cast<int>(ch8.frame_buffer_[i]) ==
                 static_cast<int>(target[i]));
             }
