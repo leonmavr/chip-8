@@ -1,5 +1,5 @@
 CC = g++
-TARGET = demo
+TARGET = play 
 SRC_DIR = src
 INC_DIR = include
 CFLAGS = -std=c++17 -I$(INC_DIR) -Wall
