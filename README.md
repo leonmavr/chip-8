@@ -12,17 +12,49 @@
 
 ▒▒▒▒▒        ▒▒▒         ▒▒▒     ▒▒▒▒   ▒▒▒▒        ▒▒▒▒▒       ▒▒▒▒▒
 
-  ▒▒▒▒▒▒   ▒ ▒▒▒         ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒       ▒▒▒▒▒
+  ▒▒▒▒▒▒    ▒▒▒▒         ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒       ▒▒▒▒▒
 
     ▒▒▒▒▒▒ ▒▒▒▒▒         ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
-I implenmented a Chip8 virtual machine. This was implemented by a number of
+I wrote a Chip8 virtual machine. Chip8 was implemented by a number of
 [computers](http://www.hobbylabs.org/telmac.htm)in the 70s and HP
 [calculators](https://www.hpcalc.org/hp48/docs/faq/48faq-8.html) in the 80s. It
 Instead of using actual microprocessor opcodes, it was always designed to be a
 virtual language and be interpreted at
 [runtime](http://www.emulator101.com/introduction-to-chip-8.html).
+
+<video src="https://github.com/leonmavr/chip-8/raw/master/assets/demo_grid.mp4" width="480" controls>
+  Your browser does not support the video tag.
+</video>
+
+# 2. Usage
+
+This project has no third-party dependencies and renders on the terminal.  
+To compile:
+```bash
+make
+```
+To Run:
+```bash
+./play path/to/rom.ch8
+```
+Compile and run the sanity tests (mostly for CI):
+```bash
+make test
+```
+To clean all object and executable files:
+```bash
+make clean
+```
+
+# 3. Features
+
+- [x] CPU and renderer 
+- [x] UI including controls and debugger view including pause, exit, and stepping key
+- [x] .cfg file each ROM; this lists the controls and sets the emulation
+      frequency for each ROM
+- [ ] Sound; probably never going to implement this
 
 ### 1.2 Its architecture
 Chip-8 operates on 4 kB of RAM memory and certain partitions of it are reserved for the interpreter, the loaded program (rom), and some hardcoded font sprites. It has 16 general-purpose 8-bit registers prfixed by `V`, one special 16-bit register called `I` which points to memory locations, and two special 8-bit sound and timer registers which tick at 60 Hz.  
