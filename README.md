@@ -1,4 +1,3 @@
-# 1. About
 ```
     ▒▒▒▒▒▒ ▒▒▒▒▒         ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒      ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 
@@ -16,9 +15,10 @@
 
     ▒▒▒▒▒▒ ▒▒▒▒▒         ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
+# 1. About
 
 I wrote a Chip8 virtual machine. Chip8 was implemented by a number of 
-[computers](http://www.hobbylabs.org/telmac.htm)in the 70s and HP 
+[computers](http://www.hobbylabs.org/telmac.htm) in the 70s and HP 
 [calculators](https://www.hpcalc.org/hp48/docs/faq/48faq-8.html) in the 80s.
 Instead of using actual microprocessor opcodes, it was always designed to be a 
 virtual language and be interpreted at 
@@ -27,7 +27,7 @@ virtual language and be interpreted at
 <img src="https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.gif" alt="Demo gif" height="300px">
 
 (A high quality video version of the gif is found
-[here](https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.mp4).
+[here](https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.mp4).)
 
 # 2. Usage
 
