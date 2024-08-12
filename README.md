@@ -17,16 +17,15 @@
     ▒▒▒▒▒▒ ▒▒▒▒▒         ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
-I wrote a Chip8 virtual machine. Chip8 was implemented by a number of
-[computers](http://www.hobbylabs.org/telmac.htm)in the 70s and HP
-[calculators](https://www.hpcalc.org/hp48/docs/faq/48faq-8.html) in the 80s. It
-Instead of using actual microprocessor opcodes, it was always designed to be a
-virtual language and be interpreted at
+I wrote a Chip8 virtual machine. Chip8 was implemented by a number of 
+[computers](http://www.hobbylabs.org/telmac.htm)in the 70s and HP 
+[calculators](https://www.hpcalc.org/hp48/docs/faq/48faq-8.html) in the 80s.
+Instead of using actual microprocessor opcodes, it was always designed to be a 
+virtual language and be interpreted at 
 [runtime](http://www.emulator101.com/introduction-to-chip-8.html).
 
-<video src="https://github.com/leonmavr/chip-8/raw/master/assets/demo_grid.mp4" width="480" controls>
-  Your browser does not support the video tag.
-</video>
+<img src="https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.gif" alt="Demo gif" height="300px">
+
 
 # 2. Usage
 
@@ -35,7 +34,7 @@ To compile:
 ```bash
 make
 ```
-To Run:
+To run:
 ```bash
 ./play path/to/rom.ch8
 ```
