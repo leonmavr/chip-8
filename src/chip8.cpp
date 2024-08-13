@@ -309,22 +309,22 @@ void Chip8::Exec(const opcode_t& opc) {
                 }                                       \
             }                                           \
         } while(0); )                                   \
-X("SKP Vx"         , prefix == 0xe && nn == 0x9e   , if ( pressed_keys_[Vx & 0xF]) PC += 2;) \
-X("SKNP Vx"        , prefix == 0xe && nn == 0xa1   , if (!pressed_keys_[Vx & 0xF]) PC += 2;) \
-X("LD Vx DT"       , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
-X("LD Vx k"        , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
-X("LD DT Vx"       , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
-X("LD ST Vx"       , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
-X("ADD I Vx"       , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xFFF) ? 1 : 0; I += Vx;) \
-X("LD F Vx"        , prefix == 0xf && nn == 0x29   , I = Vx * 5;) \
-X("LD B Vx"        , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
+    X("SKP Vx"     , prefix == 0xe && nn == 0x9e   , if ( pressed_keys_[Vx & 0xF]) PC += 2;) \
+    X("SKNP Vx"    , prefix == 0xe && nn == 0xa1   , if (!pressed_keys_[Vx & 0xF]) PC += 2;) \
+    X("LD Vx DT"   , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
+    X("LD Vx k"    , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
+    X("LD DT Vx"   , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
+    X("LD ST Vx"   , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
+    X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xFFF) ? 1 : 0; I += Vx;) \
+    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = Vx * 5;) \
+    X("LD B Vx"    , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
                                                      ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10; \
                                                      ram_[(I + 2) & 0xFFF] = Vx % 10;) \
-X("LD [I] Vx"      , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
+    X("LD [I] Vx"  , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
                                                          ram_[I++ & 0xFFF] = regs_[xx];) \
-X("LD Vx [I]"      , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
+    X("LD Vx [I]"  , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
                                                          regs_[xx] = ram_[I++ & 0xFFF];) 
-
+    
 #define X(assembly, condition, instructions) if (condition) { instructions; break; }
 do {
     EXEC_INSTRUCTION
