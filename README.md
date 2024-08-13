@@ -24,37 +24,69 @@ virtual language and be interpreted at
 
 # 2. Usage
 
+### 2.1 Compilation
+
 This project has no third-party dependencies and renders on the terminal.  
 To compile:
-```bash
+```
 make
 ```
 To run:
-```bash
+```
 ./play path/to/rom.ch8
 ```
 Compile and run the sanity tests (mostly for CI):
-```bash
+```
 make test
 ```
 To clean all object and executable files:
-```bash
+```
 make clean
 ```
+
+### 2.2 Usage
+
+#### 2.2.1 Keypad
+
+The keys for each rom along with their description will be listed on the
+right panel. Read this section only if you want to edit them.
+Chip8's hex keypad has been mapped to the keyboard in the following way by 
+default:
+```
++---+---+---+---+       +---+---+---+---+
+| 1 | 2 | 3 | C |       | 1 | 2 | 3 | 4 |
++---+---+---+---+       +---+---+---+---+
+| 4 | 5 | 6 | D |       | q | w | e | r |
++---+---+---+---+  -->  +---+---+---+---+
+| 7 | 8 | 9 | E |       | a | s | d | f |
++---+---+---+---+       +---+---+---+---+
+| A | 0 | B | F |       | z | x | c | v |
++---+---+---+---+       +---+---+---+---+
+```
+You can edit the keys in
+[keypad.hpp](https://github.com/leonmavr/chip-8/blob/master/include/keypad.hpp).
+
+#### 2.2.2 .cfg files
+
+Each rom (`.ch8` file in `roms` directory) is accompanied by a `.cfg` file. 
+This describes each control key and sets the frequency each rom will run at. It
+was necessary to set the frequency because Chip8 games used to run on different
+machines over the decades. More detailed description of `.cfg` files can be
+found at `roms/README.md`.
 
 # 3. Features
 
 - [x] CPU and renderer.
 - [x] UI including controls and debugger view including pause, exit, and stepping key.
-- [x] .cfg file each ROM; this lists the controls and sets the emulation
-      frequency for each ROM. Found at `roms/*.cfg`.
-- [x] Configurable keys defined at [keypad.hpp](https://github.com/leonmavr/chip-8/blob/master/include/keypad.hpp).
+- [x] .cfg file each ROM; lists the controls and sets the emulation frequency.
+      Found at `roms/*.cfg`.
+- [x] Configurable keys.
 - [x] CI.
 - [ ] Sound; probably never going to implement this.
 
 # 4. Architecture and implementation
 
-### 4.1 Architecture
+### 4.1 System architecture
 
 ```
   <--- Main memory --->
@@ -62,7 +94,7 @@ make clean
               <- only ->            Stack        0    1          15 
   +-----------+-------+        +-----------+     +--+ +--+       +--+
   |           |       |        |  |  |  |  |     |  | |  | . . . |  |
-  | Instr/s   | Fonts |        +-----------+     +--+ +--+       +--+
+  |  Instr/s  | Fonts |        +-----------+     +--+ +--+       +--+
   |           |       |       0x18       ^            ^ 
   +-----------+-------+           ^      |            |
 0xFFF     ^ 0x200   0x0           |     2 bytes     1 byte
@@ -89,29 +121,67 @@ counter   |           pointer     |    Index register    +---+    +---+
 ```
 
 
-### 4.2 Implementation
+### 4.2 Implementation overview
 
-**TODO**
-
-Chip-8 operates on 4 kB of RAM memory and certain partitions of it are reserved for the interpreter, the loaded program (rom), and some hardcoded font sprites. It has 16 general-purpose 8-bit registers prfixed by `V`, one special 16-bit register called `I` which points to memory locations, and two special 8-bit sound and timer registers which tick at 60 Hz.  
-
-It also possesses a 16-bit stack pointer (`SP`) which points to the stack and a 16-bit program counter (`PC`), which points to the current instruction.  
-
-It's able to play  a beeping sound (1 frequency) as long as the sound timer is non zero, however I couldn't find anything about its specific frequency or duration.  
-
-It can render graphics on a 64x32 monochrome display.  
-
-The neat thing about this machine is that each instruction always consists of 2 consecutive bytes, which makes it easy to process them. In total, Chip-8 language consists of 36 instructions, however extensions such as Super Chip-8 possess more. The instructions (opcodes) also interact with the keyboard and display. [Cowgod](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0) has written the holy grail of Chip-8 documentation.
-
-The Chip-8 to modern keyboard mapping was defined by default like this:
 ```
-+---+---+---+---+       +---+---+---+---+
-| 0 | 1 | 2 | 3 |       | 1 | 2 | 3 | 4 |
-+---+---+---+---+       +---+---+---+---+
-| 4 | 5 | 6 | 7 |       | q | w | e | r |
-+---+---+---+---+  -->  +---+---+---+---+
-| 8 | 9 | a | b |       | a | s | d | f |
-+---+---+---+---+       +---+---+---+---+
-| c | d | e | f |       | z | x | c | v |
-+---+---+---+---+       +---+---+---+---+
+      +-------+
+      | start |
+      +-------+
+          |
+          +------>---------------------+
+          |                            |
+          +------>--------+            |
+          |               |            |
+          |          +~~~~~~~~~+  +~~~~~~~~~~+
+      +---------+    | Delay & |  | Key      |
+      | Set PC  |    | sound   |  | listener |
+      +---------+    | thread  |  | thread   |
+          |          +~~~~~~~~~+  +~~~~~~~~~~+
+          v               |            |
+          +-------------+ |            |
+          |             | +-->--+--<---+
+      +-------+         |       |
+      | Fetch |         |       x
+      +-------+         |      / \ 
+          |             |     /   \
+     instruction        |    /     \
+          v             ^   x  End  x
+      +--------+        |    \ loop/
+      | Decode |        |     \ ? /
+      +--------+        |      \ /
+          |             |       x
+        opcode          |       | y
+          v             |       | 
+      +---------+       |       |
+      | Execute |       |  +---------+
+      +---------+       |  | Join    |
+          |             |  | threads |
+          +----->-------+  +---------+
+          |                     |
+          +-----<---------------+ 
+          |
+          v 
+       +-----+
+       | End |
+       +-----+
 ```
+The emulator uses 3 threads in total. More detailed comments on how the fetch-
+decode-execute cycle works are found in the source file `chip8.cpp`. Some
+forbidden unoptomised programming was used to write the instruction table but
+it's my hobby project so I make the rules. Techinal resources are found in the
+reference section.
+
+### 4.3 Implementation quirks
+
+I found that without applying
+[SCHIP1.1's quirks](https://chip8.gulrak.net/#quirk1), several ROMs were
+crashing. These involve instructions such as `8xy6`, which is implemented as
+`Vx = Vy >> 1` in the classic Chip8 and as `Vx >>= 1` in the newer SCHIP.
+
+# References and credits
+1. [Steffen Schumann's instruction table](https://chip8.gulrak.net/)
+2. [Eric Bryntse's overview](http://devernay.free.fr/hacks/chip8/schip.txt)
+3. [Matthew Mikolay's instruction set writeup](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set#notes)
+4. [Columbia uni's technical guide](https://www.cs.columbia.edu/~sedwards/classes/2016/4840-spring/reports/Chip8.pdf)
+5. [reddit.com/r/emudev](emudev subreddit) for the inspiration
+6. [dmatlack](github.com/dmatlack) for the [roms](https://github.com/dmatlack/chip8/tree/master/roms/games)
