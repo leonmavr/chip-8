@@ -109,7 +109,7 @@ counter   |           pointer     |    Index register    +---+    +---+
 +----+    |           +----+      |    +----+
 |    |----+           |    |------+    |    |
 +----+                +----+           +----+
-12 bits               1 byte           12 bits
+2 bytes               2 bytes          2 bytes
 
         Renderer
 +----------------------+ ^
