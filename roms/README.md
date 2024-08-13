@@ -10,6 +10,10 @@ Here's an example config:
 0x4: Move left
 0x6: Move right
 0x5: Shoot
-# Frequency
+# Frequency (optional)
 1000
 ```
+
+### Credits
+
+The roms are copied from [dmatlack's repo](https://github.com/dmatlack/chip8/tree/master/roms/games).
