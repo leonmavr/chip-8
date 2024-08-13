@@ -183,5 +183,5 @@ crashing. These involve instructions such as `8xy6`, which is implemented as
 2. [Eric Bryntse's overview](http://devernay.free.fr/hacks/chip8/schip.txt)
 3. [Matthew Mikolay's instruction set writeup](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set#notes)
 4. [Columbia uni's technical guide](https://www.cs.columbia.edu/~sedwards/classes/2016/4840-spring/reports/Chip8.pdf)
-5. [reddit.com/r/emudev](emudev subreddit) for the inspiration
+5. [emudev subreddit](https://reddit.com/r/emudev) for the inspiration
 6. [dmatlack](github.com/dmatlack) for the [roms](https://github.com/dmatlack/chip8/tree/master/roms/games)
