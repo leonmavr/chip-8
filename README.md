@@ -178,6 +178,10 @@ I found that without applying
 crashing. These involve instructions such as `8xy6`, which is implemented as
 `Vx = Vy >> 1` in the classic Chip8 and as `Vx >>= 1` in the newer SCHIP.
 
+# 5 Improvements/fixed issues
+
+[x] - Get rid of excessive screen flicker (f27bd6d)[https://github.com/leonmavr/chip-8/commit/f27bd6d0bb2c32fe9879f90c9354cb34d11e9438]
+
 # References and credits
 1. [Steffen Schumann's instruction table](https://chip8.gulrak.net/)
 2. [Eric Bryntse's overview](http://devernay.free.fr/hacks/chip8/schip.txt)
