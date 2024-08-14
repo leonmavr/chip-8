@@ -379,7 +379,7 @@ inline void Chip8::Cls() {
 
 void Chip8::RenderFrame() {
     TPRINT_GOTO_TOPLEFT();
-    TPRINT_CLEAR();
+    //TPRINT_CLEAR();
     const std::string border_up_down = "+" + std::string(64, '-') + "+\n";
     std::string pixels = border_up_down;
     for (size_t row = 0; row < ROWS; ++row) {
@@ -408,7 +408,7 @@ void Chip8::RenderFrame() {
         std::string descr = key_descr.second;
         Frontend::WriteRight(pixels, line++, "[" + key + "] " + descr + "\n");
     }
-    std::cout << pixels << std::endl;
+    std::cout << pixels << std::endl <<  std::flush;
     std::this_thread::sleep_for(std::chrono::microseconds(1400));
 }
 
