@@ -258,9 +258,9 @@ void Chip8::Exec(const opcode_t& opc) {
     auto& Vf = regs_[0xf]; // detects overflow, e.g. in addition
     auto& I = I_;
     auto& PC = PC_;
-    // initialise random seed and random number generator
+    // initialise RNG with a seed 
     static std::mt19937 seed(std::random_device{}());
-    static std::uniform_int_distribution<uint8_t> rng(0, 255);
+    static std::uniform_int_distribution<uint8_t> rng(0, 255); // inclusive
 
     // NOTES: The implementation below follows Erik Bryntse's instructions.
     // (http://devernay.free.fr/hacks/chip8/schip.txt). It does implement
@@ -379,9 +379,12 @@ inline void Chip8::Cls() {
 
 void Chip8::RenderFrame() {
     TPRINT_GOTO_TOPLEFT();
-    //TPRINT_CLEAR();
-    const std::string border_up_down = "+" + std::string(64, '-') + "+\n";
-    std::string pixels = border_up_down;
+    std::string horizontal = "";
+    for (int i = 0; i < COLS; i++)
+        horizontal += u8"\u2500";
+    const std::string border_up = u8"\u250C" + horizontal + u8"\u2510" + "\n";
+    const std::string border_down = u8"\u2514" + horizontal + u8"\u2518" + "\n";
+    std::string pixels = border_up;
     for (size_t row = 0; row < ROWS; ++row) {
         std::array<uint8_t, COLS> line {};
         for (size_t col = 0; col < COLS; ++col) {
@@ -389,11 +392,11 @@ void Chip8::RenderFrame() {
             frame_buffer_[index] != 0 ? line[col] = 24 : line[col] = ' ';
         }
         std::string frame_row(line.begin(), line.end());
-        const std::string border_left_right = "|";
+        const std::string border_left_right = u8"\u2502";
         pixels += border_left_right + frame_row + border_left_right;
         pixels += "\n";
     }
-    pixels += border_up_down;
+    pixels += border_down;
     // debugger and keyboard controls
     Frontend::WriteRegs(pixels, regs_);
     Frontend::WriteI(pixels, I_);
