@@ -180,7 +180,7 @@ crashing. These involve instructions such as `8xy6`, which is implemented as
 
 # 5 Improvements/fixed issues
 
-- [x] Get rid of excessive screen flicker (f27bd6d)[https://github.com/leonmavr/chip-8/commit/f27bd6d0bb2c32fe9879f90c9354cb34d11e9438]
+- [x] Get rid of excessive screen flicker ([f27bd6d](https://github.com/leonmavr/chip-8/commit/f27bd6d0bb2c32fe9879f90c9354cb34d11e9438))
 
 # References and credits
 1. [Steffen Schumann's instruction table](https://chip8.gulrak.net/)
