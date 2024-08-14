@@ -1,12 +1,12 @@
 ```
-    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒   ▒▒▒▒       ▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒   ▒▒▒▒▒▒ ▒▒▒▒       ▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒  ▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒▒        ▒▒▒▒       ▒▒▒▒
-  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒       ▒▒▒▒
-    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒   ▒▒▒▒       ▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒   ▒▒▒▒▒▒ ▒▒▒▒       ▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒  ▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
+  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
+    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 # 1. About
 
@@ -168,8 +168,8 @@ counter   |           pointer     |    Index register    +---+    +---+
 The emulator uses 3 threads in total. More detailed comments on how the fetch-
 decode-execute cycle works are found in the source file `chip8.cpp`. Some
 forbidden unoptomised programming was used to write the instruction table but
-it's my hobby project so I make the rules. Techinal resources are found in the
-reference section.
+it's my hobby project so I make the rules. More comprehensive techninal 
+resources are found in the reference section.
 
 ### 4.3 Implementation quirks
 

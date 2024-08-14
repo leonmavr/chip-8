@@ -4,13 +4,17 @@ on:
   push:
     branches: [ "master" ]
     paths-ignore:
-      - 'README*'
+      - '*README*'
       - 'assets/**'
+      - 'roms/**'
+      - 'LICENSE*'
   pull_request:
     branches: [ "master" ]
     paths-ignore:
-      - 'README*'
+      - '*README*'
       - 'assets/**'
+      - 'roms/**'
+      - 'LICENSE*'
 
 jobs:
   build:
@@ -19,5 +23,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: compile and test
+    - name: compile and run sanity test(s)
       run: make test
