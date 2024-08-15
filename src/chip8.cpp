@@ -258,6 +258,7 @@ void Chip8::Exec(const opcode_t& opc) {
     auto& Vf = regs_[0xf]; // detects overflow, e.g. in addition
     auto& I = I_;
     auto& PC = PC_;
+    auto& SP = SP_;
     // initialise RNG with a seed 
     static std::mt19937 seed(std::random_device{}());
     static std::uniform_int_distribution<uint8_t> rng(0, 255); // inclusive
@@ -270,12 +271,13 @@ void Chip8::Exec(const opcode_t& opc) {
 #define EXEC_INSTRUCTION \
     /* assembly, condition, instruction(s) */ \
     X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
-    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = stack_[--SP_];) \
-    X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
-    X("CALL nnn"   , prefix == 0x2                 , stack_[SP_++] = PC; PC = nnn - 2;) \
+    X("RET"        , prefix == 0x0 && nnn == 0x0ee , if (SP > 0) PC = stack_[--SP];) \
+    X("JP nnn"     , prefix == 0x1                 , if (nnn >= 2) PC = nnn - 2;) \
+    X("CALL nnn"   , prefix == 0x2                 , if (nnn >= 2) { stack_[SP_++] = PC; PC = nnn - 2; }) \
     X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;) \
     X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;) \
-    X("SE Vx Vy"   , prefix == 0x5 && Vx == Vy     , PC += 2;) \
+    X("SE Vx Vy"   , prefix == 0x5 && n == 0x0 \
+                                   && Vx == Vy     , PC += 2;) \
     X("LD Vx nn"   , prefix == 0x6                 , Vx = nn;) \
     X("ADD Vx nn"  , prefix == 0x7                 , Vx += nn;) \
     X("LD Vx Vy"   , prefix == 0x8 && n == 0x0     , Vx = Vy;) \
@@ -287,7 +289,8 @@ void Chip8::Exec(const opcode_t& opc) {
     X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 1; Vx >>= 1;) \
     X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = (Vy > Vx) ? 1 : 0; Vx = Vy - Vx;) \
     X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; Vx <<= 1;) \
-    X("SNE Vx Vy"  , prefix == 0x9 && Vx != Vy     , PC += 2;) \
+    X("SNE Vx Vy"  , prefix == 0x9 && n == 0 \
+                                   && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
     X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
     X("RND Vx nn"  , prefix == 0xc                 , Vx = rng(seed) & nn;) \
@@ -315,8 +318,8 @@ void Chip8::Exec(const opcode_t& opc) {
     X("LD Vx k"    , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
     X("LD DT Vx"   , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
     X("LD ST Vx"   , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
-    X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , Vf = (I + Vx > 0xFFF) ? 1 : 0; I += Vx;) \
-    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = Vx * 5;) \
+    X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , I += Vx;) \
+    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = (Vx & 0xF) * 5;) \
     X("LD B Vx"    , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
                                                      ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10; \
                                                      ram_[(I + 2) & 0xFFF] = Vx % 10;) \
@@ -388,7 +391,7 @@ void Chip8::RenderFrame() {
     for (size_t row = 0; row < ROWS; ++row) {
         static std::array<char, COLS> line_buffer {};
         for (size_t col = 0; col < COLS; ++col) {
-            size_t index = row * COLS + col;
+            const size_t index = row * COLS + col;
             frame_buffer_[index] != 0 ? line_buffer[col] = 24 : line_buffer[col] = ' ';
         }
         std::string frame_row(line_buffer.begin(), line_buffer.end());
@@ -412,7 +415,7 @@ void Chip8::RenderFrame() {
         Frontend::WriteRight(pixels, line_num++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl <<  std::flush;
-    std::this_thread::sleep_for(std::chrono::microseconds(1400));
+    std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }
 
 void Chip8::UpdateTimers() {
