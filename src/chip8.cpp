@@ -386,12 +386,12 @@ void Chip8::RenderFrame() {
     const std::string border_down = u8"\u2514" + horizontal + u8"\u2518" + "\n";
     std::string pixels = border_up;
     for (size_t row = 0; row < ROWS; ++row) {
-        std::array<uint8_t, COLS> line {};
+        static std::array<char, COLS> line_buffer {};
         for (size_t col = 0; col < COLS; ++col) {
             size_t index = row * COLS + col;
-            frame_buffer_[index] != 0 ? line[col] = 24 : line[col] = ' ';
+            frame_buffer_[index] != 0 ? line_buffer[col] = 24 : line_buffer[col] = ' ';
         }
-        std::string frame_row(line.begin(), line.end());
+        std::string frame_row(line_buffer.begin(), line_buffer.end());
         const std::string border_left_right = u8"\u2502";
         pixels += border_left_right + frame_row + border_left_right;
         pixels += "\n";
@@ -403,13 +403,13 @@ void Chip8::RenderFrame() {
     Frontend::WritePC(pixels, PC_);
     Frontend::WriteSP(pixels, SP_);
     Frontend::WriteStack(pixels, stack_);
-    int line = 10;
-    Frontend::WriteRight(pixels, line++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
-    Frontend::WriteRight(pixels, line++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
+    int line_num = 10;
+    Frontend::WriteRight(pixels, line_num++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
+    Frontend::WriteRight(pixels, line_num++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
     for (const auto& key_descr: cfg_parser_->key_descrs()) {
         std::string key = key_descr.first;
         std::string descr = key_descr.second;
-        Frontend::WriteRight(pixels, line++, "[" + key + "] " + descr + "\n");
+        Frontend::WriteRight(pixels, line_num++, "[" + key + "] " + descr + "\n");
     }
     std::cout << pixels << std::endl <<  std::flush;
     std::this_thread::sleep_for(std::chrono::microseconds(1400));
