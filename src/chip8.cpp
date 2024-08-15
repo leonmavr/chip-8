@@ -16,7 +16,7 @@
 #include <fstream>
 
 #define KEY_ESC 27
-
+#define ERROR_POINTER() { Chip8::~Chip8(); throw std::runtime_error("Fatal: Invalid program or stack pointer!\n"); }
 
 static struct termios orig_termios;
 
@@ -186,7 +186,6 @@ inline uint16_t Chip8::Fetch() const {
     *
     * 1. dest =    | 2. dest <<= 8   | 3. dest |= 
     *    mem[PC]   |                 |    mem[PC+1]
-    *              |                 |
     * +---------+  |    +---------+  |    +---------+
     * |      00 |  |    | 00      |  |    | 00   e0 |
     * +---------+  |    +---------+  |    +---------+
@@ -214,19 +213,14 @@ inline opcode_t Chip8::Decode(uint16_t instr) const {
      *  +----+----+----+----+
      *  <---->    |    |    |
      *  prefix    |    |    |
-     *       |    |    |    |
      *       <---->    |    |
      *       | x  |    |    |
-     *       |    |    |    |
      *       |    <---->    |
      *       |    | y  |    |
-     *       |    |    |    |
      *       |    |    <---->
      *       |    |      n  | 
-     *       |    |         |
      *       |    <--------->
      *       |        nn    |
-     *       |              |
      *       <-------------->
      *              nnn 
      *
@@ -269,11 +263,15 @@ void Chip8::Exec(const opcode_t& opc) {
     // https://chip8.gulrak.net
     // Without them, I found out that several ROMs were crashing.
 #define EXEC_INSTRUCTION \
-    /* assembly, condition, instruction(s) */ \
+    /* assembly    , condition                     , instruction(s) */ \
+    X("ERR"        , (prefix == 0x0 && nnn == 0x0ee && SP == 0)    || \
+                     ((prefix == 0x1 || prefix == 0x2) && nnn < 2) || \
+                     (prefix == 0x2 &&  SP >= stack_.size() - 1) \
+                                                   , ERROR_POINTER(); ) \
     X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
-    X("RET"        , prefix == 0x0 && nnn == 0x0ee , if (SP > 0) PC = stack_[--SP];) \
-    X("JP nnn"     , prefix == 0x1                 , if (nnn >= 2) PC = nnn - 2;) \
-    X("CALL nnn"   , prefix == 0x2                 , if (nnn >= 2) { stack_[SP_++] = PC; PC = nnn - 2; }) \
+    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = stack_[--SP];) \
+    X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
+    X("CALL nnn"   , prefix == 0x2                 , stack_[SP++] = PC; PC = nnn - 2;) \
     X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;) \
     X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;) \
     X("SE Vx Vy"   , prefix == 0x5 && n == 0x0 \
@@ -326,14 +324,13 @@ void Chip8::Exec(const opcode_t& opc) {
     X("LD [I] Vx"  , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
                                                          ram_[I++ & 0xFFF] = regs_[xx];) \
     X("LD Vx [I]"  , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
-                                                         regs_[xx] = ram_[I++ & 0xFFF];) 
-    
-#define X(assembly, condition, instructions) if (condition) { instructions; break; }
-do {
-    EXEC_INSTRUCTION
-} while(0);
-#undef X
-#undef EXEC_INSTRUCTION
+                                                         regs_[xx] = ram_[I++ & 0xFFF];)
+    #define X(assembly, condition, instructions) if (condition) { instructions; break; }
+    do {
+        EXEC_INSTRUCTION
+    } while(0);
+    #undef X
+    #undef EXEC_INSTRUCTION
 }
 
 void Chip8::ListenForKey() {
