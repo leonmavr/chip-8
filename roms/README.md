@@ -16,4 +16,6 @@ Here's an example config:
 
 ### Credits
 
-The roms are copied from [dmatlack's repo](https://github.com/dmatlack/chip8/tree/master/roms/games).
+All roms but `test/test_opcode.ch8` are copied from [dmatlack's repo](https://github.com/dmatlack/chip8/tree/master/roms/games).
+
+`test_opcode.ch8` is copied from [corax89's repo](https://github.com/corax89/chip8-test-rom/tree/master).
