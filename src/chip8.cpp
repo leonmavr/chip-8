@@ -282,7 +282,7 @@ void Chip8::Exec(const opcode_t& opc) {
     X("OR Vx Vy"   , prefix == 0x8 && n == 0x1     , Vx |= Vy;) \
     X("AND Vx Vy"  , prefix == 0x8 && n == 0x2     , Vx &= Vy;) \
     X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;) \
-    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vf = sum > 0x100; Vx = sum & 0xFF;) \
+    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vf = sum > 0xFF; Vx = sum & 0xFF;) \
     X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF) \
     X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; Vx >>= 1;) \
     X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;) \
