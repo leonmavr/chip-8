@@ -265,7 +265,7 @@ void Chip8::Exec(const opcode_t& opc) {
 #define EXEC_INSTRUCTION \
     /* assembly    , condition                     , instruction(s) */ \
     X("ERR"        , (prefix == 0x0 && nnn == 0x0ee && SP == 0)    || \
-                     ((prefix == 0x1 || prefix == 0x2) && nnn < 2) || \
+                     ((prefix == 0x1 || prefix == 0x2) && nnn == 0) || \
                      (prefix == 0x2 &&  SP >= stack_.size() - 1) \
                                                    , ERROR_POINTER(); ) \
     X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
@@ -282,8 +282,8 @@ void Chip8::Exec(const opcode_t& opc) {
     X("OR Vx Vy"   , prefix == 0x8 && n == 0x1     , Vx |= Vy;) \
     X("AND Vx Vy"  , prefix == 0x8 && n == 0x2     , Vx &= Vy;) \
     X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;) \
-    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vf = sum > 0xFF; Vx = sum & 0xFF;) \
-    X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF) \
+    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vx = sum & 0xFF; Vf = sum > 0xFF;) \
+    X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF;) \
     X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; Vx >>= 1;) \
     X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;) \
     X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; Vx = (Vx << 1) & 0xFF;) \
@@ -294,13 +294,16 @@ void Chip8::Exec(const opcode_t& opc) {
     X("RND Vx nn"  , prefix == 0xc                 , Vx = rng(seed) & nn;) \
     X("DRW Vx Vy n", prefix == 0xd,                     \
         do {                                            \
+            /* Vx or Vy could be Vf so store them */    \
+            const auto x0 = Vx;                         \
+            const auto y0 = Vy;                         \
             Vf = 0;                                     \
             for (uint8_t row = 0; row < n; row++) {     \
                 uint8_t sprite = ram_[I + row];         \
                 for (uint8_t col = 0; col < 8; col++) { \
                     if ((sprite & 0x80) != 0) {         \
-                        size_t x = (Vx + col) % COLS;   \
-                        size_t y = (Vy + row) % ROWS;   \
+                        size_t x = (x0 + col) % COLS;   \
+                        size_t y = (y0 + row) % ROWS;   \
                         size_t index = y * COLS + x;    \
                         if (frame_buffer_[index] == 1)  \
                             Vf = 1;                     \
