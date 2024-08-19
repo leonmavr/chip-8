@@ -129,7 +129,7 @@ void Chip8::Run(size_t max_iterations) {
             continue;
         } else if (state_ == STATE_STEPPING) {
             kbd_pressed_key_ = '\0';
-            while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P') {
+            while (kbd_pressed_key_ != 'S' && kbd_pressed_key_ != 'R' && kbd_pressed_key_ != 'P' && kbd_pressed_key_ != 'Q') {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 if (kbd_pressed_key_ == 'P') {
                     state_ = STATE_PAUSED;
@@ -364,6 +364,7 @@ void Chip8::ListenForKey() {
                 else if (kbd_pressed_key_ == KEY_ESC) state_ = STATE_STOPPED;
                 else if (kbd_pressed_key_ == '+' && freq_ < 2000) freq_ += 50;
                 else if (kbd_pressed_key_ == '-' && freq_ > 50) freq_ -= 50;
+                else if (kbd_pressed_key_ == 'Q') use_quirks_ = !use_quirks_;
                 if (keyboard2keypad_.find(kbd_pressed_key_) != keyboard2keypad_.end())
                     pressed_keys_[keyboard2keypad_[kbd_pressed_key_]] = true;
             }
@@ -414,7 +415,7 @@ void Chip8::RenderFrame() {
     Frontend::WriteStack(pixels, stack_);
     int line_num = 10;
     Frontend::WriteRight(pixels, line_num++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
-    const std::string quirks_state = (use_quirks_) ? "ON" : "OFF";
+    const std::string quirks_state = (use_quirks_) ? "ON " : "OFF";
     Frontend::WriteRight(pixels, line_num++, "[Q]uirks: " + quirks_state + "\n");
     Frontend::WriteRight(pixels, line_num++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
     line_num++;
