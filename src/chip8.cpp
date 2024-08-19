@@ -231,12 +231,12 @@ inline opcode_t Chip8::Decode(uint16_t instr) const {
      * 1. https://johnearnest.github.io/Octo/docs/chip8ref.pdf
      */
     opcode_t decoded;
-    decoded.prefix = (instr >> 12) & 0x000f;
-    decoded.n      = instr         & 0x000f;
-    decoded.x      = (instr >> 8)  & 0x000f;
-    decoded.y      = (instr >> 4)  & 0x000f;
-    decoded.nn     = instr         & 0x00ff;
-    decoded.nnn    = instr         & 0x0fff;
+    decoded.prefix = (instr >> 12) & 0x00f;
+    decoded.n      = instr         & 0x00f;
+    decoded.x      = (instr >> 8)  & 0x00f;
+    decoded.y      = (instr >> 4)  & 0x00f;
+    decoded.nn     = instr         & 0x0ff;
+    decoded.nnn    = instr         & 0xfff;
     return decoded;
 }
 
@@ -418,7 +418,7 @@ void Chip8::RenderFrame() {
     Frontend::WriteRight(pixels, line_num++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
     const std::string quirks_state = (use_quirks_) ? "ON " : "OFF";
     Frontend::WriteRight(pixels, line_num++, "[Q]uirks: " + quirks_state + "\n");
-    Frontend::WriteRight(pixels, line_num++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
+    Frontend::WriteRight(pixels, line_num++, "[-] " + std::to_string(freq_) + " Hz [+]  \n");
     line_num++;
     for (const auto& key_descr: cfg_parser_->key_descrs()) {
         std::string key = key_descr.first;
