@@ -117,6 +117,8 @@ void Chip8::Run(size_t max_iterations) {
     };
     // t0 and t1 enforce the loop to cycle at frequency `freq_`
     unsigned t0 = now_ms(), t1 = now_ms();
+    // t0_render and t1_render enforce the renderer to flush at 60 Hz 
+    unsigned t0_render = now_ms(), t1_render = now_ms();
     /** Throttles the instructions at `freq_` instructions per second. It checks
      * how many instructions have run every 1/20 sec. If more than `freq_/20`, 
      * stall the loop until 1/20 of a sec has ellapsed. */
@@ -149,8 +151,14 @@ void Chip8::Run(size_t max_iterations) {
 
         const uint16_t instr = Fetch();
         const opcode_t opc = Decode(instr);
-        Chip8::Exec(opc);
-        RenderFrame();
+        Exec(opc);
+        
+        t1_render = now_ms();
+        if (t1_render - t0_render > 16) {
+            RenderFrame();
+            t1_render = t0_render;
+        }
+        
 
         const auto t_keyboard_end = std::chrono::high_resolution_clock::now();
         const unsigned dt_keyboard_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_keyboard_end - t_keyboard_start).count();
