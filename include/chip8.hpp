@@ -115,6 +115,9 @@ class Chip8 {
         std::unique_ptr<CfgParser> cfg_parser_;
         /** Last key pressed by the actual keyboard */
         char kbd_pressed_key_;
+
+        /** Whether to use SCHIP1.1's quirks: https://chip8.gulrak.net/ */
+        bool use_quirks_;
 };
 
 #endif /* CHIP8_HPP */

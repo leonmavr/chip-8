@@ -53,7 +53,8 @@ Chip8::Chip8():
     key_thread_(std::thread(&Chip8::ListenForKey, this)),
     state_(STATE_RUNNING),
     cfg_parser_(nullptr),
-    kbd_pressed_key_('\0')
+    kbd_pressed_key_('\0'),
+    use_quirks_(true)
 {
     // preload memory with sprites 
     constexpr std::array<uint8_t, 80> font_sprites = {
@@ -284,9 +285,17 @@ void Chip8::Exec(const opcode_t& opc) {
     X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;) \
     X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vx = sum & 0xFF; Vf = sum > 0xFF;) \
     X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF;) \
-    X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; Vx >>= 1;) \
+    X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; \
+                                                     if (!use_quirks_) \
+                                                         Vx >>= 1; \
+                                                     else \
+                                                         Vx = Vy >> 1;) \
     X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;) \
-    X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; Vx = (Vx << 1) & 0xFF;) \
+    X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; \
+                                                     if (!use_quirks_) \
+                                                         Vx = (Vx << 1) & 0xFF; \
+                                                     else \
+                                                         Vx = (Vy << 1) & 0xFF;) \
     X("SNE Vx Vy"  , prefix == 0x9 && n == 0x0 \
                                    && Vx != Vy     , PC += 2;) \
     X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
@@ -325,9 +334,11 @@ void Chip8::Exec(const opcode_t& opc) {
                                                      ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10; \
                                                      ram_[(I + 2) & 0xFFF] = Vx % 10;) \
     X("LD [I] Vx"  , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
-                                                         ram_[I++ & 0xFFF] = regs_[xx];) \
+                                                         ram_[I++ & 0xFFF] = regs_[xx]; \
+                                                     if (!use_quirks_) I += x + 1;) \
     X("LD Vx [I]"  , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
-                                                         regs_[xx] = ram_[I++ & 0xFFF];)
+                                                         regs_[xx] = ram_[I++ & 0xFFF]; \
+                                                     if (!use_quirks_) I += x + 1;)
     #define X(assembly, condition, instructions) if (condition) { instructions; break; }
     do {
         EXEC_INSTRUCTION
@@ -408,7 +419,10 @@ void Chip8::RenderFrame() {
     Frontend::WriteStack(pixels, stack_);
     int line_num = 10;
     Frontend::WriteRight(pixels, line_num++, "[P]ause/resume [S]tep [R]un [Esc]ape\n");
+    const std::string quirks_state = (use_quirks_) ? "ON" : "OFF";
+    Frontend::WriteRight(pixels, line_num++, "[Q]uirks: " + quirks_state + "\n");
     Frontend::WriteRight(pixels, line_num++, "[-] " + std::to_string(freq_) + " Hz [+]\n");
+    line_num++;
     for (const auto& key_descr: cfg_parser_->key_descrs()) {
         std::string key = key_descr.first;
         std::string descr = key_descr.second;
