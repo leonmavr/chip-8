@@ -12,6 +12,8 @@ Here's an example config:
 0x5: Shoot
 # Frequency (optional)
 1000
+# Quirks ("on" or "off")
+on
 ```
 
 ### Credits

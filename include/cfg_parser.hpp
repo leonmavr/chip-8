@@ -27,6 +27,7 @@ public:
     const std::vector<std::pair<std::string, std::string>>& key_descrs() const {
         return key_descrs_;
     }
+    bool quirks() const { return quirks_; }
 
 private:
     void ParseConfigFile(const std::string& filename);
@@ -39,6 +40,7 @@ private:
         return ret;
     }();
     std::vector<std::pair<std::string, std::string>> key_descrs_;
+    bool quirks_;
     bool cfg_file_found_;
 };
 

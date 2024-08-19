@@ -78,8 +78,7 @@ found at `roms/README.md`.
 
 - [x] CPU and renderer.
 - [x] UI including controls and debugger view including pause, exit, and stepping key.
-- [x] .cfg file each ROM; lists the controls and sets the emulation frequency.
-      Found at `roms/*.cfg`.
+- [x] .cfg file for each ROM with editable presets (such as emulation frequency) and key descriptions for each rom.  Found at `roms/*.cfg`.
 - [x] Configurable keys.
 - [x] CI.
 - [ ] Sound; probably never going to implement this.

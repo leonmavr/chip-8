@@ -101,6 +101,7 @@ void Chip8::LoadRom(const char* filename) {
     std::cout << cfg_filename << std::endl;
     cfg_parser_ = std::make_unique<CfgParser>(cfg_filename);
     freq_ = cfg_parser_->frequency();
+    use_quirks_ = cfg_parser_->quirks();
 }
 
 void Chip8::Run(size_t max_iterations) {

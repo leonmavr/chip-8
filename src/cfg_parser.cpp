@@ -32,6 +32,7 @@ static void Trim(std::string &key) {
 
 CfgParser::CfgParser(const std::string& filename) :
     frequency_(350),
+    quirks_(true),
     cfg_file_found_(true) {
     ParseConfigFile(filename);
 }
@@ -61,10 +62,19 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
             uint8_t hex_key = static_cast<uint8_t>(std::stoi(key.substr(2), nullptr, 16));
             key_descrs_.push_back(std::make_pair(std::string(keyboard2keypad_.at(hex_key)), value));
         } else {
-            try {
-                frequency_ = std::stoi(line);
-            } catch (const std::invalid_argument& e) {
-                std::cerr << "Invalid argument: " << e.what() << std::endl;
+            std::string line_lower = line;
+            std::transform(line_lower.begin(), line_lower.end(), line_lower.begin(),
+                   [](char c){ return std::tolower(c); });
+            if (line_lower == "on")
+                quirks_ = true;
+            else if (line_lower == "off")
+                quirks_ = false;
+            else {
+                try {
+                    frequency_ = std::stoi(line);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument: " << e.what() << std::endl;
+                }
             }
         }
     }
