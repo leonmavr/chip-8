@@ -258,11 +258,6 @@ void Chip8::Exec(const opcode_t& opc) {
     static std::mt19937 seed(std::random_device{}());
     static std::uniform_int_distribution<uint8_t> rng(0, 255); // inclusive
 
-    // NOTES: The implementation below follows Erik Bryntse's instructions.
-    // (http://devernay.free.fr/hacks/chip8/schip.txt). It does implement
-    // SCHIP-1.x's quirks #5, #6, #11 described here:
-    // https://chip8.gulrak.net
-    // Without them, I found out that several ROMs were crashing.
 #define EXEC_INSTRUCTION \
     /* assembly    , condition                     , instruction(s) */ \
     X("ERR"        , (prefix == 0x0 && nnn == 0x0ee && SP == 0)    || \
