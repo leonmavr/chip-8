@@ -313,11 +313,20 @@ void Chip8::Exec(const opcode_t& opc) {
             Vf = 0;                                     \
             for (uint8_t row = 0; row < n; row++) {     \
                 uint8_t sprite = ram_[I + row];         \
+                size_t index = 0;                       \
+                bool quirk_clipped = false;             \
                 for (uint8_t col = 0; col < 8; col++) { \
                     if ((sprite & 0x80) != 0) {         \
-                        size_t x = (x0 + col) % COLS;   \
-                        size_t y = (y0 + row) % ROWS;   \
-                        size_t index = y * COLS + x;    \
+                            size_t x = x0 + col;        \
+                            size_t y = y0 + row;        \
+                        if (use_quirks_) {              \
+                            size_t x = x % COLS;        \
+                            size_t y = y % ROWS;        \
+                        }                               \
+                        quirk_clipped = (x >= COLS) ||  \
+                            (y >= ROWS);                \
+                        if (quirk_clipped) continue;    \
+                        index = y * COLS + x;           \
                         if (frame_buffer_[index] == 1)  \
                             Vf = 1;                     \
                         frame_buffer_[index] ^= 1;      \
