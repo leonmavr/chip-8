@@ -290,7 +290,7 @@ void Chip8::Exec(const opcode_t& opc) {
     X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vx = sum & 0xFF; Vf = sum > 0xFF;) \
     X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF;) \
     X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; \
-                                                     if (!use_quirks_) \
+                                                     if (use_quirks_) \
                                                          Vx >>= 1; \
                                                      else \
                                                          Vx = Vy >> 1;) \
