@@ -1,9 +1,9 @@
 ```
-    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒   ▒▒▒▒       ▒▒▒▒
+    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒       ▒▒▒▒
 ▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒   ▒▒▒▒▒▒ ▒▒▒▒       ▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒  ▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒  ▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
   ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
     ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -35,7 +35,6 @@ To run:
 ```
 ./play path/to/rom.ch8
 ```
-You can then press each \[B\]racketed key to send an input.  
 Compile and run the sanity tests (mostly for CI):
 ```
 make test
@@ -47,12 +46,15 @@ make clean
 
 ### 2.2 Usage
 
-#### 2.2.1 Keypad
+#### 2.2.1 Controls and UI
 
-The keys for each rom along with their description will be listed on the
-right panel. Read this section only if you want to edit them.
-Chip8's hex keypad has been mapped to the keyboard in the following way by 
-default:
+The keys along with their descriptions are listed on the right panel of the UI.
+You can press each \[B\]racketed key to send an input.  
+
+#### 2.2.2 Changing the controls
+
+Chip8's hex keypad has been mapped to the keyboard in the
+following way by default:
 ```
 +---+---+---+---+       +---+---+---+---+
 | 1 | 2 | 3 | C |       | 1 | 2 | 3 | 4 |
@@ -175,10 +177,10 @@ Here is the idea of this implementation. Details are omitted.
 ```
 The emulator uses 3 threads in total. More detailed comments on how the fetch-
 decode-execute cycle works are found in the source file `chip8.cpp`.
-Instructions are implemented in a near but non-optimised way but it suffices
-since we typically run on a 500 to 2000 instruction per second clock.  More 
-comprehensive techninal resources are found in the reference section.
-
+Instructions are implemented in a neat but non-optimised instruction table.
+This suffices since we typically run on a 300 to 2000 instruction per second
+clock. More comprehensive techninal resources are found in the reference
+section.
 
 # 5. Improvements/fixed issues
 
