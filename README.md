@@ -179,12 +179,6 @@ Instructions are implemented in a near but non-optimised way but it suffices
 since we typically run on a 500 to 2000 instruction per second clock.  More 
 comprehensive techninal resources are found in the reference section.
 
-### 4.3 Implementation quirks
-
-I found that without applying
-[SCHIP1.1's quirks](https://chip8.gulrak.net/#quirk1), several ROMs were
-crashing. These involve instructions such as `8xy6`, which is implemented as
-`Vx = Vy >> 1` in the classic Chip8 and as `Vx >>= 1` in the newer SCHIP.
 
 # 5. Improvements/fixed issues
 
