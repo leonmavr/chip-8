@@ -268,90 +268,86 @@ void Chip8::Exec(const opcode_t& opc) {
     static std::uniform_int_distribution<uint8_t> rng(0, 255); // inclusive
 
 #define EXEC_INSTRUCTION \
-    /* assembly    , condition                     , instruction(s) */ \
-    X("ERR"        , (prefix == 0x0 && nnn == 0x0ee && SP == 0)    || \
-                     ((prefix == 0x1 || prefix == 0x2) && nnn == 0) || \
-                     (prefix == 0x2 &&  SP >= stack_.size() - 1) \
-                                                   , ERROR_POINTER(); ) \
-    X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();) \
-    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = stack_[--SP];) \
-    X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;) \
-    X("CALL nnn"   , prefix == 0x2                 , stack_[SP++] = PC; PC = nnn - 2;) \
-    X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;) \
-    X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;) \
-    X("SE Vx Vy"   , prefix == 0x5 && n == 0x0 \
-                                   && Vx == Vy     , PC += 2;) \
-    X("LD Vx nn"   , prefix == 0x6                 , Vx = nn;) \
-    X("ADD Vx nn"  , prefix == 0x7                 , Vx += nn;) \
-    X("LD Vx Vy"   , prefix == 0x8 && n == 0x0     , Vx = Vy;) \
-    X("OR Vx Vy"   , prefix == 0x8 && n == 0x1     , Vx |= Vy;) \
-    X("AND Vx Vy"  , prefix == 0x8 && n == 0x2     , Vx &= Vy;) \
-    X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;) \
-    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vx = sum & 0xFF; Vf = sum > 0xFF;) \
-    X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF;) \
-    X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1; \
-                                                     if (use_quirks_) \
-                                                         Vx >>= 1; \
-                                                     else \
-                                                         Vx = Vy >> 1;) \
-    X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;) \
-    X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; \
-                                                     if (use_quirks_) \
-                                                         Vx = (Vx << 1) & 0xFF; \
-                                                     else \
-                                                         Vx = (Vy << 1) & 0xFF;) \
-    X("SNE Vx Vy"  , prefix == 0x9 && n == 0x0 \
-                                   && Vx != Vy     , PC += 2;) \
-    X("LD I nnn"   , prefix == 0xa                 , I = nnn;) \
-    X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;) \
-    X("RND Vx nn"  , prefix == 0xc                 , Vx = rng(seed) & nn;) \
-    X("DRW Vx Vy n", prefix == 0xd,                     \
-        do {                                            \
-            /* Vx or Vy could be Vf so store them */    \
-            const auto x0 = Vx;                         \
-            const auto y0 = Vy;                         \
-            Vf = 0;                                     \
-            for (uint8_t row = 0; row < n; row++) {     \
-                uint8_t sprite = ram_[I + row];         \
-                size_t index = 0;                       \
-                bool quirk_clipped = false;             \
-                for (uint8_t col = 0; col < 8; col++) { \
-                    if ((sprite & 0x80) != 0) {         \
-                            size_t x = x0 + col;        \
-                            size_t y = y0 + row;        \
-                        if (use_quirks_) {              \
-                            size_t x = x % COLS;        \
-                            size_t y = y % ROWS;        \
-                        }                               \
-                        quirk_clipped = (x >= COLS) ||  \
-                            (y >= ROWS);                \
-                        if (quirk_clipped) continue;    \
-                        index = y * COLS + x;           \
-                        if (frame_buffer_[index] == 1)  \
-                            Vf = 1;                     \
-                        frame_buffer_[index] ^= 1;      \
-                    }                                   \
-                    sprite <<= 1;                       \
-                }                                       \
-            }                                           \
-        } while(0); )                                   \
-    X("SKP Vx"     , prefix == 0xe && nn == 0x9e   , if ( pressed_keys_[Vx & 0xF]) PC += 2;) \
-    X("SKNP Vx"    , prefix == 0xe && nn == 0xa1   , if (!pressed_keys_[Vx & 0xF]) PC += 2;) \
-    X("LD Vx DT"   , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;) \
-    X("LD Vx k"    , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();) \
-    X("LD DT Vx"   , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;) \
-    X("LD ST Vx"   , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;) \
-    X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , I += Vx;) \
-    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = (Vx & 0xF) * 5;) \
+    /* assembly    , condition                     , instruction(s) */                        \
+    X("ERR"        , (prefix == 0x0 && nnn == 0x0ee && SP == 0)     ||                        \
+                     ((prefix == 0x1 || prefix == 0x2) && nnn == 0) ||                        \
+                     (prefix == 0x2 &&  SP >= stack_.size() - 1)                              \
+                                                   , ERROR_POINTER(); )                       \
+    X("CLS"        , prefix == 0x0 && nnn == 0x0e0 , Cls();)                                  \
+    X("RET"        , prefix == 0x0 && nnn == 0x0ee , PC = stack_[--SP];)                      \
+    X("JP nnn"     , prefix == 0x1                 , PC = nnn - 2;)                           \
+    X("CALL nnn"   , prefix == 0x2                 , stack_[SP++] = PC; PC = nnn - 2;)        \
+    X("SE Vx nn"   , prefix == 0x3 && nn == Vx     , PC += 2;)                                \
+    X("SNE Vx nn"  , prefix == 0x4 && nn != Vx     , PC += 2;)                                \
+    X("SE Vx Vy"   , prefix == 0x5 && n == 0x0                                                \
+                                   && Vx == Vy     , PC += 2;)                                \
+    X("LD Vx nn"   , prefix == 0x6                 , Vx = nn;)                                \
+    X("ADD Vx nn"  , prefix == 0x7                 , Vx += nn;)                               \
+    X("LD Vx Vy"   , prefix == 0x8 && n == 0x0     , Vx = Vy;)                                \
+    X("OR Vx Vy"   , prefix == 0x8 && n == 0x1     , Vx |= Vy;)                               \
+    X("AND Vx Vy"  , prefix == 0x8 && n == 0x2     , Vx &= Vy;)                               \
+    X("XOR Vx Vy"  , prefix == 0x8 && n == 0x3     , Vx ^= Vy;)                               \
+    X("ADD Vx Vy"  , prefix == 0x8 && n == 0x4     , uint16_t sum = Vx + Vy; Vx = sum & 0xFF; \
+                                                     Vf = sum > 0xFF;)                        \
+    X("SUB Vx Vy"  , prefix == 0x8 && n == 0x5     , Vf = Vx >= Vy; Vx = (Vx - Vy) & 0xFF;)   \
+    X("SHR Vx Vy"  , prefix == 0x8 && n == 0x6     , Vf = Vx & 0x1;                           \
+                                                     if (use_quirks_)                         \
+                                                         Vx >>= 1;                            \
+                                                     else                                     \
+                                                         Vx = Vy >> 1;)                       \
+    X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;)   \
+    X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1;                    \
+                                                     if (use_quirks_)                         \
+                                                         Vx = (Vx << 1) & 0xFF;               \
+                                                     else                                     \
+                                                         Vx = (Vy << 1) & 0xFF;)              \
+    X("SNE Vx Vy"  , prefix == 0x9 && n == 0x0                                                \
+                                   && Vx != Vy     , PC += 2;)                                \
+    X("LD I nnn"   , prefix == 0xa                 , I = nnn;)                                \
+    X("JP V0 nnn"  , prefix == 0xb                 , PC = nnn + regs_[0] - 2;)                \
+    X("RND Vx nn"  , prefix == 0xc                 , Vx = rng(seed) & nn;)                    \
+    X("DRW Vx Vy n", prefix == 0xd,                                   \
+        do {                                                          \
+            const auto x0 = Vx;                                       \
+            const auto y0 = Vy;                                       \
+            Vf = 0;                                                   \
+            for (uint8_t row = 0; row < n; ++row) {                   \
+                uint8_t sprite = ram_[I + row];                       \
+                for (uint8_t col = 0; col < 8; ++col, sprite <<= 1) { \
+                    if (sprite & 0x80) {                              \
+                        size_t x = x0 + col;                          \
+                        size_t y = y0 + row;                          \
+                        if (use_quirks_) {                            \
+                            x %= COLS;                                \
+                            y %= ROWS;                                \
+                        }                                             \
+                        if (x < COLS && y < ROWS) {                   \
+                            size_t index = y * COLS + x;              \
+                            Vf |= frame_buffer_[index];               \
+                            frame_buffer_[index] ^= 1;                \
+                        }                                             \
+                    }                                                 \
+                }                                                     \
+            }                                                         \
+        } while(0); )                                                 \
+    X("SKP Vx"     , prefix == 0xe && nn == 0x9e   , if ( pressed_keys_[Vx & 0xF]) PC += 2;)    \
+    X("SKNP Vx"    , prefix == 0xe && nn == 0xa1   , if (!pressed_keys_[Vx & 0xF]) PC += 2;)    \
+    X("LD Vx DT"   , prefix == 0xf && nn == 0x07   , Vx = delay_timer_;)                        \
+    X("LD Vx k"    , prefix == 0xf && nn == 0x0a   , Vx = WaitForKey();)                        \
+    X("LD DT Vx"   , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;)                        \
+    X("LD ST Vx"   , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;)                        \
+    X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , I += Vx;)                                  \
+    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = (Vx & 0xF) * 5;)                       \
     X("LD B Vx"    , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
-                                                     ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10; \
-                                                     ram_[(I + 2) & 0xFFF] = Vx % 10;) \
-    X("LD [I] Vx"  , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++) \
-                                                         ram_[I++ & 0xFFF] = regs_[xx]; \
-                                                     if (!use_quirks_) I += x + 1;) \
-    X("LD Vx [I]"  , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++) \
-                                                         regs_[xx] = ram_[I++ & 0xFFF]; \
+                                                     ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10;   \
+                                                     ram_[(I + 2) & 0xFFF] = Vx % 10;)          \
+    X("LD [I] Vx"  , prefix == 0xf && nn == 0x55   , for (unsigned xx = 0; xx <= x; xx++)       \
+                                                         ram_[I++ & 0xFFF] = regs_[xx];         \
+                                                     if (!use_quirks_) I += x + 1;)             \
+    X("LD Vx [I]"  , prefix == 0xf && nn == 0x65   , for (unsigned xx = 0; xx <= x; xx++)       \
+                                                         regs_[xx] = ram_[I++ & 0xFFF];         \
                                                      if (!use_quirks_) I += x + 1;)
+
     #define X(assembly, condition, instructions) if (condition) { instructions; break; }
     do {
         EXEC_INSTRUCTION
