@@ -35,6 +35,7 @@ To run:
 ```
 ./play path/to/rom.ch8
 ```
+You can then press each \[B\]racketed key to send an input.  
 Compile and run the sanity tests (mostly for CI):
 ```
 make test
@@ -79,6 +80,7 @@ found at `roms/README.md`.
 - [x] CPU and renderer.
 - [x] UI including controls and debugger view including pause, exit, and stepping key.
 - [x] .cfg file for each ROM with editable presets (such as emulation frequency) and key descriptions for each rom.  Found at `roms/*.cfg`.
+- [x] Togglable quirks \[1\] (XO-CHIP and SCHIP1.1 quirks are offered together).
 - [x] Configurable keys.
 - [x] CI.
 - [ ] Sound; probably never going to implement this.
@@ -122,6 +124,7 @@ counter   |           pointer     |    Index register    +---+    +---+
 
 ### 4.2 Implementation overview
 
+Here is the idea of this implementation. Details are omitted. 
 ```
       +-------+
       | start |
@@ -137,27 +140,33 @@ counter   |           pointer     |    Index register    +---+    +---+
       +---------+    | thread  |  | thread   |
           |          +~~~~~~~~~+  +~~~~~~~~~~+
           v               |            |
-          +-------------+ |            |
+          +-----<-------+ |            |
           |             | +-->--+--<---+
       +-------+         |       |
-      | Fetch |         |       x
+      | Fetch |         ^       x
       +-------+         |      / \ 
           |             |     /   \
      instruction        |    /     \
-          v             ^   x  End  x
-      +--------+        |    \ loop/
-      | Decode |        |     \ ? /
-      +--------+        |      \ /
-          |             |       x
-        opcode          |       | y
-          v             |       | 
-      +---------+       |       |
-      | Execute |       |  +---------+
-      +---------+       |  | Join    |
-          |             |  | threads |
-          +----->-------+  +---------+
-          |                     |
-          +-----<---------------+ 
+          v             +---x  End  x----------+
+      +--------+          n  \ loop/   y       |
+      | Decode |              \ ? /            |
+      +--------+               \ /             |
+          |                     x              v
+        opcode                  |              |
+          v                     |              |
+      +---------+               |      +--------------+
+      | Execute |               |      | Join threads |
+      +---------+               |      +--------------+
+          |                     |              |
+          v                     ^              v
+          |                     |              |
+      +--------+                |              |
+      | Render |                |              |
+      +--------+                |              |
+          |                     |              |
+          +--------->-----------+              |
+                                               |
+          +------------------------------------+
           |
           v 
        +-----+
@@ -165,10 +174,10 @@ counter   |           pointer     |    Index register    +---+    +---+
        +-----+
 ```
 The emulator uses 3 threads in total. More detailed comments on how the fetch-
-decode-execute cycle works are found in the source file `chip8.cpp`. Some
-forbidden unoptomised programming was used to write the instruction table but
-it's my hobby project so I make the rules. More comprehensive techninal 
-resources are found in the reference section.
+decode-execute cycle works are found in the source file `chip8.cpp`.
+Instructions are implemented in a near but non-optimised way but it suffices
+since we typically run on a 500 to 2000 instruction per second clock.  More 
+comprehensive techninal resources are found in the reference section.
 
 ### 4.3 Implementation quirks
 
