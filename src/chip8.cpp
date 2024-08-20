@@ -296,7 +296,7 @@ void Chip8::Exec(const opcode_t& opc) {
                                                          Vx = Vy >> 1;) \
     X("SUBN Vx Vy" , prefix == 0x8 && n == 0x7     , Vf = Vy >= Vx; Vx = (Vy - Vx) & 0xFF;) \
     X("SHL Vx Vy"  , prefix == 0x8 && n == 0xe     , Vf = (Vx >> 7) & 0x1; \
-                                                     if (!use_quirks_) \
+                                                     if (use_quirks_) \
                                                          Vx = (Vx << 1) & 0xFF; \
                                                      else \
                                                          Vx = (Vy << 1) & 0xFF;) \
