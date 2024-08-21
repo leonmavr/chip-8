@@ -337,7 +337,7 @@ void Chip8::Exec(const opcode_t& opc) {
     X("LD DT Vx"   , prefix == 0xf && nn == 0x15   , delay_timer_ = Vx;)                        \
     X("LD ST Vx"   , prefix == 0xf && nn == 0x18   , sound_timer_ = Vx;)                        \
     X("ADD I Vx"   , prefix == 0xf && nn == 0x1e   , I += Vx;)                                  \
-    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = (Vx & 0xF) * 5;)                       \
+    X("LD F Vx"    , prefix == 0xf && nn == 0x29   , I = Vx * 5;)                               \
     X("LD B Vx"    , prefix == 0xf && nn == 0x33   , ram_[(I + 0) & 0xFFF] = (Vx % 1000) / 100; \
                                                      ram_[(I + 1) & 0xFFF] = (Vx % 100) / 10;   \
                                                      ram_[(I + 2) & 0xFFF] = Vx % 10;)          \
