@@ -1,9 +1,9 @@
 ```
-    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒   ▒▒▒▒       ▒▒▒▒
+    ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒       ▒▒▒▒
 ▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒   ▒▒▒▒▒▒ ▒▒▒▒       ▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒  ▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒▒     ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒  ▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒       ▒▒▒▒▒▒▒▒▒▒▒▒▒     ▒▒▒▒   ▒▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒       ▒▒▒       ▒▒▒     ▒▒▒▒   ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
   ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
     ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -46,12 +46,15 @@ make clean
 
 ### 2.2 Usage
 
-#### 2.2.1 Keypad
+#### 2.2.1 Controls and UI
 
-The keys for each rom along with their description will be listed on the
-right panel. Read this section only if you want to edit them.
-Chip8's hex keypad has been mapped to the keyboard in the following way by 
-default:
+The keys along with their descriptions are listed on the right panel of the UI.
+You can press each \[B\]racketed key to send an input.  
+
+#### 2.2.2 Changing the controls
+
+Chip8's hex keypad has been mapped to the keyboard in the
+following way by default:
 ```
 +---+---+---+---+       +---+---+---+---+
 | 1 | 2 | 3 | C |       | 1 | 2 | 3 | 4 |
@@ -79,6 +82,7 @@ found at `roms/README.md`.
 - [x] CPU and renderer.
 - [x] UI including controls and debugger view including pause, exit, and stepping key.
 - [x] .cfg file for each ROM with editable presets (such as emulation frequency) and key descriptions for each rom.  Found at `roms/*.cfg`.
+- [x] Togglable quirks \[1\] (XO-CHIP and SCHIP1.1 quirks are offered together).
 - [x] Configurable keys.
 - [x] CI.
 - [ ] Sound; probably never going to implement this.
@@ -122,6 +126,7 @@ counter   |           pointer     |    Index register    +---+    +---+
 
 ### 4.2 Implementation overview
 
+Here is the idea of this implementation. Details are omitted. 
 ```
       +-------+
       | start |
@@ -137,27 +142,33 @@ counter   |           pointer     |    Index register    +---+    +---+
       +---------+    | thread  |  | thread   |
           |          +~~~~~~~~~+  +~~~~~~~~~~+
           v               |            |
-          +-------------+ |            |
+          +-----<-------+ |            |
           |             | +-->--+--<---+
       +-------+         |       |
-      | Fetch |         |       x
+      | Fetch |         ^       x
       +-------+         |      / \ 
           |             |     /   \
      instruction        |    /     \
-          v             ^   x  End  x
-      +--------+        |    \ loop/
-      | Decode |        |     \ ? /
-      +--------+        |      \ /
-          |             |       x
-        opcode          |       | y
-          v             |       | 
-      +---------+       |       |
-      | Execute |       |  +---------+
-      +---------+       |  | Join    |
-          |             |  | threads |
-          +----->-------+  +---------+
-          |                     |
-          +-----<---------------+ 
+          v             +---x  End  x----------+
+      +--------+          n  \ loop/   y       |
+      | Decode |              \ ? /            |
+      +--------+               \ /             |
+          |                     x              v
+        opcode                  |              |
+          v                     |              |
+      +---------+               |      +--------------+
+      | Execute |               |      | Join threads |
+      +---------+               |      +--------------+
+          |                     |              |
+          v                     ^              v
+          |                     |              |
+      +--------+                |              |
+      | Render |                |              |
+      +--------+                |              |
+          |                     |              |
+          +--------->-----------+              |
+                                               |
+          +------------------------------------+
           |
           v 
        +-----+
@@ -165,17 +176,11 @@ counter   |           pointer     |    Index register    +---+    +---+
        +-----+
 ```
 The emulator uses 3 threads in total. More detailed comments on how the fetch-
-decode-execute cycle works are found in the source file `chip8.cpp`. Some
-forbidden unoptomised programming was used to write the instruction table but
-it's my hobby project so I make the rules. More comprehensive techninal 
-resources are found in the reference section.
-
-### 4.3 Implementation quirks
-
-I found that without applying
-[SCHIP1.1's quirks](https://chip8.gulrak.net/#quirk1), several ROMs were
-crashing. These involve instructions such as `8xy6`, which is implemented as
-`Vx = Vy >> 1` in the classic Chip8 and as `Vx >>= 1` in the newer SCHIP.
+decode-execute cycle works are found in the source file `chip8.cpp`.
+Instructions are implemented in a neat but non-optimised instruction table.
+This suffices since we typically run on a 300 to 2000 instruction per second
+clock. More comprehensive techninal resources are found in the reference
+section.
 
 # 5. Improvements/fixed issues
 
