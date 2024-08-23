@@ -26,6 +26,7 @@ virtual language and be interpreted at
 
 ### 2.1 Compilation
 
+You'll need a Linux computer with a compiler that supports C++17 and `make` installed.
 This project has no third-party dependencies and renders on the terminal.  
 To compile:
 ```
