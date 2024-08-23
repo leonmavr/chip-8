@@ -20,7 +20,7 @@ virtual language and be interpreted at
 <img src="https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.gif" alt="Demo gif" height="300px">
 
 (A high quality video version of the gif is found
-[here](https://github.com/leonmavr/chip-8/blob/master/assets/demo_grid.mp4).)
+[here](https://github.com/leonmavr/chip-8/raw/master/assets/demo_grid.mp4).)
 
 # 2. Usage
 
