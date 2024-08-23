@@ -190,7 +190,7 @@ sprite meets the right border, it's wrapped around. If quirks are off, then the
 sprite is clipped till the origin crosses the right wall. This is demonstrated 
 below during a Brix gameplay.
 
-<img src="https://raw.githubusercontent.com/leonmavr/chip-8/master/assets/quirks_sprite.png" alt="quirks Text" width="75%">
+<img src="https://raw.githubusercontent.com/leonmavr/chip-8/master/assets/quirks_sprite.png" alt="quirks Text" width="80%">
 
 # 5. Minor improvements/fixed issues
 
