@@ -185,13 +185,12 @@ section.
 ### 4.3 Quirks
 
 As mentioned in the features, togglable XO-CHIP and SCHIP1.1 quirks are offered
-together. The more noticeable quirk is the sprite wrapping. If any pixel of a
+together. The most noticeable quirk is the sprite wrapping; if any pixel of a
 sprite meets the right border, it's wrapped around. If quirks are off, then the
 sprite is clipped till the origin crosses the right wall. This is demonstrated 
 below during a Brix gameplay.
 
 <img src="https://raw.githubusercontent.com/leonmavr/chip-8/master/assets/quirks_sprite.png" alt="quirks Text" width="75%">
-
 
 # 5. Minor improvements/fixed issues
 
