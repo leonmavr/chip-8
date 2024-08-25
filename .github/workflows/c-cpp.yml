@@ -8,6 +8,8 @@ on:
       - 'assets/**'
       - 'roms/**'
       - 'LICENSE*'
+      - '.git*'
+      - '.editor*'
   pull_request:
     branches: [ "master" ]
     paths-ignore:
@@ -15,6 +17,8 @@ on:
       - 'assets/**'
       - 'roms/**'
       - 'LICENSE*'
+      - '.git*'
+      - '.editor*'
 
 jobs:
   build:

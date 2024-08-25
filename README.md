@@ -26,6 +26,7 @@ virtual language and be interpreted at
 
 ### 2.1 Compilation
 
+You'll need a Linux computer with a compiler that supports C++17 and `make` installed.
 This project has no third-party dependencies and renders on the terminal.  
 To compile:
 ```
@@ -182,7 +183,17 @@ This suffices since we typically run on a 300 to 2000 instruction per second
 clock. More comprehensive techninal resources are found in the reference
 section.
 
-# 5. Improvements/fixed issues
+### 4.3 Quirks
+
+As mentioned in the features, togglable XO-CHIP and SCHIP1.1 quirks are offered
+together. The most noticeable quirk is the sprite wrapping; if any pixel of a
+sprite meets the right border, it's wrapped around. If quirks are off, then the
+sprite is clipped till the origin crosses the right wall. This is demonstrated 
+below during a Brix gameplay.
+
+<img src="https://raw.githubusercontent.com/leonmavr/chip-8/master/assets/quirks_sprite.png" alt="quirks Text" width="80%">
+
+# 5. Minor improvements/fixed issues
 
 - [x] Get rid of excessive screen flicker ([f27bd6d](https://github.com/leonmavr/chip-8/commit/f27bd6d0bb2c32fe9879f90c9354cb34d11e9438))
 
