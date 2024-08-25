@@ -65,17 +65,13 @@ void CfgParser::ParseConfigFile(const std::string& filename) {
             std::string line_lower = line;
             std::transform(line_lower.begin(), line_lower.end(), line_lower.begin(),
                    [](char c){ return std::tolower(c); });
-            if (line_lower == "on")
-                quirks_ = true;
-            else if (line_lower == "off")
-                quirks_ = false;
-            else {
-                try {
-                    frequency_ = std::stoi(line);
-                } catch (const std::invalid_argument& e) {
-                    std::cerr << "Invalid argument: " << e.what() << std::endl;
-                }
-            }
+            bool contains_quirks = line_lower == "on" || line_lower == "off";
+            bool contains_freq = !line_lower.empty() &&
+                std::all_of(line_lower.begin(), line_lower.end(), ::isdigit);
+            quirks_ = (contains_quirks && line_lower == "on") ? true :
+                (contains_quirks && line_lower == "off") ? false : quirks_;
+            if (contains_freq)
+                frequency_ = std::stoi(line);
         }
     }
     file.close();
