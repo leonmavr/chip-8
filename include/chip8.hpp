@@ -113,12 +113,13 @@ class Chip8 {
         std::unique_ptr<CfgParser> cfg_parser_;
         /** Last key pressed by the actual keyboard */
         std::atomic<char> kbd_pressed_key_;
+        // NOTE: threads must be started after their addressees (atomic vars) are constructed
+        std::thread timer_thread_;
+        std::thread key_thread_;
 
         /** Whether to use SCHIP1.1's quirks: https://chip8.gulrak.net/ */
         bool use_quirks_;
 
-        std::thread timer_thread_;
-        std::thread key_thread_;
 };
 
 #endif /* CHIP8_HPP */

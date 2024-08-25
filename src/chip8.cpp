@@ -49,11 +49,11 @@ Chip8::Chip8():
     sound_timer_(0x00),
     run_timers_(true),
     run_key_thread_(true),
-    timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
-    key_thread_(std::thread(&Chip8::ListenForKey, this)),
     state_(STATE_RUNNING),
     cfg_parser_(nullptr),
     kbd_pressed_key_('\0'),
+    timer_thread_(std::thread(&Chip8::UpdateTimers, this)),
+    key_thread_(std::thread(&Chip8::ListenForKey, this)),
     use_quirks_(true)
 {
     // preload memory with sprites 
