@@ -107,17 +107,18 @@ class Chip8 {
         
         std::atomic<bool> run_timers_;     // flag to start delay and sound timer thread
         std::atomic<bool> run_key_thread_; // flag to start keyboard listener thread
-        std::thread timer_thread_;
-        std::thread key_thread_;
         std::mutex mutex_key_press_;
         /** Running state - running/paused/stepping/stopped */ 
         std::atomic<int> state_;
         std::unique_ptr<CfgParser> cfg_parser_;
         /** Last key pressed by the actual keyboard */
-        char kbd_pressed_key_;
+        std::atomic<char> kbd_pressed_key_;
 
         /** Whether to use SCHIP1.1's quirks: https://chip8.gulrak.net/ */
         bool use_quirks_;
+
+        std::thread timer_thread_;
+        std::thread key_thread_;
 };
 
 #endif /* CHIP8_HPP */

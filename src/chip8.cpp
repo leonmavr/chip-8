@@ -350,6 +350,7 @@ void Chip8::Exec(const opcode_t& opc) {
 
     #define X(assembly, condition, instructions) if (condition) { instructions; break; }
     do {
+        std::lock_guard<std::mutex> lock(mutex_key_press_);
         EXEC_INSTRUCTION
     } while(0);
     #undef X
@@ -368,7 +369,9 @@ void Chip8::ListenForKey() {
 
         int success = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
         if (success > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
-            read(STDIN_FILENO, &kbd_pressed_key_, 1);
+            char c;
+            read(STDIN_FILENO, &c, 1);
+            kbd_pressed_key_ = c;
             {
                 std::lock_guard<std::mutex> lock(mutex_key_press_);
                 if (kbd_pressed_key_ == 'S') state_ = STATE_STEPPING;
