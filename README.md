@@ -73,10 +73,10 @@ You can edit the keys in
 #### 2.2.2 .cfg files
 
 Each rom (`.ch8` file in `roms` directory) is accompanied by a `.cfg` file. 
-This describes each control key and sets the frequency each rom will run at. It
-was necessary to set the frequency because Chip8 games used to run on different
-machines over the decades. More detailed description of `.cfg` files can be
-found at `roms/README.md`.
+A `.cfg` file is optional and describes each control key and sets the frequency
+each rom will run at. Chip8 games used to run on different machines over the
+decades so each one runs on a different frequency. More detailed description of
+`.cfg` files can be found at `roms/README.md`.
 
 # 3. Features
 
@@ -90,7 +90,7 @@ found at `roms/README.md`.
 
 # 4. Architecture and implementation
 
-### 4.1 System architecture
+### 4.1 System components
 
 ```
   <--- Main memory --->
@@ -115,7 +115,7 @@ counter   |           pointer     |    Index register    +---+    +---+
 +----+                +----+           +----+
 2 bytes               2 bytes          2 bytes
 
-        Renderer
+  Monochrome renderer
 +----------------------+ ^
 |                      | |
 |                      | 32
@@ -196,6 +196,7 @@ below during a Brix gameplay.
 # 5. Minor improvements/fixed issues
 
 - [x] Get rid of excessive screen flicker ([f27bd6d](https://github.com/leonmavr/chip-8/commit/f27bd6d0bb2c32fe9879f90c9354cb34d11e9438))
+- [x] Several race conditions fixed - thanks to @Skeeto. 
 
 # References and credits
 1. [Steffen Schumann's instruction table](https://chip8.gulrak.net/)
