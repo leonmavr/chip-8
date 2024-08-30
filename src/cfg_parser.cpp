@@ -8,13 +8,6 @@
  * Description:
  * Parses a .cfg file for Chip8 emulator roms and fetches rom's settings (keypad,
  * frequency.
- *
- * Creation date:
- * 20/07/2024 
- *
- * Notes:
- * Originally written by ChatGPT.
- * Tweaked by project's author.
  */
 
 static bool IsWhitespaceOnly(const std::string& str) {
