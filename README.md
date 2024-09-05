@@ -8,6 +8,16 @@
   ▒▒▒▒▒▒    ▒▒▒▒       ▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒       ▒▒▒▒
     ▒▒▒▒▒▒ ▒▒▒▒▒       ▒▒▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒▒▒▒        ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
+<div align="center">
+	
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![C/C++ CI build & test](https://github.com/leonmavr/chip-8/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/leonmavr/chip-8/actions/workflows/c-cpp.yml)
+<a href="https://kopimi.com/">
+  <img src="https://kopimi.com/badges/c_mini_30.gif" alt="kopimi logo" width="6%"/>
+</a>
+
+</div>
+
 # 1. About
 
 I wrote a Chip8 virtual machine. Chip8 was implemented by a number of 
