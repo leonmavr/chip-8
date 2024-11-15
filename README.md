@@ -80,7 +80,7 @@ following way by default:
 You can edit the keys in
 [keypad.hpp](https://github.com/leonmavr/chip-8/blob/master/include/keypad.hpp).
 
-#### 2.2.2 .cfg files
+#### 2.2.3 .cfg files
 
 Each rom (`.ch8` file in `roms` directory) is accompanied by a `.cfg` file. 
 A `.cfg` file is optional and describes each control key and sets the frequency
