@@ -5,7 +5,7 @@
 #include <cassert>
 
 /**
- * This class is responsible for testing the Chip8 class as a whole. The goal 
+ * This class is responsible for testing the Chip8 class as a whole. The goal
  * is to verify Chip8's sanity. It does so by checking the internal state of
  * Chip8, e.g. the rendered output (frame buffer), PC, etc.
  */
@@ -23,9 +23,6 @@ class Chip8Tester {
         void AssertPC(const Chip8& ch8, const T& target) {
             assert(static_cast<int>(ch8.PC_) == static_cast<int>(target));
         }
-        
-    private:
-
 };
 
 #endif // CHIP8_TESTER_HPP
