@@ -1,0 +1,28 @@
+flowchart TD
+    A["SetTone(on, freq)"] --> B{"on?"}
+
+    B -->|"yes"| C{"Device open?"}
+    C -->|"no"| D["snd_pcm_open('default')"]
+    D --> E["snd_pcm_set_params<br/>S16_LE · mono · 44.1 kHz · 20 ms"]
+    E --> F{"Opened OK?"}
+    F -->|"no"| G["failed_ = true<br/>silent from now on"]
+    F -->|"yes"| H["PREPARED"]
+
+    C -->|"yes"| I{"writing_?"}
+    I -->|"no"| J["snd_pcm_prepare"]
+    J --> H
+    I -->|"yes"| K["BuildChunk<br/>square wave samples"]
+    H --> K
+
+    K --> L["snd_pcm_writei"]
+    L --> M["RUNNING<br/>tone audible"]
+    L -.->|"-EPIPE"| N["prepare + retry once<br/>then snd_pcm_recover"]
+
+    B -->|"no"| O{"writing_?"}
+    O -->|"no"| P["do nothing"]
+    O -->|"yes"| Q{"silent > 150 ms?"}
+    Q -->|"no"| R["write silent chunk"]
+    Q -->|"yes"| S["snd_pcm_drop<br/>back to idle"]
+
+    M --> A
+    S --> A
