@@ -3,6 +3,9 @@
 
 #include "cfg_parser.hpp"
 #include "keypad.hpp"
+#ifdef CHIP8_ENABLE_SOUND
+#include "beeper.hpp"
+#endif
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -42,7 +45,12 @@ enum {
 
 class Chip8 {
     public:
-        Chip8();
+        /**
+         * @param sound_enabled Start the sound thread. When false, no sound
+         * thread is created at all, so the sound timer simply counts down
+         * silently and no audio device is touched.
+         */
+        Chip8(bool sound_enabled = false);
         ~Chip8();
         /**
          * @brief Load a ROM from a filepath
@@ -54,6 +62,15 @@ class Chip8 {
                   fetch-decode-execute cycle until the user interrupts it.
          */
         void Run(size_t max_iterations = std::numeric_limits<size_t>::max());
+        /**
+         * @brief Start the sound thread, if sound was not already enabled.
+         *
+         * The thread can't be started during construction when the caller only
+         * learns about --sound after parsing argv. Safe to call more than once:
+         * the thread is created at most once, and does nothing when the build
+         * has no sound support.
+         */
+        void StartSound();
 #ifdef RUN_UNIT_TESTS
         /** Unit tester class; has access to this class' data */
         friend class Chip8Tester;
@@ -107,6 +124,18 @@ class Chip8 {
         void CheckTerminalFits();
         /** @brief Update the delay and sound timer. */
         void UpdateTimers();
+#ifdef CHIP8_ENABLE_SOUND
+        /**
+         * @brief Beep while the sound timer is running, in its own thread.
+         *
+         * Drives the Beeper (ALSA) with a square wave; falls back to silence
+         * when no audio device is available. Compiled out entirely when the
+         * build has no sound support.
+         */
+        void PlaySound();
+        /** Tone emitted for the sound timer, in Hz (defaults to A4). */
+        unsigned beep_freq_hz_ = 440;
+#endif
         std::array<uint8_t, 0x1000> ram_;  // Main memory
         uint16_t PC_;                      // Program counter - points to current instruction
         std::array<uint8_t, 16> regs_;     // Arithmetic operation registers
@@ -150,6 +179,8 @@ class Chip8 {
         std::atomic<bool> run_timers_;
         // whether to start the key-listening thread
         std::atomic<bool> run_key_thread_;
+        // whether to start the sound (beeper) thread
+        std::atomic<bool> run_sound_thread_;
         std::mutex mutex_key_press_;
         /** Running state (running/paused/stepping/stopped) */ 
         std::atomic<int> state_;
@@ -160,6 +191,12 @@ class Chip8 {
         // (atomic vars) are constructed
         std::thread timer_thread_;
         std::thread key_thread_;
+        /** Created only when sound is enabled; empty otherwise. */
+        std::thread sound_thread_;
+#ifdef CHIP8_ENABLE_SOUND
+        /** Emits the beep for the sound timer; only used by the sound thread. */
+        Beeper beeper_;
+#endif
 
         /** Whether to use SCHIP1.1's quirks: https://chip8.gulrak.net/ */
         bool use_quirks_;

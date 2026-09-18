@@ -3,15 +3,25 @@ TARGET = play
 SRC_DIR = src
 INC_DIR = include
 CFLAGS = -std=c++17 -I$(INC_DIR) -Wall
-LDFLAGS = 
 DEMO_SRC = demo.cpp
 TEST_SRC = test/tests.cpp
-SRC = $(wildcard $(SRC_DIR)/*.cpp) $(DEMO_SRC)
+
+# Optional ALSA sound support. Build without it via: make SOUND=0
+SOUND ?= 1
+ifeq ($(SOUND),1)
+    CFLAGS += -DCHIP8_ENABLE_SOUND
+    LDFLAGS += -lasound
+    SOUND_SRC = $(SRC_DIR)/beeper.cpp
+endif
+
+# beeper.cpp is added only when sound is enabled, so a SOUND=0 build needs no
+# ALSA headers or libraries at all.
+SRC = $(filter-out $(SRC_DIR)/beeper.cpp,$(wildcard $(SRC_DIR)/*.cpp)) $(SOUND_SRC) $(DEMO_SRC)
 
 # Compare cmd arguments; if `test`, extend it to handle unit tests
 ifeq ($(MAKECMDGOALS), test)
     CFLAGS += -DRUN_UNIT_TESTS
-    SRC = $(wildcard $(SRC_DIR)/*.cpp) $(TEST_SRC)
+    SRC = $(filter-out $(SRC_DIR)/beeper.cpp,$(wildcard $(SRC_DIR)/*.cpp)) $(SOUND_SRC) $(TEST_SRC)
     TARGET = test/test
 endif
 

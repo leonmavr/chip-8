@@ -62,7 +62,7 @@ static constexpr unsigned KEY_REPEAT_TIMEOUT_MS = 100;
 static constexpr unsigned KEY_FIRST_PRESS_TIMEOUT_MS = 120;
 
 
-Chip8::Chip8():
+Chip8::Chip8(bool sound_enabled):
     ram_{},
     PC_(ROM_OFFSET),
     regs_{},
@@ -82,6 +82,7 @@ Chip8::Chip8():
     key_press_counter_(0),
     run_timers_(true),
     run_key_thread_(true),
+    run_sound_thread_(sound_enabled),
     state_(STATE_RUNNING),
     cfg_parser_(nullptr),
     kbd_pressed_key_('\0'),
@@ -126,8 +127,20 @@ Chip8::~Chip8 () {
     run_key_thread_ = false;
     if (key_thread_.joinable())
         key_thread_.join();
+    run_sound_thread_ = false;
+    if (sound_thread_.joinable())
+        sound_thread_.join();
     ResetBlockingInput();
 };
+
+void Chip8::StartSound() {
+#ifdef CHIP8_ENABLE_SOUND
+    if (sound_thread_.joinable())
+        return; // already running
+    run_sound_thread_ = true;
+    sound_thread_ = std::thread(&Chip8::PlaySound, this);
+#endif
+}
 
 void Chip8::LoadRom(const char* filename) {
     std::ifstream infile(filename);
@@ -647,3 +660,12 @@ void Chip8::UpdateTimers() {
         if (sound_timer_ > 0) --sound_timer_;
     }
 }
+
+#ifdef CHIP8_ENABLE_SOUND
+void Chip8::PlaySound() {
+    while (run_sound_thread_) {
+        const bool beeping = sound_timer_ > 0;
+        beeper_.SetTone(beeping, beep_freq_hz_);
+    }
+}
+#endif
