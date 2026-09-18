@@ -78,14 +78,33 @@ class Chip8 {
         /** @brief Listen for a key press (without blocking the program).  */
         void ListenForKey();
         /**
-         * @brief Wait for a key press (blocks the program).
-         * @returns The pressed Chip8 keypad key.
+         * @brief Wait for a fresh key press (blocks the program).
+         * @returns The pressed Chip8 keypad key, or 0 if the emulator is stopping.
          */
         uint8_t WaitForKey();
+        /**
+         * @brief Release keys that have stopped being refreshed by the keyboard.
+         *
+         * A terminal reports auto-repeat, not key release, so a key is considered
+         * held while events keep arriving and is released once they stop.
+         */
+        void ClearHeldKeys();
         /** @brief Clear the screen. */
         inline void Cls();
+        /** @brief Update the phosphor overlay based on the previous frame. 
+         * The phosphor overlay is a dimmed version of the previous frame
+         * drawn before the current frame.
+         */
+        void UpdatePhosphorBuffer();
         /** @brief Render the entire screen. */
         void RenderFrame();
+        /** @brief Build the whole frame as a UTF-8 string, without printing it. */
+        std::string BuildFrame();
+        /**
+         * @brief Exit with an error if the terminal is too small for the frame.
+         * Does nothing when the terminal size can't be determined.
+         */
+        void CheckTerminalFits();
         /** @brief Update the delay and sound timer. */
         void UpdateTimers();
         std::array<uint8_t, 0x1000> ram_;  // Main memory
@@ -95,25 +114,50 @@ class Chip8 {
         uint16_t SP_;                      // Stack pointer
         uint16_t I_;                       // Index register - read and write in RAM
         std::array<uint8_t, ROWS*COLS> frame_buffer_; // Pixels to render (monochrome)
+        /** Previous full frame, used for to fade the recently changed pixels */
+        std::array<uint8_t, ROWS*COLS> previous_frame_buffer_;
+        /** Bitmask of pixels that changed from the previous frame - should be drawn dimly */
+        std::array<uint8_t, ROWS*COLS> previous_buffer_diff_;
         /** The hardware clock - i.e. how many instructions the emulator can run per sec */
         unsigned freq_;
         /** If non zero, ticks down at 60 Hz */
         std::atomic<uint8_t> delay_timer_;
-        /** If non zero, ticks down at 60 Hz. Should make the system beep is zero. */
+        /** If non zero, ticks down at 60 Hz. Should make the system beep if zero. */
         std::atomic<uint8_t> sound_timer_;
         /** Maps keys from a real keyboard to Chip8's keypad */
-        std::unordered_map<char, uint8_t> keyboard2keypad_ = Keypad::keyboard2keypad;
-        std::unordered_map<uint8_t, bool> pressed_keys_;
-        
-        std::atomic<bool> run_timers_;     // flag to start delay and sound timer thread
-        std::atomic<bool> run_key_thread_; // flag to start keyboard listener thread
+        const std::unordered_map<char, uint8_t>& keyboard2keypad_ = Keypad::keyboard2keypad;
+        /** Whether each of the 16 Chip8 keys is currently held down */
+        std::array<std::atomic<bool>, 16> key_is_pressed_;
+        /**
+         * Time (ms) of the last keyboard event seen for each key.
+         * Heuristic for smooth (not instant) release. Used to
+         * measure how long a key has been not pressed and once we 
+         * exceed a timeout, the key is meant to be marked as released.
+         */
+        std::array<std::atomic<unsigned>, 16> key_last_seen_ms_;
+        /**
+         * Tally of rising edge (not held to held) for each key. 
+         * Auto-repeat never updates it, so a newer value means 
+         * fresh continuous press. Required for Fx0A instructions.
+         */
+        std::array<std::atomic<unsigned>, 16> keypress_edge_ctr_;
+        /** Whether each key has shown auto-repeat since it was last pressed. */
+        std::array<std::atomic<bool>, 16> key_is_autorepeat_;
+        /** Running tally of all press edges, used to stamp key_press_seq_. */
+        std::atomic<unsigned> key_press_counter_;
+
+        // whether to start the delay and sound timer thread
+        std::atomic<bool> run_timers_;
+        // whether to start the key-listening thread
+        std::atomic<bool> run_key_thread_;
         std::mutex mutex_key_press_;
-        /** Running state - running/paused/stepping/stopped */ 
+        /** Running state (running/paused/stepping/stopped) */ 
         std::atomic<int> state_;
         std::unique_ptr<CfgParser> cfg_parser_;
         /** Last key pressed by the actual keyboard */
         std::atomic<char> kbd_pressed_key_;
-        // NOTE: threads must be started after their addressees (atomic vars) are constructed
+        // NOTE: threads must be started after their addressees
+        // (atomic vars) are constructed
         std::thread timer_thread_;
         std::thread key_thread_;
 

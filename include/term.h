@@ -22,6 +22,10 @@ extern "C" {
 #define TPRINT_GOTO_TOPLEFT() printf("\033[0;0H")
 #define TPRINT_HIDE_CURSOR() printf("\e[?25l")
 #define TPRINT_SHOW_CURSOR() printf("\e[?25h")
+// enter/leave alternate buffer (e.g. for fullscreen applications
+// instead of drawing on the scrollback)
+#define TPRINT_ENTER_ALT_SCREEN() printf("\033[?1049h")
+#define TPRINT_LEAVE_ALT_SCREEN() printf("\033[?1049l")
 #define TPRINT_INIT() do {                                                \
     TPRINT_CLEAR();                                                       \
     TPRINT_HIDE_CURSOR();                                                 \
