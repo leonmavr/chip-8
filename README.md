@@ -37,7 +37,7 @@ virtual language and be interpreted at
 ### 2.1 Compilation
 
 You'll need a Linux computer with a compiler that supports C++17 and `make` installed.
-This project has no third-party dependencies and renders on the terminal.  
+This project has no required third-party dependencies and renders on the terminal.  
 To compile:
 ```
 make
@@ -53,6 +53,19 @@ make test
 To clean all object and executable files:
 ```
 make clean
+```
+
+#### 2.1.1 Sound (optional)
+
+Sound is compiled in by default and requires the ALSA development headers
+(`libasound2-dev` on Debian/Ubuntu). It is off at run time unless requested with
+`-s` or `--sound`:
+```
+./play --sound path/to/rom.ch8
+```
+To build without any ALSA dependency, so no audio headers are required:
+```
+make SOUND=0
 ```
 
 ### 2.2 Usage
@@ -96,7 +109,7 @@ decades so each one runs on a different frequency. More detailed description of
 - [x] Togglable quirks \[1\] (XO-CHIP and SCHIP1.1 quirks are offered together).
 - [x] Configurable keys.
 - [x] CI.
-- [ ] Sound; probably never going to implement this.
+- [x] Sound (monotone bleep)
 
 # 4. Architecture and implementation
 
