@@ -27,5 +27,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install Alsa
+      run: sudo apt install libasound2-dev -y
     - name: compile and run sanity test(s)
       run: make test
